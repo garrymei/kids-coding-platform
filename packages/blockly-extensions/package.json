@@ -1,0 +1,26 @@
+{
+  "name": "@kids/blockly-extensions",
+  "version": "0.1.0",
+  "description": "Blockly custom blocks and React workspace wrapper for Kids Coding Platform",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json"
+  },
+  "peerDependencies": {
+    "react": ">=18"
+  },
+  "dependencies": {
+    "blockly": "^11.2.2"
+  }
+}

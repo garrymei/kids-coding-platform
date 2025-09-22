@@ -1,0 +1,17 @@
+* {
+  box-sizing: border-box;
+}
+
+a {
+  color: inherit;
+}
+
+body {
+  margin: 0;
+  font-family: 'SF Pro Rounded', 'Nunito', 'Segoe UI', sans-serif;
+  background: transparent;
+}
+
+#root {
+  min-height: 100vh;
+}

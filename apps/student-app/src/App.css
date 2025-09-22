@@ -1,0 +1,190 @@
+:root {
+  color-scheme: light;
+  font-family: 'SF Pro Rounded', 'Nunito', 'Segoe UI', sans-serif;
+  background: radial-gradient(circle at top, #f6f7ff 0%, #e7ebff 55%, #fdfdff 100%);
+  min-height: 100vh;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: transparent;
+  color: #1f2b5c;
+}
+
+.lab-page {
+  min-height: 100vh;
+  padding: 32px clamp(24px, 4vw, 48px);
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+
+.lab-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 24px;
+}
+
+.lab-header h1 {
+  font-size: clamp(1.8rem, 2.4vw, 2.4rem);
+  margin: 0 0 8px;
+}
+
+.lab-subtitle {
+  margin: 0;
+  color: #4b5bd7;
+  font-weight: 600;
+}
+
+.lab-layout {
+  display: grid;
+  gap: 24px;
+  grid-template-columns: minmax(0, 2fr) minmax(0, 1.1fr);
+  align-items: start;
+}
+
+.lab-workspace {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.lab-side {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.workspace-frame {
+  height: 460px;
+  border-radius: 16px;
+  overflow: hidden;
+  background: #f0f2ff;
+  border: 1px solid rgba(110, 168, 255, 0.2);
+}
+
+.hint-block {
+  margin: 0;
+  font-family: 'JetBrains Mono', 'Fira Code', monospace;
+  font-size: 0.95rem;
+  line-height: 1.5;
+  color: #4b5bd7;
+  white-space: pre-wrap;
+}
+
+.output-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.output-header button {
+  flex-shrink: 0;
+}
+
+.output-panel {
+  background: #101438;
+  color: #dbf2ff;
+  border-radius: 14px;
+  padding: 14px;
+  min-height: 140px;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.06);
+}
+
+.output-panel h3 {
+  margin: 0 0 12px;
+  font-size: 0.95rem;
+  color: rgba(219, 242, 255, 0.8);
+}
+
+.output-panel pre {
+  margin: 0;
+  font-family: 'JetBrains Mono', 'Fira Code', monospace;
+  white-space: pre-wrap;
+  font-size: 0.96rem;
+}
+
+.error-panel {
+  background: rgba(253, 110, 110, 0.1);
+  border-radius: 14px;
+  padding: 12px 14px;
+  color: #c03d4b;
+  font-weight: 600;
+}
+
+.success-panel {
+  background: rgba(110, 168, 255, 0.1);
+  border-radius: 14px;
+  padding: 12px 14px;
+  color: #3053c8;
+  font-weight: 600;
+}
+
+.code-block {
+  margin: 0;
+  font-family: 'JetBrains Mono', 'Fira Code', monospace;
+  font-size: 0.95rem;
+  line-height: 1.45;
+  max-height: 280px;
+  overflow: auto;
+  background: #f9faff;
+  padding: 14px;
+  border-radius: 14px;
+  box-shadow: inset 0 0 0 1px rgba(110, 168, 255, 0.12);
+}
+
+.reward-overlay {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  display: grid;
+  place-items: center;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.6), rgba(255, 255, 255, 0));
+  animation: fadeAway 1.6s ease forwards;
+}
+
+.reward-badge {
+  font-size: 2.2rem;
+  font-weight: 800;
+  color: #ffaf2d;
+  animation: pop 0.8s ease;
+  text-shadow: 0 6px 16px rgba(255, 175, 45, 0.4);
+}
+
+@keyframes pop {
+  0% {
+    transform: scale(0.6);
+    opacity: 0;
+  }
+  40% {
+    transform: scale(1.08);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 0;
+  }
+}
+
+@keyframes fadeAway {
+  0% {
+    opacity: 0.8;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+@media (max-width: 1080px) {
+  .lab-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .lab-side {
+    order: -1;
+  }
+}
