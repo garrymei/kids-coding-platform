@@ -107,24 +107,45 @@ kids-coding-platform/
 ```bash
 # 克隆后的一键体验
 make dev
-
-# 另起终端查看 API、执行器、学生端日志
-
-# 关闭服务
-make db-down
 ```
 
-> `make dev` 会执行 pnpm 安装、启动数据库（Docker）、并并行启动 API（NestJS）、执行器（Docker sandbox）与学生端前端（Vite）。
+> `make dev` 会启动所有服务：数据库、API、WebSocket、执行器、以及三个前端应用。
 
-常用命令：
+### 服务地址
+
+启动后可通过以下地址访问各服务：
+
+| 服务          | 地址                       | 说明          |
+| ------------- | -------------------------- | ------------- |
+| 📱 学生端     | http://localhost:5173      | 主要学习界面  |
+| 👨‍👩‍👧‍👦 家长端     | http://localhost:5174      | 学习监督界面  |
+| 👨‍🏫 教师端     | http://localhost:5175      | 教学管理界面  |
+| 🔌 API 服务   | http://localhost:3000      | REST API      |
+| 📡 WebSocket  | ws://localhost:3001        | 实时通信      |
+| 📊 数据库管理 | http://localhost:5555      | Prisma Studio |
+| 📖 API 文档   | http://localhost:3000/docs | Swagger 文档  |
+
+### 常用命令
 
 | 命令                        | 说明                             |
 | --------------------------- | -------------------------------- |
+| `make dev`                  | 启动所有开发服务                 |
 | `make lint`                 | 执行仓库统一的 ESLint 规则       |
 | `make test`                 | 运行各包内的 `test` 脚本（如有） |
 | `make build`                | 运行所有包的构建流程             |
 | `make db-up`/`make db-down` | 单独控制本地 Postgres            |
 | `make logs`                 | 跟随数据库（及后续服务）输出日志 |
+| `make logs-tail`            | 实时查看多模块日志               |
+
+### 停止服务
+
+```bash
+# 停止所有服务
+Ctrl+C
+
+# 停止数据库
+make db-down
+```
 
 ## 📚 文档导航
 

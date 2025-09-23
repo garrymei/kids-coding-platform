@@ -2,7 +2,7 @@ import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { PrismaService } from '../../prisma/prisma.service';
 import { Role } from './roles.enum';
-import * as bcrypt from 'bcrypt';
+import * as argon2 from 'argon2';
 
 interface JwtPayload {
   sub: string;
@@ -22,7 +22,10 @@ export interface AuthToken {
 
 @Injectable()
 export class AuthService {
-  constructor(private readonly prisma: PrismaService, private readonly jwtService: JwtService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly jwtService: JwtService,
+  ) {}
 
   private async validateUser(email: string, password: string) {
     const user = await this.prisma.user.findUnique({
@@ -33,7 +36,7 @@ export class AuthService {
       throw new UnauthorizedException('Invalid credentials');
     }
 
-    const passwordMatches = await bcrypt.compare(password, user.passwordHash);
+    const passwordMatches = await argon2.verify(user.passwordHash, password);
     if (!passwordMatches) {
       throw new UnauthorizedException('Invalid credentials');
     }

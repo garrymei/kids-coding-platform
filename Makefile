@@ -1,4 +1,4 @@
-.PHONY: dev db-up db-down lint test build install logs
+.PHONY: dev db-up db-down lint test build install logs status
 
 install:
 	pnpm install
@@ -24,5 +24,8 @@ dev:
 logs:
 	docker compose -f docker/docker-compose.db.yml logs -f
 
-logs:tail:
+logs-tail:
 	node scripts/tail-logs.mjs logs/api.log logs/executor.log
+
+status:
+	./scripts/check-status.sh

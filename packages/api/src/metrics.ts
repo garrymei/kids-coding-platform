@@ -1,4 +1,4 @@
-﻿import client from 'prom-client';
+﻿import * as client from 'prom-client';
 
 client.collectDefaultMetrics({ prefix: 'kids_api_' });
 
@@ -9,8 +9,16 @@ const requestDuration = new client.Histogram({
   buckets: [50, 100, 250, 500, 1000, 2000, 5000],
 });
 
-export function observeRequestDuration(method: string, path: string, statusCode: number, durationMs: number) {
-  requestDuration.observe({ method, status_code: String(statusCode), path }, durationMs);
+export function observeRequestDuration(
+  method: string,
+  path: string,
+  statusCode: number,
+  durationMs: number,
+) {
+  requestDuration.observe(
+    { method, status_code: String(statusCode), path },
+    durationMs,
+  );
 }
 
 export async function collectApiMetrics() {

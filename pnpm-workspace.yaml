@@ -1,5 +1,18 @@
 packages:
-  - "apps/*"
-  - "server/*"
-  - "packages/*"
-  - "docs/*"
+  - apps/*
+  - server/*
+  - packages/*
+  - docs/*
+
+ignoredBuiltDependencies:
+  - '@nestjs/core'
+  - '@prisma/client'
+  - '@prisma/engines'
+  - '@scarf/scarf'
+  - bcrypt
+  - cpu-features
+  - esbuild
+  - nestjs-pino
+  - prisma
+  - protobufjs
+  - ssh2
