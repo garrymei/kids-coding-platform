@@ -10,5 +10,11 @@ export type { ProgressProps } from './components/Progress';
 export { Badge } from './components/Badge';
 export type { BadgeProps, BadgeTone } from './components/Badge';
 
+export { LegalNotice } from './components/LegalNotice';
+export type { LegalNoticeProps } from './components/LegalNotice';
+
+export { PrivacyBanner } from './components/PrivacyBanner';
+export type { PrivacyBannerProps } from './components/PrivacyBanner';
+
 export { tokens } from './theme/index.js';
 export type { DesignTokens } from './theme/index.js';

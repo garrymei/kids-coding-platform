@@ -55,10 +55,35 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: pnpm lint
 
+  policy-check:
+    name: Policy Files Check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check policy files exist
+        run: |
+          echo "Checking required policy files..."
+          files=(
+            "docs/policy/safety-baseline.md"
+            "docs/security/RBAC_MATRIX.md"
+            "docs/audit/README.md"
+            "docs/database/README.md"
+          )
+          for file in "${files[@]}"; do
+            if [ ! -f "$file" ]; then
+              echo "❌ Missing required policy file: $file"
+              exit 1
+            else
+              echo "✅ Found: $file"
+            fi
+          done
+          echo "✅ All required policy files exist"
+
   build:
     needs:
       - setup
       - lint
+      - policy-check
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
