@@ -1,12 +1,14 @@
 import type * as BlocklyType from 'blockly';
+import { blockPalette, withNamespace } from '../config/index.js';
 
 export function registerLogicBlocks(Blockly: typeof BlocklyType) {
-  if (Blockly.Blocks['kids_compare']) return;
+  const compareType = withNamespace('compare');
+  if (Blockly.Blocks[compareType]) return;
 
-  Blockly.Blocks['kids_compare'] = {
+  Blockly.Blocks[compareType] = {
     init() {
       this.jsonInit({
-        type: 'kids_compare',
+        type: compareType,
         message0: '%1 %2 %3',
         args0: [
           {
@@ -32,16 +34,17 @@ export function registerLogicBlocks(Blockly: typeof BlocklyType) {
         ],
         inputsInline: true,
         output: 'Boolean',
-        colour: 200,
+        colour: blockPalette.logic,
         tooltip: 'Compare two values and return a boolean result.',
       });
     },
   };
 
-  Blockly.Blocks['kids_boolean'] = {
+  const booleanType = withNamespace('boolean');
+  Blockly.Blocks[booleanType] = {
     init() {
       this.jsonInit({
-        type: 'kids_boolean',
+        type: booleanType,
         message0: '%1',
         args0: [
           {
@@ -54,7 +57,7 @@ export function registerLogicBlocks(Blockly: typeof BlocklyType) {
           },
         ],
         output: 'Boolean',
-        colour: 200,
+        colour: blockPalette.logic,
         tooltip: 'Insert a true or false value.',
       });
     },

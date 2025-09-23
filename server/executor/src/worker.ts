@@ -2,6 +2,8 @@ import type { ExecutionJob, ExecutionResultPayload } from './queue';
 import type { DockerExecutor } from './dockerRunner';
 import type { BatchTestResult } from './pythonExecutor';
 import { createChildLogger, logger } from './logger';
+import { recordExecutionFailure, recordExecutionMetrics } from './metrics';
+import { Sentry, isSentryEnabled } from './sentry';
 
 export class WorkerPool {
   private readonly executor: DockerExecutor;
@@ -68,6 +70,9 @@ export class WorkerPool {
           this.queue.publishResult({ jobId: job.jobId, ok: true, results, traceId: job.traceId, userId: job.userId });
         } catch (error) {
           jobLogger.error({ err: error }, 'worker_execution_failed');
+          if (isSentryEnabled()) {
+            Sentry.captureException(error);
+          }
           this.queue.publishResult({
             jobId: job.jobId,
             ok: false,
@@ -78,9 +83,24 @@ export class WorkerPool {
           });
         }
         const durationMs = Date.now() - startedAt;
-        jobLogger.info({ msg: 'worker_job_completed', durationMs });
+        const summary = results.map((result, index) => ({
+          index,
+          exitCode: result.exitCode,
+          timedOut: result.timedOut,
+          durationMs: result.durationMs,
+          passed: result.passed,
+          cpuSeconds: result.usage?.cpuSeconds,
+          memoryBytes: result.usage?.memoryBytes,
+          containerId: result.containerId,
+        }));
+        recordExecutionMetrics(results);
+        jobLogger.info({ msg: 'worker_job_completed', durationMs, tests: summary });
       } catch (error) {
         logger.error({ err: error }, '[worker] loop error');
+        if (isSentryEnabled()) {
+          Sentry.captureException(error);
+        }
+        recordExecutionFailure('error');
       } finally {
         this.active = Math.max(0, this.active - 1);
       }

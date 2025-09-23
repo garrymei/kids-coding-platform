@@ -4,6 +4,7 @@ import 'blockly/blocks';
 import 'blockly/javascript';
 import 'blockly/python';
 import { registerKidsBlocks } from '../registerBlocks.js';
+import { blockCategoryLabels, blockPalette, withNamespace } from '../config/index.js';
 
 export interface BlocklyWorkspaceProps {
   /** Initial workspace XML to load when the component mounts. */
@@ -87,31 +88,40 @@ export function BlocklyWorkspace({
   );
 }
 
+const blockTypes = {
+  repeatTimes: withNamespace('repeat_times'),
+  waitSeconds: withNamespace('wait_seconds'),
+  setVariable: withNamespace('set_variable'),
+  changeVariable: withNamespace('change_variable'),
+  compare: withNamespace('compare'),
+  boolean: withNamespace('boolean'),
+};
+
 const defaultToolbox: Blockly.utils.toolbox.ToolboxDefinition = {
   kind: 'categoryToolbox',
   contents: [
     {
       kind: 'category',
-      name: '控制',
-      colour: '#6C63FF',
+      name: blockCategoryLabels.control,
+      colour: blockPalette.control,
       contents: [
-        { kind: 'block', type: 'kids_repeat_times' },
-        { kind: 'block', type: 'kids_wait_seconds' },
+        { kind: 'block', type: blockTypes.repeatTimes },
+        { kind: 'block', type: blockTypes.waitSeconds },
       ],
     },
     {
       kind: 'category',
-      name: '变量',
-      colour: '#2D9CDB',
+      name: blockCategoryLabels.variables,
+      colour: blockPalette.variables,
       custom: 'VARIABLE',
     },
     {
       kind: 'category',
-      name: '运算',
-      colour: '#F2C94C',
+      name: blockCategoryLabels.logic,
+      colour: blockPalette.logic,
       contents: [
-        { kind: 'block', type: 'kids_compare' },
-        { kind: 'block', type: 'kids_boolean' },
+        { kind: 'block', type: blockTypes.compare },
+        { kind: 'block', type: blockTypes.boolean },
         { kind: 'block', type: 'math_number' },
       ],
     },

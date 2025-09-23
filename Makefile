@@ -20,3 +20,6 @@ build:
 
 dev:
 	./scripts/dev.sh
+
+logs:tail:
+	node scripts/tail-logs.mjs logs/api.log logs/executor.log

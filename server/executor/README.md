@@ -1,13 +1,13 @@
-# Executor Service
+﻿# Executor Service
 
-Sandbox microservice used to run user-submitted Python snippets in isolated Docker containers with Redis-backed queuing and resource limits.
+Sandbox microservice used to run user-submitted Python snippets in isolated Docker containers with Redis-backed queuing, static safety checks, and resource limits.
 
 ## Architecture
 
-- **HTTP API** `POST /execute` → enqueues a job in Redis (`executor:tasks`).
-- **Worker pool** (default concurrency = 5) pulls jobs via `BRPOP`, spins up a short-lived Docker container, and streams stdout/stderr back.
-- **Results** are delivered to the original request once execution completes. Fallback to the local (in-process) runner is available when Docker is unreachable.
-- **Logging** records `container_id`, runtime duration, exit code, and timeout events.
+- **HTTP API** `POST /execute` – performs Python AST validation (import/builtin allowlist) before enqueuing a job in Redis (`executor:tasks`).
+- **Worker pool** (default concurrency = 5) pulls jobs via `BRPOP`, spins up a short-lived Docker container, and streams stdout/stderr/metrics back.
+- **Results** are delivered to the original request once execution completes. Fallback to the in-process sandbox runner is available when Docker is unreachable.
+- **Logging** records `containerId`, runtime duration, exit code, timeout events, and resource usage per test case.
 
 ## Request / Response
 
@@ -38,8 +38,11 @@ Successful response:
       "exitCode": 0,
       "timedOut": false,
       "signal": null,
+      "durationMs": 742,
+      "usage": { "cpuSeconds": 0.042, "memoryBytes": 18841600 },
       "expectedStdout": "10\n",
-      "passed": true
+      "passed": true,
+      "containerId": "9c8bd6d1d7c1"
     },
     {
       "stdout": "4\n",
@@ -47,8 +50,11 @@ Successful response:
       "exitCode": 0,
       "timedOut": false,
       "signal": null,
+      "durationMs": 713,
+      "usage": { "cpuSeconds": 0.039, "memoryBytes": 16777216 },
       "expectedStdout": "4\n",
-      "passed": true
+      "passed": true,
+      "containerId": "2d402c5f44e2"
     }
   ]
 }
@@ -85,23 +91,54 @@ Environment variables:
 | `EXECUTOR_ALLOWED_MODULES` | `["math","random","statistics"]` | JSON array of permitted Python modules |
 | `EXECUTOR_LOCAL_FALLBACK` | `true` | Whether to fall back to in-process runner if Docker is unavailable |
 | `DOCKER_SOCKET_PATH` | `/var/run/docker.sock` | Unix socket used by Dockerode |
+| `SENTRY_DSN` | _unset_ | Optional error-reporting endpoint |
+| `LOG_FILE` | `logs/executor.log` | Structured log file destination |
+| `LOG_TO_FILE` | `true` | Disable file logging when set to `false` |
 
 Redis queue names and other behaviour can be customised via the same environment variables used in `src/config.ts`.
 
+### Observability Endpoints
+
+- `GET /health` – verifies Redis connectivity and local fallbacks
+- `GET /ready` – lightweight probe that pings Docker
+- `GET /metrics` – Prometheus scrape endpoint (includes execution counters/histograms)
+
 ## Logs
 
-Structured logs (Pino) are emitted to stdout. Example entry:
+Structured logs (Pino) are emitted to stdout. Example entry after a container run:
 
 ```json
 {
   "level": 30,
   "time": 1737600000000,
-  "msg": "[docker] execution finished",
-  "job": "container_execution",
-  "containerId": "a1b2c3d4",
-  "exitCode": 0,
-  "durationMs": 742,
-  "timedOut": false
+  "msg": "worker_job_completed",
+  "traceId": "8b9f34d2d6a3",
+  "userId": "student-123",
+  "jobId": "05c5a222-c2f4-4c12-bf54-7b7b1dd0b9a3",
+  "workerId": 2,
+  "durationMs": 1520,
+  "tests": [
+    {
+      "index": 0,
+      "exitCode": 0,
+      "timedOut": false,
+      "durationMs": 742,
+      "passed": true,
+      "cpuSeconds": 0.042,
+      "memoryBytes": 18841600,
+      "containerId": "9c8bd6d1d7c1"
+    },
+    {
+      "index": 1,
+      "exitCode": 0,
+      "timedOut": false,
+      "durationMs": 713,
+      "passed": true,
+      "cpuSeconds": 0.039,
+      "memoryBytes": 16777216,
+      "containerId": "2d402c5f44e2"
+    }
+  ]
 }
 ```
 

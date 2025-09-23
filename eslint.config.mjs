@@ -19,7 +19,15 @@ export default [
       '@typescript-eslint': tsPlugin,
     },
     rules: {
-      '@typescript-eslint/no-unused-vars': 'warn',
+      'no-unused-vars': 'off',
+      '@typescript-eslint/no-unused-vars': [
+        'warn',
+        {
+          argsIgnorePattern: '^_',
+          varsIgnorePattern: '^_',
+          caughtErrorsIgnorePattern: '^_',
+        },
+      ],
       '@typescript-eslint/no-explicit-any': 'warn',
     },
   },

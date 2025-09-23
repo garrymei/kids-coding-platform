@@ -1,7 +1,5 @@
 import { z } from 'zod';
 
-type Config = z.infer<typeof configSchema>;
-
 const configSchema = z.object({
   port: z.number().int().positive().default(4060),
   redisUrl: z.string().default('redis://localhost:6379'),
@@ -11,16 +9,19 @@ const configSchema = z.object({
   memoryBytes: z.number().int().min(64 * 1024 * 1024).default(256 * 1024 * 1024),
   nanoCpus: z.number().int().min(1).default(1_000_000_000),
   executionTimeoutMs: z.number().int().min(500).default(3_000),
-  allowModules: z
-    .array(z.string())
-    .default(['math', 'random', 'statistics'])
-    .transform((list) => JSON.stringify(list)),
+  allowedModules: z.array(z.string()).default(['math', 'random', 'statistics']),
   dockerSocketPath: z.string().default('/var/run/docker.sock'),
   enableLocalFallback: z.boolean().default(true),
 });
 
-export function loadConfig(): Config {
-  return configSchema.parse({
+type ConfigSchema = z.infer<typeof configSchema>;
+
+export interface ExecutorConfig extends ConfigSchema {
+  allowedModulesJson: string;
+}
+
+export function loadConfig(): ExecutorConfig {
+  const parsed = configSchema.parse({
     port: process.env.EXECUTOR_PORT ? Number(process.env.EXECUTOR_PORT) : undefined,
     redisUrl: process.env.EXECUTOR_REDIS_URL,
     queueKey: process.env.EXECUTOR_QUEUE_KEY,
@@ -37,7 +38,7 @@ export function loadConfig(): Config {
     executionTimeoutMs: process.env.EXECUTOR_TIMEOUT
       ? Number(process.env.EXECUTOR_TIMEOUT) * 1_000
       : undefined,
-    allowModules: process.env.EXECUTOR_ALLOWED_MODULES
+    allowedModules: process.env.EXECUTOR_ALLOWED_MODULES
       ? JSON.parse(process.env.EXECUTOR_ALLOWED_MODULES)
       : undefined,
     dockerSocketPath: process.env.DOCKER_SOCKET_PATH,
@@ -46,4 +47,9 @@ export function loadConfig(): Config {
         ? undefined
         : process.env.EXECUTOR_LOCAL_FALLBACK === 'true',
   });
+
+  return {
+    ...parsed,
+    allowedModulesJson: JSON.stringify(parsed.allowedModules),
+  };
 }

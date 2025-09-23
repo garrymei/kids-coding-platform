@@ -1,14 +1,21 @@
 name: CI
 
 on:
+  push:
+    branches:
+      - main
+      - dev
   pull_request:
     branches:
       - main
       - dev
 
 jobs:
-  build:
+  setup:
+    name: Install
     runs-on: ubuntu-latest
+    outputs:
+      pnpm-store-path: ${{ steps.pnpm-cache.outputs.STORE_PATH }}
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -18,6 +25,53 @@ jobs:
         with:
           node-version: 20
           cache: pnpm
-      - run: pnpm install
-      - run: pnpm -r lint || true
-      - run: pnpm -r build || echo "skip if not ready"
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Locate pnpm store
+        id: pnpm-cache
+        run: echo "STORE_PATH=$(pnpm store path)" >> $GITHUB_OUTPUT
+      - name: Cache pnpm store
+        uses: actions/cache/save@v4
+        with:
+          path: ${{ steps.pnpm-cache.outputs.STORE_PATH }}
+          key: pnpm-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
+
+  lint:
+    needs: setup
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Restore pnpm store
+        uses: actions/cache/restore@v4
+        with:
+          path: ${{ needs.setup.outputs.pnpm-store-path }}
+          key: pnpm-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm lint
+
+  build:
+    needs:
+      - setup
+      - lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Restore pnpm store
+        uses: actions/cache/restore@v4
+        with:
+          path: ${{ needs.setup.outputs.pnpm-store-path }}
+          key: pnpm-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm build

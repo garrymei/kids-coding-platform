@@ -1,12 +1,14 @@
 import type * as BlocklyType from 'blockly';
+import { blockPalette, withNamespace } from '../config/index.js';
 
 export function registerVariableBlocks(Blockly: typeof BlocklyType) {
-  if (Blockly.Blocks['kids_set_variable']) return;
+  const setVariableType = withNamespace('set_variable');
+  if (Blockly.Blocks[setVariableType]) return;
 
-  Blockly.Blocks['kids_set_variable'] = {
+  Blockly.Blocks[setVariableType] = {
     init() {
       this.jsonInit({
-        type: 'kids_set_variable',
+        type: setVariableType,
         message0: 'set %1 to %2',
         args0: [
           {
@@ -21,16 +23,17 @@ export function registerVariableBlocks(Blockly: typeof BlocklyType) {
         ],
         previousStatement: null,
         nextStatement: null,
-        colour: 40,
+        colour: blockPalette.variables,
         tooltip: 'Assign a value to a variable.',
       });
     },
   };
 
-  Blockly.Blocks['kids_change_variable'] = {
+  const changeVariableType = withNamespace('change_variable');
+  Blockly.Blocks[changeVariableType] = {
     init() {
       this.jsonInit({
-        type: 'kids_change_variable',
+        type: changeVariableType,
         message0: 'change %1 by %2',
         args0: [
           {
@@ -46,7 +49,7 @@ export function registerVariableBlocks(Blockly: typeof BlocklyType) {
         ],
         previousStatement: null,
         nextStatement: null,
-        colour: 40,
+        colour: blockPalette.variables,
         tooltip: 'Increase or decrease a variable by a value.',
       });
     },

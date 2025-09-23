@@ -1,69 +1,47 @@
-# React + TypeScript + Vite
+﻿# Student App Base
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+`apps/student-app` provides the H5 shell for the student experience. It ships with routing, global styles, Blockly lab integration, a mock state store, and an optional Sentry hook.
 
-Currently, two official plugins are available:
+## Development Commands
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
-
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+pnpm install
+pnpm --filter @kids/student-app dev:h5
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+Other common scripts:
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+- `pnpm --filter @kids/student-app build` – production build (`vite` + TypeScript)
+- `pnpm --filter @kids/student-app lint` – run ESLint
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+## Environment Variables
+
+| Variable | Purpose | Default |
+| --- | --- | --- |
+| `VITE_EXECUTOR_HTTP_URL` | Executor REST endpoint | `http://localhost:4060/execute` |
+| `VITE_EXECUTOR_WS_URL` | Executor WebSocket base | `ws://localhost:4070` |
+| `VITE_SENTRY_DSN` | Optional front-end error reporting DSN | _unset_ |
+
+## Routes
+
+| Path | Description |
+| --- | --- |
+| `/home` | Learning overview (XP, streak, recommended course) |
+| `/courses` | Course list and mainline selector |
+| `/lab` | Blockly lab with execution pipeline |
+
+`/` redirects to `/home`.
+
+## Design System
+
+- UI components come from `@kids/ui-kit` (`Button`, `Card`, `Badge`, `Progress`, plus design tokens).
+- Global styles live in `src/index.css`; navigation and lab layout styles are in `src/App.css`.
+
+## State & Services
+
+- `src/store/studentStore.tsx` maintains mock student data and expose `completeLesson` / `setFocusCourse` actions.
+- `src/services/http.ts` declares the HTTP client interface (currently stubbed for future API wiring).
+
+## Lab Execution Flow
+
+`src/pages/LabPage.tsx` converts Blockly blocks into Python, posts the code to the executor (`POST /execute`), listens for WebSocket updates (`run-results/<jobId>`), and renders console output plus a placeholder reward message.

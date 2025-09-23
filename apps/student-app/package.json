@@ -1,10 +1,11 @@
 {
-  "name": "student-app",
+  "name": "@kids/student-app",
   "private": true,
   "version": "0.0.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "dev:h5": "vite --mode development",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview"
@@ -12,7 +13,9 @@
   "dependencies": {
     "@kids/blockly-extensions": "workspace:*",
     "@kids/ui-kit": "workspace:*",
+    "@sentry/react": "^8.33.1",
     "blockly": "^11.1.1",
+    "react-router-dom": "^6.28.0",
     "react": "^19.1.1",
     "react-dom": "^19.1.1"
   },

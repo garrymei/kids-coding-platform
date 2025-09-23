@@ -9,6 +9,18 @@ Shared React UI components for the Kids Coding Platform.
 - `Progress` – progress indicator with percentage label.
 - `Badge` – pill badge supporting info/success/warning/danger tones.
 
+### Design Tokens
+
+Design surface constants live under `@kids/ui-kit/tokens` and can be imported via:
+
+```ts
+import { tokens } from '@kids/ui-kit';
+
+console.log(tokens.colors.primary); // #5560FF
+```
+
+Tokens currently cover shared color palette, gradients, radii, shadows, spacing, and typography primitives.
+
 ## Usage
 
 ```tsx

@@ -1,4 +1,5 @@
-import { forwardRef, type ButtonHTMLAttributes } from 'react';
+import { forwardRef, type ButtonHTMLAttributes, type CSSProperties } from 'react';
+import { tokens } from '../theme/tokens.js';
 
 export type ButtonVariant = 'primary' | 'secondary' | 'ghost';
 
@@ -15,29 +16,54 @@ export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   rounded?: boolean;
 }
 
-const variantStyles: Record<ButtonVariant, string> = {
-  primary:
-    'background: linear-gradient(135deg, #6ea8ff, #846bff); color: #fff; border: none;',
-  secondary: 'background-color: #f0f3ff; color: #5560ff; border: none;',
-  ghost: 'background-color: transparent; color: #5560ff; border: 1px solid rgba(85, 96, 255, 0.3);',
+const baseStyles: CSSProperties = {
+  display: 'inline-flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  gap: tokens.spacing.xs,
+  padding: `${tokens.spacing.xs} ${tokens.spacing.lg}`,
+  fontFamily: tokens.typography.fontFamily,
+  fontWeight: tokens.typography.weights.semibold,
+  fontSize: tokens.typography.sizes.sm,
+  cursor: 'pointer',
+  transition: 'transform 0.12s ease, box-shadow 0.12s ease',
+  borderWidth: 1,
+  borderStyle: 'solid',
+};
+
+const variantStyles: Record<ButtonVariant, CSSProperties> = {
+  primary: {
+    background: tokens.gradients.primary,
+    color: tokens.colors.surface,
+    borderColor: 'transparent',
+    boxShadow: tokens.shadows.md,
+  },
+  secondary: {
+    backgroundColor: tokens.colors.surfaceAlt,
+    color: tokens.colors.primary,
+    borderColor: 'transparent',
+    boxShadow: tokens.shadows.sm,
+  },
+  ghost: {
+    backgroundColor: 'transparent',
+    color: tokens.colors.primary,
+    borderColor: tokens.colors.borderSubtle,
+    boxShadow: tokens.shadows.none,
+  },
 };
 
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
   ({ variant = 'primary', rounded = true, style, children, ...rest }, ref) => {
-    const borderRadius = rounded ? '999px' : '12px';
+    const variantStyle = variantStyles[variant];
     return (
       <button
         ref={ref}
         style={{
-          padding: '10px 18px',
-          fontWeight: 600,
-          fontSize: '14px',
-          cursor: rest.disabled ? 'not-allowed' : 'pointer',
+          ...baseStyles,
           opacity: rest.disabled ? 0.6 : 1,
-          transition: 'transform 0.12s ease, box-shadow 0.12s ease',
-          borderRadius,
-          boxShadow: variant === 'primary' ? '0 6px 14px rgba(0, 0, 0, 0.12)' : 'none',
-          ...parseInlineStyle(variantStyles[variant]),
+          cursor: rest.disabled ? 'not-allowed' : baseStyles.cursor,
+          borderRadius: rounded ? tokens.radii.pill : tokens.radii.md,
+          ...variantStyle,
           ...style,
         }}
         {...rest}
@@ -49,15 +75,3 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
 );
 
 Button.displayName = 'Button';
-
-function parseInlineStyle(style: string): Record<string, string | number> {
-  return style.split(';').reduce<Record<string, string | number>>((acc, current) => {
-    const [rawProp, rawValue] = current.split(':');
-    if (!rawProp || !rawValue) return acc;
-    const prop = rawProp.trim();
-    const value = rawValue.trim();
-    const jsProp = prop.replace(/-([a-z])/g, (_, char) => char.toUpperCase());
-    acc[jsProp] = value;
-    return acc;
-  }, {});
-}

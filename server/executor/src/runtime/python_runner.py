@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Sandbox runner for executing user Python code with resource limits."""
 
+import builtins as _builtins
 import contextlib
 import io
 import json
@@ -8,7 +9,6 @@ import os
 import resource
 import signal
 import sys
-import textwrap
 from types import SimpleNamespace
 
 CPU_LIMIT_SECONDS = float(os.environ.get("EXECUTOR_CPU_LIMIT", "2.0"))
@@ -17,6 +17,21 @@ MEM_LIMIT_BYTES = int(float(os.environ.get("EXECUTOR_MEM_LIMIT", str(256 * 1024 
 ALLOWED_MODULES = set(
     json.loads(os.environ.get("EXECUTOR_ALLOWED_MODULES", "[\"math\", \"random\"]"))
 )
+
+DANGEROUS_BUILTINS = {
+    "open",
+    "exec",
+    "eval",
+    "compile",
+    "__import__",
+    "globals",
+    "locals",
+    "vars",
+    "input",
+    "help",
+    "quit",
+    "exit",
+}
 
 
 def _apply_limits():
@@ -47,6 +62,14 @@ class RestrictedImporter:
         return __import__(name, globals, locals, fromlist, level)
 
 
+def _make_safe_builtins():
+    safe = dict(_builtins.__dict__)
+    for name in DANGEROUS_BUILTINS:
+        safe.pop(name, None)
+    safe["__import__"] = RestrictedImporter(ALLOWED_MODULES)
+    return safe
+
+
 def execute_user_code(source: str, stdin_payload: str):
     _apply_limits()
 
@@ -58,13 +81,8 @@ def execute_user_code(source: str, stdin_payload: str):
     socket.socket = disabled_socket  # type: ignore
 
     user_globals = {
-        "__builtins__": __builtins__,
+        "__builtins__": _make_safe_builtins(),
     }
-    builtins = user_globals["__builtins__"]
-    if isinstance(builtins, dict):
-        builtins["__import__"] = RestrictedImporter(ALLOWED_MODULES)
-    else:
-        setattr(builtins, "__import__", RestrictedImporter(ALLOWED_MODULES))
 
     stdin_buffer = io.StringIO(stdin_payload or "")
     stdout_buffer = io.StringIO()
@@ -77,10 +95,12 @@ def execute_user_code(source: str, stdin_payload: str):
             exec(compile(source, filename="<user_code>", mode="exec"), user_globals)
         finally:
             sys.stdin = original_stdin
+            signal.alarm(0)
 
     return SimpleNamespace(
         stdout=stdout_buffer.getvalue(),
         stderr=stderr_buffer.getvalue(),
+        usage=resource.getrusage(resource.RUSAGE_SELF),
     )
 
 
@@ -96,6 +116,10 @@ def main():
             "stdout": result.stdout,
             "stderr": result.stderr,
             "timeout": False,
+            "usage": {
+                "cpu_seconds": result.usage.ru_utime + result.usage.ru_stime,
+                "max_rss": result.usage.ru_maxrss,
+            },
         }
     except TimeoutError as exc:
         response = {"stdout": "", "stderr": str(exc), "timeout": True}

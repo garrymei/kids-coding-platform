@@ -1,15 +1,17 @@
 import type * as BlocklyType from 'blockly';
+import { blockPalette, withNamespace } from '../config/index.js';
 
 /**
  * Registers control-related custom blocks.
  */
 export function registerControlBlocks(Blockly: typeof BlocklyType) {
-  if (Blockly.Blocks['kids_repeat_times']) return;
+  const repeatTimesType = withNamespace('repeat_times');
+  if (Blockly.Blocks[repeatTimesType]) return;
 
-  Blockly.Blocks['kids_repeat_times'] = {
+  Blockly.Blocks[repeatTimesType] = {
     init() {
       this.jsonInit({
-        type: 'kids_repeat_times',
+        type: repeatTimesType,
         message0: 'repeat %1 times %2 do %3',
         args0: [
           {
@@ -27,16 +29,17 @@ export function registerControlBlocks(Blockly: typeof BlocklyType) {
         ],
         previousStatement: null,
         nextStatement: null,
-        colour: 260,
+        colour: blockPalette.control,
         tooltip: 'Repeat enclosed blocks a specified number of times.',
       });
     },
   };
 
-  Blockly.Blocks['kids_wait_seconds'] = {
+  const waitSecondsType = withNamespace('wait_seconds');
+  Blockly.Blocks[waitSecondsType] = {
     init() {
       this.jsonInit({
-        type: 'kids_wait_seconds',
+        type: waitSecondsType,
         message0: 'wait %1 seconds',
         args0: [
           {
@@ -47,7 +50,7 @@ export function registerControlBlocks(Blockly: typeof BlocklyType) {
         ],
         previousStatement: null,
         nextStatement: null,
-        colour: 260,
+        colour: blockPalette.control,
         tooltip: 'Pause execution for a number of seconds.',
       });
     },

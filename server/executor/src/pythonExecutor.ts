@@ -5,6 +5,14 @@ export interface PythonExecutionInput {
   source: string;
   stdin?: string;
   timeoutMs?: number;
+  allowedModules?: string[];
+  cpuSeconds?: number;
+  memoryLimitBytes?: number;
+}
+
+export interface PythonExecutionUsage {
+  cpuSeconds?: number;
+  memoryBytes?: number;
 }
 
 export interface PythonExecutionResult {
@@ -13,19 +21,29 @@ export interface PythonExecutionResult {
   exitCode: number | null;
   timedOut: boolean;
   signal: string | null;
+  durationMs: number;
+  usage?: PythonExecutionUsage;
   raw?: unknown;
 }
 
 const DEFAULT_TIMEOUT_MS = 3_000;
+const DEFAULT_CPU_LIMIT_SECONDS = 2.0;
+const DEFAULT_MEMORY_LIMIT_BYTES = 256 * 1024 * 1024;
+const DEFAULT_ALLOWED_MODULES = ['math', 'random', 'statistics'];
+
 const runnerPath = path.resolve(__dirname, '../src/runtime/python_runner.py');
 
 export async function runPythonTest(input: PythonExecutionInput): Promise<PythonExecutionResult> {
   const timeoutMs = Math.max(500, input.timeoutMs ?? DEFAULT_TIMEOUT_MS);
+  const startedAt = Date.now();
   const child = spawn('python3', [runnerPath], {
     stdio: ['pipe', 'pipe', 'pipe'],
     env: {
       ...process.env,
       EXECUTOR_TIMEOUT: String(timeoutMs / 1_000),
+      EXECUTOR_CPU_LIMIT: String(input.cpuSeconds ?? DEFAULT_CPU_LIMIT_SECONDS),
+      EXECUTOR_MEM_LIMIT: String(input.memoryLimitBytes ?? DEFAULT_MEMORY_LIMIT_BYTES),
+      EXECUTOR_ALLOWED_MODULES: JSON.stringify(input.allowedModules ?? DEFAULT_ALLOWED_MODULES),
     },
   });
 
@@ -44,10 +62,12 @@ export async function runPythonTest(input: PythonExecutionInput): Promise<Python
     stderr += chunk.toString();
   });
 
+  let timedOutExternally = false;
   const timedOut = await new Promise<boolean>((resolve) => {
     const timer = setTimeout(() => {
       if (!child.killed) {
         killed = true;
+        timedOutExternally = true;
         child.kill('SIGKILL');
         resolve(true);
       }
@@ -63,6 +83,8 @@ export async function runPythonTest(input: PythonExecutionInput): Promise<Python
     child.on('close', (c, s) => resolve({ code: c, signal: s }));
   });
 
+  const durationMs = Date.now() - startedAt;
+
   if (timedOut || killed) {
     return {
       stdout: '',
@@ -70,17 +92,21 @@ export async function runPythonTest(input: PythonExecutionInput): Promise<Python
       exitCode: code,
       timedOut: true,
       signal,
+      durationMs,
     };
   }
 
   try {
     const parsed = JSON.parse(stdout || '{}');
+    const usage = parseUsage(parsed.usage);
     return {
       stdout: typeof parsed.stdout === 'string' ? parsed.stdout : '',
       stderr: typeof parsed.stderr === 'string' ? parsed.stderr : stderr,
       exitCode: code,
-      timedOut: Boolean(parsed.timeout),
+      timedOut: Boolean(parsed.timeout) || timedOutExternally,
       signal,
+      durationMs,
+      usage,
       raw: parsed,
     };
   } catch (error) {
@@ -90,6 +116,7 @@ export async function runPythonTest(input: PythonExecutionInput): Promise<Python
       exitCode: code,
       timedOut: false,
       signal,
+      durationMs,
     };
   }
 }
@@ -103,11 +130,13 @@ export interface BatchTestInput {
 export interface BatchTestResult extends PythonExecutionResult {
   expectedStdout?: string;
   passed?: boolean;
+  containerId?: string;
 }
 
 export async function runPythonBatch(
   source: string,
   tests: BatchTestInput[],
+  options?: Pick<PythonExecutionInput, 'allowedModules' | 'cpuSeconds' | 'memoryLimitBytes' | 'timeoutMs'>,
 ): Promise<BatchTestResult[]> {
   const items = tests.length ? tests : [{}];
   const results: BatchTestResult[] = [];
@@ -115,8 +144,11 @@ export async function runPythonBatch(
   for (const test of items) {
     const result = await runPythonTest({
       stdin: test.stdin,
-      timeoutMs: test.timeoutMs,
+      timeoutMs: test.timeoutMs ?? options?.timeoutMs,
       source,
+      allowedModules: options?.allowedModules,
+      cpuSeconds: options?.cpuSeconds,
+      memoryLimitBytes: options?.memoryLimitBytes,
     });
 
     let passed: boolean | undefined;
@@ -127,4 +159,25 @@ export async function runPythonBatch(
     results.push({ ...result, expectedStdout: test.expectedStdout, passed });
   }
   return results;
+}
+
+function parseUsage(raw: unknown): PythonExecutionUsage | undefined {
+  if (!raw || typeof raw !== 'object') {
+    return undefined;
+  }
+  const usage = raw as Record<string, unknown>;
+  const cpuSeconds = typeof usage.cpu_seconds === 'number' ? usage.cpu_seconds : undefined;
+  let memoryBytes: number | undefined;
+  if (typeof usage.max_rss === 'number') {
+    const maxRss = usage.max_rss;
+    // On Linux ru_maxrss is kilobytes, on macOS it is bytes.
+    memoryBytes = maxRss > 0 && maxRss < 1_000_000 ? maxRss * 1024 : maxRss;
+  }
+  if (cpuSeconds === undefined && memoryBytes === undefined) {
+    return undefined;
+  }
+  return {
+    cpuSeconds,
+    memoryBytes,
+  };
 }

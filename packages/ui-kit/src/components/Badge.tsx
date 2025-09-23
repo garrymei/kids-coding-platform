@@ -1,4 +1,5 @@
 import type { HTMLAttributes } from 'react';
+import { tokens } from '../theme/tokens.js';
 
 export type BadgeTone = 'info' | 'success' | 'warning' | 'danger';
 
@@ -9,11 +10,11 @@ export interface BadgeProps extends HTMLAttributes<HTMLSpanElement> {
   tone?: BadgeTone;
 }
 
-const toneStyles: Record<BadgeTone, { background: string; color: string }> = {
-  info: { background: 'rgba(110, 168, 255, 0.2)', color: '#2a5de8' },
-  success: { background: 'rgba(123, 227, 181, 0.25)', color: '#1f8a5c' },
-  warning: { background: 'rgba(255, 214, 107, 0.25)', color: '#a56a00' },
-  danger: { background: 'rgba(255, 137, 137, 0.25)', color: '#c03647' },
+const toneStyles: Record<BadgeTone, { backgroundColor: string; color: string }> = {
+  info: { backgroundColor: tokens.colors.infoSoft, color: tokens.colors.info },
+  success: { backgroundColor: tokens.colors.successSoft, color: tokens.colors.success },
+  warning: { backgroundColor: tokens.colors.warningSoft, color: tokens.colors.warning },
+  danger: { backgroundColor: tokens.colors.dangerSoft, color: tokens.colors.danger },
 };
 
 export function Badge({ text, tone = 'info', style, ...rest }: BadgeProps) {
@@ -24,12 +25,13 @@ export function Badge({ text, tone = 'info', style, ...rest }: BadgeProps) {
         display: 'inline-flex',
         alignItems: 'center',
         justifyContent: 'center',
-        padding: '4px 10px',
-        borderRadius: '999px',
-        fontSize: '12px',
-        fontWeight: 700,
+        padding: `${tokens.spacing.xxs} ${tokens.spacing.sm}`,
+        borderRadius: tokens.radii.pill,
+        fontSize: tokens.typography.sizes.xs,
+        fontWeight: tokens.typography.weights.bold,
+        fontFamily: tokens.typography.fontFamily,
         letterSpacing: '0.3px',
-        backgroundColor: palette.background,
+        backgroundColor: palette.backgroundColor,
         color: palette.color,
         ...style,
       }}

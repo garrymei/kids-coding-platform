@@ -88,6 +88,15 @@ kids-coding-platform/
 └─ pnpm-workspace.yaml
 ```
 
+## 🧩 工作区约定
+
+- 统一使用 `pnpm` 执行安装与脚本，所有命令从仓库根目录发起。
+- Monorepo 工作区通过 `pnpm-workspace.yaml` 管理，子包位于 `apps/*`、`packages/*`、`server/*` 与 `docs/*`。
+- 各子包需声明规范的 `name`（应用统一 `@kids/` 前缀并保持 `private`）、`private` 与 `type` 字段。
+- 每个子包至少提供 `dev`、`lint`、`build` 脚本（可为占位实现），根脚本 `pnpm lint`、`pnpm build`、`pnpm test`、`pnpm changeset:version` 聚合执行。
+- 代码规范工具链包含 `.editorconfig`、Prettier、ESLint、Commitlint、Husky、lint-staged 并保持连通。
+- 统一构建校验：`pnpm -r run lint --if-present`、`pnpm -r run build --if-present` 作为 CI 基线。
+
 ## 🚀 快速启动
 
 ```bash

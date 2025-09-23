@@ -6,9 +6,4 @@ declare module 'express-serve-static-core' {
     userId?: string | null;
     log?: Logger;
   }
-  interface Response {
-    locals: {
-      logger?: Logger;
-    } & Record<string, unknown>;
-  }
 }

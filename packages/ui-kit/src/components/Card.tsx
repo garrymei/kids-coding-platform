@@ -1,4 +1,5 @@
 import type { HTMLAttributes, ReactNode } from 'react';
+import { tokens } from '../theme/tokens.js';
 
 export interface CardProps extends HTMLAttributes<HTMLDivElement> {
   /** Optional heading displayed at the top of the card. */
@@ -11,24 +12,37 @@ export function Card({ heading, featured = false, children, style, ...rest }: Ca
   return (
     <div
       style={{
-        borderRadius: '18px',
-        padding: '20px',
-        background: featured
-          ? 'linear-gradient(135deg, #6ea8ff, #846bff)'
-          : '#ffffff',
-        color: featured ? '#ffffff' : '#1f2b5c',
-        boxShadow: '0 8px 18px rgba(0, 0, 0, 0.08)',
+        borderRadius: tokens.radii.lg,
+        padding: tokens.spacing.lg,
+        background: featured ? tokens.gradients.primary : tokens.colors.surface,
+        color: featured ? tokens.colors.surface : tokens.colors.textPrimary,
+        boxShadow: featured ? tokens.shadows.lg : tokens.shadows.md,
         display: 'flex',
         flexDirection: 'column',
-        gap: '12px',
+        gap: tokens.spacing.sm,
         ...style,
       }}
       {...rest}
     >
       {heading && (
-        <div style={{ fontWeight: 700, fontSize: '18px', lineHeight: 1.2 }}>{heading}</div>
+        <div
+          style={{
+            fontFamily: tokens.typography.fontFamily,
+            fontWeight: tokens.typography.weights.bold,
+            fontSize: tokens.typography.sizes.lg,
+            lineHeight: 1.2,
+          }}
+        >
+          {heading}
+        </div>
       )}
-      <div style={{ fontSize: '14px', color: featured ? 'rgba(255,255,255,0.9)' : '#4b5bd7' }}>
+      <div
+        style={{
+          fontSize: tokens.typography.sizes.sm,
+          fontFamily: tokens.typography.fontFamily,
+          color: featured ? 'rgba(255, 255, 255, 0.92)' : tokens.colors.textSecondary,
+        }}
+      >
         {children}
       </div>
     </div>

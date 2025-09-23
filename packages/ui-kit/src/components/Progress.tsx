@@ -1,4 +1,5 @@
 import type { HTMLAttributes } from 'react';
+import { tokens } from '../theme/tokens.js';
 
 export interface ProgressProps extends Omit<HTMLAttributes<HTMLDivElement>, 'children'> {
   /**
@@ -12,13 +13,22 @@ export interface ProgressProps extends Omit<HTMLAttributes<HTMLDivElement>, 'chi
 export function Progress({ value, label, style, ...rest }: ProgressProps) {
   const safeValue = Math.min(100, Math.max(0, value));
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', ...style }} {...rest}>
+    <div
+      style={{
+        display: 'flex',
+        flexDirection: 'column',
+        gap: tokens.spacing.xs,
+        fontFamily: tokens.typography.fontFamily,
+        ...style,
+      }}
+      {...rest}
+    >
       <div
         style={{
           width: '100%',
           height: '12px',
-          backgroundColor: '#eef1f6',
-          borderRadius: '999px',
+          backgroundColor: tokens.colors.surfaceMuted,
+          borderRadius: tokens.radii.pill,
           overflow: 'hidden',
         }}
       >
@@ -26,8 +36,8 @@ export function Progress({ value, label, style, ...rest }: ProgressProps) {
           style={{
             width: `${safeValue}%`,
             height: '100%',
-            background: 'linear-gradient(90deg, #6ea8ff, #23d3ff)',
-            borderRadius: '999px',
+            background: tokens.gradients.progress,
+            borderRadius: tokens.radii.pill,
             transition: 'width 0.3s ease',
           }}
         />
@@ -37,9 +47,9 @@ export function Progress({ value, label, style, ...rest }: ProgressProps) {
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
-          fontSize: '12px',
-          color: '#5c6b9b',
-          fontWeight: 600,
+          fontSize: tokens.typography.sizes.xs,
+          color: tokens.colors.textMuted,
+          fontWeight: tokens.typography.weights.semibold,
         }}
       >
         <span>{label}</span>

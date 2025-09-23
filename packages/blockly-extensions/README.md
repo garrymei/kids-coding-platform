@@ -3,22 +3,24 @@
 Custom Blockly blocks and React workspace wrapper for the Kids Coding Platform.
 
 ## Features
-- Registers Kids-themed control, variable, and logic blocks (placeholder definitions ready for future extension).
+- Registers Kids-themed control, variable, and logic blocks with a shared namespace and color palette.
 - Provides a `BlocklyWorkspace` React component that injects a workspace with the custom toolbox.
-- Exports `registerKidsBlocks` for manual integration.
+- Exports `createCodeGenerator` helpers for Python/JavaScript code generation.
+- Shares block palette and namespace utilities for other surfaces to reuse.
 
 ## Usage
 
 ```tsx
-import { BlocklyWorkspace } from '@kids/blockly-extensions';
+import * as Blockly from 'blockly/core';
+import { BlocklyWorkspace, createCodeGenerator } from '@kids/blockly-extensions';
 
 export function Playground() {
   return (
     <div style={{ height: 520 }}>
       <BlocklyWorkspace
         onWorkspaceChange={(workspace) => {
-          const js = Blockly.JavaScript.workspaceToCode(workspace);
-          console.log(js);
+          const { toPython } = createCodeGenerator(Blockly);
+          console.log(toPython(workspace));
         }}
       />
     </div>

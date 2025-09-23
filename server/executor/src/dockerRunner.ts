@@ -12,6 +12,7 @@ export interface DockerRunnerOptions {
   nanoCpus: number;
   executionTimeoutMs: number;
   allowedModulesJson: string;
+  allowedModules: string[];
   enableLocalFallback: boolean;
 }
 
@@ -70,7 +71,12 @@ export class DockerExecutor {
         throw new Error('Docker daemon unavailable and local fallback disabled');
       }
       execLogger.warn('[docker] falling back to local executor');
-      return runPythonTestSequential(source, tests, this.options.executionTimeoutMs);
+      return runPythonTestSequential(source, tests, {
+        timeoutMs: this.options.executionTimeoutMs,
+        allowedModules: this.options.allowedModules,
+        cpuSeconds: Math.max(1, Math.ceil(this.options.executionTimeoutMs / 1_000)),
+        memoryLimitBytes: this.options.memoryBytes,
+      });
     }
 
     const taskList = tests.length ? tests : [{}];
@@ -103,9 +109,11 @@ export class DockerExecutor {
         exitCode: result.exitCode,
         timedOut: result.timedOut,
         signal: result.signal,
+        durationMs: result.durationMs,
         raw: undefined,
         expectedStdout: test.expectedStdout,
         passed,
+        containerId: result.containerId,
       });
     }
 
@@ -117,6 +125,7 @@ export class DockerExecutor {
     log = logger,
     testIndex = 0,
   ): Promise<DockerExecutionResult> {
+    const startedAt = Date.now();
     const timeout = Math.max(500, timeoutMs ?? this.options.executionTimeoutMs);
 
     const container = await this.docker.createContainer({
@@ -205,7 +214,7 @@ export class DockerExecutor {
       timedOut,
       signal: null,
       containerId: container.id,
-      durationMs: timeout, // approximate, actual logged elsewhere
+      durationMs: Date.now() - startedAt,
     };
   }
 }
@@ -213,7 +222,12 @@ export class DockerExecutor {
 async function runPythonTestSequential(
   source: string,
   tests: BatchTestInput[],
-  defaultTimeout: number,
+  options: {
+    timeoutMs: number;
+    allowedModules: string[];
+    cpuSeconds: number;
+    memoryLimitBytes: number;
+  },
 ): Promise<BatchTestResult[]> {
   const tasks = tests.length ? tests : [{}];
   const results: BatchTestResult[] = [];
@@ -221,7 +235,10 @@ async function runPythonTestSequential(
     const res = await runPythonTest({
       source,
       stdin: test.stdin,
-      timeoutMs: test.timeoutMs ?? defaultTimeout,
+      timeoutMs: test.timeoutMs ?? options.timeoutMs,
+      allowedModules: options.allowedModules,
+      cpuSeconds: options.cpuSeconds,
+      memoryLimitBytes: options.memoryLimitBytes,
     });
     const passed =
       typeof test.expectedStdout === 'string'
