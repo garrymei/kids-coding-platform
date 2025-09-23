@@ -1,0 +1,44 @@
+<svg width="860" height="360" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 860 360">
+  <style>
+    .node { fill: #ffffff; stroke: #4b5bd7; stroke-width: 2; rx: 18; }
+    .label { font-family: 'Segoe UI', sans-serif; font-size: 14px; fill: #1f2b5c; }
+    .title { font-weight: 700; font-size: 16px; }
+    .arrow { stroke: #6ea8ff; stroke-width: 2; marker-end: url(#arrowhead); }
+  </style>
+  <defs>
+    <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#6ea8ff" />
+    </marker>
+  </defs>
+  <rect width="860" height="360" fill="#f6f7ff" rx="24" />
+
+  <rect x="48" y="48" width="200" height="120" class="node" />
+  <text x="68" y="88" class="label title">学生端</text>
+  <text x="68" y="118" class="label">1. Blockly 生成 Python</text>
+  <text x="68" y="142" class="label">2. POST /execute</text>
+
+  <rect x="324" y="48" width="220" height="120" class="node" />
+  <text x="344" y="88" class="label title">API 网关</text>
+  <text x="344" y="118" class="label">验证 payload / traceId</text>
+  <text x="344" y="142" class="label">写入 Redis 队列</text>
+
+  <rect x="610" y="48" width="220" height="120" class="node" />
+  <text x="630" y="88" class="label title">执行器 Worker</text>
+  <text x="630" y="118" class="label">Docker 容器运行代码</text>
+  <text x="630" y="142" class="label">采集 stdout/stderr</text>
+
+  <path d="M248 108 H320" class="arrow" />
+  <path d="M544 108 H610" class="arrow" />
+  <path d="M720 180 V240 H158 V180" class="arrow" />
+
+  <rect x="48" y="212" width="200" height="100" class="node" />
+  <text x="68" y="250" class="label title">学生端</text>
+  <text x="68" y="274" class="label">显示输出 & 奖励动画</text>
+
+  <rect x="324" y="212" width="220" height="100" class="node" />
+  <text x="344" y="250" class="label title">日志/监控</text>
+  <text x="344" y="274" class="label">记录 traceId / 耗时 / 退出码</text>
+
+  <path d="M168 212 V178" class="arrow" />
+  <path d="M434 212 V178" class="arrow" />
+</svg>
