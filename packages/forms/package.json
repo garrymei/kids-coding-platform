@@ -1,0 +1,23 @@
+{
+  "name": "@kids/forms",
+  "version": "0.0.1",
+  "description": "Shared form validation utilities for Kids Coding Platform",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "dev": "tsc -p tsconfig.build.json --watch"
+  },
+  "dependencies": {
+    "@hookform/resolvers": "^3.9.0",
+    "react-hook-form": "^7.53.2",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@types/react": "^19.1.13",
+    "typescript": "~5.8.3"
+  },
+  "peerDependencies": {
+    "react": "^19.1.1"
+  }
+}
