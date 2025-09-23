@@ -13,6 +13,7 @@ import { CoursesModule } from './modules/courses/courses.module';
 import { ClassesModule } from './modules/classes/classes.module';
 import { RelationshipsModule } from './modules/relationships/relationships.module';
 import { AuditModule } from './modules/audit/audit.module';
+import { StudentsModule } from './modules/students/students.module';
 
 @Module({
   imports: [
@@ -24,6 +25,7 @@ import { AuditModule } from './modules/audit/audit.module';
     ClassesModule,
     RelationshipsModule,
     AuditModule,
+    StudentsModule,
     LoggerModule.forRoot({
       pinoHttp: {
         level: process.env.LOG_LEVEL ?? 'info',
