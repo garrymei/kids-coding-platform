@@ -10,6 +10,9 @@ import { PrismaModule } from './prisma/prisma.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { UsersModule } from './modules/users/users.module';
 import { CoursesModule } from './modules/courses/courses.module';
+import { ClassesModule } from './modules/classes/classes.module';
+import { RelationshipsModule } from './modules/relationships/relationships.module';
+import { AuditModule } from './modules/audit/audit.module';
 
 @Module({
   imports: [
@@ -18,6 +21,9 @@ import { CoursesModule } from './modules/courses/courses.module';
     AuthModule,
     UsersModule,
     CoursesModule,
+    ClassesModule,
+    RelationshipsModule,
+    AuditModule,
     LoggerModule.forRoot({
       pinoHttp: {
         level: process.env.LOG_LEVEL ?? 'info',
