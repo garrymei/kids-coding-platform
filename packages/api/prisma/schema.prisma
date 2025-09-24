@@ -48,8 +48,17 @@ model User {
   requesterConsents     Consent[]  @relation("RequesterConsents")
   // 审计日志
   auditLogs             AuditLog[] @relation("AuditLogs")
+  // 申诉相关
+  submittedAppeals      Appeal[]   @relation("SubmittedAppeals")
+  targetAppeals         Appeal[]   @relation("TargetAppeals")
+  reviewedAppeals       Appeal[]   @relation("ReviewedAppeals")
   // 指标快照
   metricsSnapshots      MetricsSnapshot[]
+  // 安全相关
+  status                String     @default("ACTIVE") // ACTIVE, SUSPENDED
+  suspendedAt           DateTime?
+  needsAuditReview      Boolean    @default(false)
+  auditReviewRequestedAt DateTime?
   createdAt             DateTime   @default(now())
   updatedAt             DateTime   @updatedAt
 }
@@ -224,4 +233,49 @@ enum ConsentStatus {
   REJECTED
   EXPIRED
   REVOKED
+}
+
+enum AppealType {
+  UNAUTHORIZED_ACCESS
+  EXCESSIVE_DATA_VIEW
+  PRIVACY_VIOLATION
+  PERMISSION_ABUSE
+  OTHER
+}
+
+enum AppealStatus {
+  PENDING
+  UNDER_REVIEW
+  APPROVED
+  REJECTED
+  CLOSED
+}
+
+model Appeal {
+  id              String       @id @default(uuid()) @db.Uuid
+  studentId       String       @db.Uuid
+  student         User         @relation("SubmittedAppeals", fields: [studentId], references: [id])
+  targetUserId    String       @db.Uuid
+  targetUser      User         @relation("TargetAppeals", fields: [targetUserId], references: [id])
+  appealType      AppealType
+  description     String
+  evidence        Json?        @default("{}")
+  requestedAction String
+  status          AppealStatus @default(PENDING)
+  submittedAt     DateTime     @default(now())
+  reviewedAt      DateTime?
+  reviewedBy      String?      @db.Uuid
+  reviewer        User?        @relation("ReviewedAppeals", fields: [reviewedBy], references: [id])
+  reviewReason    String?
+  reviewActions   String[]     @default([])
+  closedAt        DateTime?
+  closedBy        String?      @db.Uuid
+  closeReason     String?
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+
+  @@index([studentId])
+  @@index([targetUserId])
+  @@index([status])
+  @@index([appealType])
 }
