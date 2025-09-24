@@ -9,17 +9,20 @@ export enum Permission {
   APPROVE_RELATIONSHIPS = 'approve_relationships',
   REVOKE_RELATIONSHIPS = 'revoke_relationships',
   VIEW_OWN_AUDIT = 'view_own_audit',
-  
+
   // 家长权限
   VIEW_AUTHORIZED_STUDENT_DATA = 'view_authorized_student_data',
   REQUEST_STUDENT_ACCESS = 'request_student_access',
-  
+
   // 教师权限
   VIEW_CLASS_STUDENT_DATA = 'view_class_student_data',
   COMMENT_ON_WORKS = 'comment_on_works',
   ASSIGN_TASKS = 'assign_tasks',
   MANAGE_CLASS = 'manage_class',
-  
+
+  // 指标查看权限
+  VIEW_STUDENT_DATA = 'view_student_data',
+
   // 管理员权限
   SYSTEM_MAINTENANCE = 'system_maintenance',
   HANDLE_APPEALS = 'handle_appeals',

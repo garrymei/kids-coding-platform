@@ -16,5 +16,8 @@ export type { LegalNoticeProps } from './components/LegalNotice';
 export { PrivacyBanner } from './components/PrivacyBanner';
 export type { PrivacyBannerProps } from './components/PrivacyBanner';
 
+export { default as StudentTrendChart } from './components/StudentTrendChart';
+export { default as StudentComparisonChart } from './components/StudentComparisonChart';
+
 export { tokens } from './theme/index.js';
 export type { DesignTokens } from './theme/index.js';

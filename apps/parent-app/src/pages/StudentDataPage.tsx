@@ -1,315 +1,360 @@
 import React, { useState, useEffect } from 'react';
-import { useFormValidation, FormField, FormInput } from '@kids/forms';
-import { Button, Card, Badge, Progress } from '@kids/ui-kit';
-import { httpClient } from '../services/http';
-import { z } from 'zod';
+import { Card, Row, Col, Statistic, DatePicker, Select, Button, message, Spin } from 'antd';
+import {
+  CalendarOutlined,
+  TrophyOutlined,
+  ClockCircleOutlined,
+  CheckCircleOutlined,
+} from '@ant-design/icons';
+import { StudentTrendChart, StudentComparisonChart } from '@kids/ui-kit';
+import dayjs from 'dayjs';
 
-// 学生数据的 schema
-const studentDataSchema = z.object({
-  id: z.string(),
-  displayName: z.string(),
-  email: z.string(),
-  progress: z.object({
-    totalCourses: z.number(),
-    completedCourses: z.number(),
-    totalLessons: z.number(),
-    completedLessons: z.number(),
-    xp: z.number(),
-    streakDays: z.number(),
-  }),
-  recentWorks: z.array(z.object({
-    id: z.string(),
-    title: z.string(),
-    createdAt: z.string(),
-    status: z.string(),
-  })),
-  courses: z.array(z.object({
-    id: z.string(),
-    title: z.string(),
-    progress: z.number(),
-    status: z.string(),
-  })),
-});
+const { RangePicker } = DatePicker;
+const { Option } = Select;
 
-// 申请查看的 schema
-const requestAccessSchema = z.object({
-  studentEmail: z.string().email('请输入有效的邮箱地址'),
-  purpose: z.string().min(1, '请填写申请目的'),
-  reason: z.string().min(10, '申请理由至少需要10个字符'),
-});
+interface StudentSummary {
+  studentId: string;
+  studentName: string;
+  totalTimeSpent: number;
+  totalTasksDone: number;
+  averageAccuracy: number;
+  totalXP: number;
+  currentStreak: number;
+  lastActiveDate?: string;
+}
 
-type StudentData = z.infer<typeof studentDataSchema>;
-type RequestAccessData = z.infer<typeof requestAccessSchema>;
+interface TrendData {
+  date: string;
+  time_spent_min: number;
+  tasks_done: number;
+  accuracy: number;
+  xp: number;
+  streak: number;
+}
 
-export function StudentDataPage() {
-  const [students, setStudents] = useState<StudentData[]>([]);
-  const [selectedStudent, setSelectedStudent] = useState<StudentData | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [showRequestForm, setShowRequestForm] = useState(false);
+interface ComparisonData {
+  studentId: string;
+  studentName?: string;
+  accuracy: number;
+  tasks_done: number;
+  time_spent_min: number;
+  rank: number;
+  isAnonymous?: boolean;
+}
 
-  // 申请查看表单
-  const {
-    register,
-    handleSubmit,
-    formState: { errors, isSubmitting },
-    reset,
-  } = useFormValidation<RequestAccessData>({
-    schema: requestAccessSchema,
-    defaultValues: {
-      studentEmail: '',
-      purpose: 'parent-view',
-      reason: '',
-    },
-  });
+const StudentDataPage: React.FC = () => {
+  const [loading, setLoading] = useState(false);
+  const [summary, setSummary] = useState<StudentSummary | null>(null);
+  const [trendData, setTrendData] = useState<TrendData[]>([]);
+  const [comparisonData, setComparisonData] = useState<ComparisonData[]>([]);
+  const [dateRange, setDateRange] = useState<[dayjs.Dayjs, dayjs.Dayjs]>([
+    dayjs().subtract(30, 'day'),
+    dayjs(),
+  ]);
+  const [granularity, setGranularity] = useState<'day' | 'week'>('day');
+  const [selectedStudent, setSelectedStudent] = useState<string>('');
 
-  useEffect(() => {
-    loadAccessibleStudents();
-  }, []);
-
-  const loadAccessibleStudents = async () => {
+  // 获取学生摘要
+  const fetchStudentSummary = async (studentId: string) => {
     try {
-      setLoading(true);
-      const response = await httpClient.get('/relationships/accessible-students');
-      setStudents(response);
+      // TODO: 调用 API 获取学生摘要
+      // const response = await api.get(`/metrics/students/${studentId}/summary`);
+      // setSummary(response.data);
+
+      // 模拟数据
+      setSummary({
+        studentId: 'student-1',
+        studentName: '小明',
+        totalTimeSpent: 1200,
+        totalTasksDone: 45,
+        averageAccuracy: 0.85,
+        totalXP: 2500,
+        currentStreak: 7,
+        lastActiveDate: '2024-01-03',
+      });
     } catch (error) {
-      console.error('加载学生数据失败:', error);
+      message.error('获取学生摘要失败');
+    }
+  };
+
+  // 获取学生趋势数据
+  const fetchTrendData = async (
+    studentId: string,
+    from: string,
+    to: string,
+    granularity: string,
+  ) => {
+    setLoading(true);
+    try {
+      // TODO: 调用 API 获取趋势数据
+      // const response = await api.get(`/metrics/students/${studentId}/trend`, {
+      //   params: { from, to, granularity }
+      // });
+      // setTrendData(response.data);
+
+      // 模拟数据
+      const mockData: TrendData[] = [];
+      const startDate = dayjs(from);
+      const endDate = dayjs(to);
+      const days = endDate.diff(startDate, 'day') + 1;
+
+      for (let i = 0; i < days; i++) {
+        const date = startDate.add(i, 'day');
+        mockData.push({
+          date: date.format('YYYY-MM-DD'),
+          time_spent_min: Math.floor(Math.random() * 60) + 20,
+          tasks_done: Math.floor(Math.random() * 5) + 1,
+          accuracy: Math.random() * 0.4 + 0.6, // 0.6-1.0
+          xp: Math.floor(Math.random() * 100) + 50,
+          streak: Math.min(i + 1, 10),
+        });
+      }
+
+      setTrendData(mockData);
+    } catch (error) {
+      message.error('获取趋势数据失败');
     } finally {
       setLoading(false);
     }
   };
 
-  const handleRequestAccess = async (data: RequestAccessData) => {
+  // 获取对比数据
+  const fetchComparisonData = async (studentId: string) => {
     try {
-      await httpClient.post('/relationships/request-parent-access', data);
-      setShowRequestForm(false);
-      reset();
-      alert('申请已提交，等待学生同意');
+      // TODO: 调用 API 获取对比数据
+      // const response = await api.post('/metrics/compare', {
+      //   studentIds: [studentId],
+      //   metrics: ['accuracy', 'tasks_done', 'time_spent_min'],
+      //   window: 'last_14d'
+      // });
+      // setComparisonData(response.data);
+
+      // 模拟数据 - 家长端只显示自己孩子和班级统计
+      setComparisonData([
+        {
+          studentId: 'student-1',
+          studentName: '小明',
+          accuracy: 0.85,
+          tasks_done: 45,
+          time_spent_min: 1200,
+          rank: 3,
+        },
+        {
+          studentId: 'class_avg',
+          studentName: '班级平均',
+          accuracy: 0.78,
+          tasks_done: 38,
+          time_spent_min: 950,
+          rank: 0,
+          isAnonymous: true,
+        },
+        {
+          studentId: 'class_p50',
+          studentName: '班级中位数(P50)',
+          accuracy: 0.8,
+          tasks_done: 40,
+          time_spent_min: 1000,
+          rank: 0,
+          isAnonymous: true,
+        },
+        {
+          studentId: 'class_p90',
+          studentName: '班级优秀线(P90)',
+          accuracy: 0.92,
+          tasks_done: 55,
+          time_spent_min: 1400,
+          rank: 0,
+          isAnonymous: true,
+        },
+      ]);
     } catch (error) {
-      console.error('提交申请失败:', error);
+      message.error('获取对比数据失败');
     }
   };
 
-  const handleViewStudent = async (studentId: string) => {
-    try {
-      // 检查访问权限
-      const hasAccess = await httpClient.get(`/relationships/check-access/${studentId}?scope=progress:read`);
-      
-      if (!hasAccess.hasAccess) {
-        alert('您没有权限查看该学生的数据');
-        return;
+  // 处理日期范围变化
+  const handleDateRangeChange = (dates: [dayjs.Dayjs | null, dayjs.Dayjs | null] | null) => {
+    if (dates && dates[0] && dates[1]) {
+      setDateRange([dates[0], dates[1]]);
+      if (selectedStudent) {
+        fetchTrendData(
+          selectedStudent,
+          dates[0].format('YYYY-MM-DD'),
+          dates[1].format('YYYY-MM-DD'),
+          granularity,
+        );
       }
-
-      // 获取学生详细数据
-      const studentData = await httpClient.get(`/students/${studentId}/data`);
-      setSelectedStudent(studentData);
-    } catch (error) {
-      console.error('获取学生数据失败:', error);
     }
   };
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleString('zh-CN');
-  };
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'completed': return 'success';
-      case 'in_progress': return 'info';
-      case 'pending': return 'warning';
-      default: return 'info';
+  // 处理粒度变化
+  const handleGranularityChange = (value: 'day' | 'week') => {
+    setGranularity(value);
+    if (selectedStudent) {
+      fetchTrendData(
+        selectedStudent,
+        dateRange[0].format('YYYY-MM-DD'),
+        dateRange[1].format('YYYY-MM-DD'),
+        value,
+      );
     }
   };
 
-  if (loading) {
-    return <div className="loading">加载中...</div>;
-  }
+  useEffect(() => {
+    // 模拟选择第一个学生
+    const mockStudentId = 'student-1';
+    setSelectedStudent(mockStudentId);
+    fetchStudentSummary(mockStudentId);
+    fetchComparisonData(mockStudentId);
+  }, []);
+
+  useEffect(() => {
+    if (selectedStudent) {
+      fetchTrendData(
+        selectedStudent,
+        dateRange[0].format('YYYY-MM-DD'),
+        dateRange[1].format('YYYY-MM-DD'),
+        granularity,
+      );
+    }
+  }, [selectedStudent, dateRange, granularity]);
 
   return (
-    <div className="student-data-page">
-      <div className="page-header">
-        <h1>查看学生数据</h1>
-        <Button
-          variant="primary"
-          onClick={() => setShowRequestForm(true)}
-        >
-          申请查看新学生
-        </Button>
-      </div>
+    <div style={{ padding: '24px' }}>
+      <h2>学生数据查看</h2>
 
-      {/* 可访问的学生列表 */}
-      <Card heading="可访问的学生">
-        {students.length === 0 ? (
-          <div className="empty-state">
-            <p>您还没有被授权查看任何学生的数据</p>
-            <p>请先申请查看权限</p>
-          </div>
-        ) : (
-          <div className="student-list">
-            {students.map((student) => (
-              <div key={student.id} className="student-item">
-                <div className="student-info">
-                  <h3>{student.displayName}</h3>
-                  <p>{student.email}</p>
-                  <div className="student-stats">
-                    <Badge text={`${student.progress.xp} XP`} tone="info" />
-                    <Badge text={`${student.progress.streakDays} 天连续`} tone="success" />
-                  </div>
-                </div>
-                <div className="student-actions">
-                  <Button
-                    variant="primary"
-                    onClick={() => handleViewStudent(student.id)}
-                  >
-                    查看详情
-                  </Button>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-      </Card>
-
-      {/* 学生详细数据 */}
-      {selectedStudent && (
-        <Card heading={`${selectedStudent.displayName} 的学习数据`}>
-          <div className="student-details">
-            {/* 学习进度概览 */}
-            <div className="progress-overview">
-              <h3>学习进度概览</h3>
-              <div className="progress-stats">
-                <div className="stat-item">
-                  <span>总课程数</span>
-                  <span>{selectedStudent.progress.totalCourses}</span>
-                </div>
-                <div className="stat-item">
-                  <span>已完成课程</span>
-                  <span>{selectedStudent.progress.completedCourses}</span>
-                </div>
-                <div className="stat-item">
-                  <span>总课时数</span>
-                  <span>{selectedStudent.progress.totalLessons}</span>
-                </div>
-                <div className="stat-item">
-                  <span>已完成课时</span>
-                  <span>{selectedStudent.progress.completedLessons}</span>
-                </div>
-                <div className="stat-item">
-                  <span>总经验值</span>
-                  <span>{selectedStudent.progress.xp}</span>
-                </div>
-                <div className="stat-item">
-                  <span>连续学习天数</span>
-                  <span>{selectedStudent.progress.streakDays}</span>
-                </div>
-              </div>
-            </div>
-
-            {/* 课程进度 */}
-            <div className="courses-progress">
-              <h3>课程进度</h3>
-              <div className="course-list">
-                {selectedStudent.courses.map((course) => (
-                  <div key={course.id} className="course-item">
-                    <div className="course-info">
-                      <h4>{course.title}</h4>
-                      <Progress value={course.progress} label={`${course.progress}%`} />
-                    </div>
-                    <Badge
-                      text={course.status}
-                      tone={getStatusColor(course.status)}
-                    />
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* 最近作品 */}
-            <div className="recent-works">
-              <h3>最近作品</h3>
-              <div className="works-list">
-                {selectedStudent.recentWorks.map((work) => (
-                  <div key={work.id} className="work-item">
-                    <div className="work-info">
-                      <h4>{work.title}</h4>
-                      <p>创建时间: {formatDate(work.createdAt)}</p>
-                    </div>
-                    <Badge
-                      text={work.status}
-                      tone={getStatusColor(work.status)}
-                    />
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        </Card>
-      )}
-
-      {/* 申请查看模态框 */}
-      {showRequestForm && (
-        <div className="modal-overlay">
-          <div className="modal">
-            <h2>申请查看学生数据</h2>
-            <form onSubmit={handleSubmit(handleRequestAccess)}>
-              <FormField
-                label="学生邮箱"
-                error={errors.studentEmail}
-                required
-                helpText="请输入学生的注册邮箱地址"
-              >
-                <FormInput
-                  {...register('studentEmail')}
-                  type="email"
-                  placeholder="student@example.com"
+      {summary && (
+        <>
+          {/* 学生摘要卡片 */}
+          <Row gutter={[16, 16]} style={{ marginBottom: '24px' }}>
+            <Col span={6}>
+              <Card>
+                <Statistic
+                  title="总学习时长"
+                  value={summary.totalTimeSpent}
+                  suffix="分钟"
+                  prefix={<ClockCircleOutlined />}
+                  valueStyle={{ color: '#3f8600' }}
                 />
-              </FormField>
-
-              <FormField
-                label="申请目的"
-                error={errors.purpose}
-                required
-              >
-                <FormInput
-                  {...register('purpose')}
-                  type="text"
-                  value="parent-view"
-                  readOnly
+              </Card>
+            </Col>
+            <Col span={6}>
+              <Card>
+                <Statistic
+                  title="完成任务数"
+                  value={summary.totalTasksDone}
+                  suffix="个"
+                  prefix={<CheckCircleOutlined />}
+                  valueStyle={{ color: '#1890ff' }}
                 />
-              </FormField>
-
-              <FormField
-                label="申请理由"
-                error={errors.reason}
-                required
-                helpText="请详细说明您申请查看学生数据的原因"
-              >
-                <FormInput
-                  {...register('reason')}
-                  type="text"
-                  placeholder="请详细说明申请理由..."
+              </Card>
+            </Col>
+            <Col span={6}>
+              <Card>
+                <Statistic
+                  title="平均准确率"
+                  value={summary.averageAccuracy * 100}
+                  suffix="%"
+                  prefix={<TrophyOutlined />}
+                  valueStyle={{ color: '#cf1322' }}
                 />
-              </FormField>
+              </Card>
+            </Col>
+            <Col span={6}>
+              <Card>
+                <Statistic
+                  title="连续学习天数"
+                  value={summary.currentStreak}
+                  suffix="天"
+                  prefix={<CalendarOutlined />}
+                  valueStyle={{ color: '#722ed1' }}
+                />
+              </Card>
+            </Col>
+          </Row>
 
-              <div className="form-actions">
-                <Button
-                  type="button"
-                  variant="ghost"
-                  onClick={() => setShowRequestForm(false)}
+          {/* 控制面板 */}
+          <Card style={{ marginBottom: '24px' }}>
+            <Row gutter={16} align="middle">
+              <Col>
+                <span>时间范围：</span>
+                <RangePicker
+                  value={dateRange}
+                  onChange={handleDateRangeChange}
+                  style={{ marginLeft: '8px' }}
+                />
+              </Col>
+              <Col>
+                <span>数据粒度：</span>
+                <Select
+                  value={granularity}
+                  onChange={handleGranularityChange}
+                  style={{ width: 120, marginLeft: '8px' }}
                 >
-                  取消
-                </Button>
+                  <Option value="day">按天</Option>
+                  <Option value="week">按周</Option>
+                </Select>
+              </Col>
+              <Col>
                 <Button
-                  type="submit"
-                  variant="primary"
-                  disabled={isSubmitting}
+                  type="primary"
+                  onClick={() => {
+                    if (selectedStudent) {
+                      fetchTrendData(
+                        selectedStudent,
+                        dateRange[0].format('YYYY-MM-DD'),
+                        dateRange[1].format('YYYY-MM-DD'),
+                        granularity,
+                      );
+                    }
+                  }}
                 >
-                  {isSubmitting ? '提交中...' : '提交申请'}
+                  刷新数据
                 </Button>
-              </div>
-            </form>
-          </div>
-        </div>
+              </Col>
+            </Row>
+          </Card>
+
+          {/* 趋势图表 */}
+          <Card title="学习趋势" style={{ marginBottom: '24px' }}>
+            <Spin spinning={loading}>
+              <StudentTrendChart
+                data={trendData}
+                title={`${summary.studentName}的学习趋势`}
+                height={400}
+                showMetrics={['time_spent_min', 'tasks_done', 'accuracy']}
+              />
+            </Spin>
+          </Card>
+
+          {/* 对比图表 */}
+          <Card title="班级对比">
+            <StudentComparisonChart
+              data={comparisonData}
+              title={`${summary.studentName}与班级对比`}
+              height={400}
+              showMetrics={['accuracy', 'tasks_done', 'time_spent_min']}
+              isTeacher={false}
+            />
+            <div
+              style={{
+                marginTop: '16px',
+                padding: '12px',
+                backgroundColor: '#f6ffed',
+                border: '1px solid #b7eb8f',
+                borderRadius: '4px',
+              }}
+            >
+              <p style={{ margin: 0, fontSize: '14px', color: '#52c41a' }}>
+                💡
+                提示：为了保护隐私，家长端只显示自己孩子与班级匿名统计数据（班级平均、中位数、优秀线）的对比。
+              </p>
+            </div>
+          </Card>
+        </>
       )}
     </div>
   );
-}
+};
+
+export default StudentDataPage;

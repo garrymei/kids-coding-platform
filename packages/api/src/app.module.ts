@@ -18,6 +18,7 @@ import { ParentsModule } from './modules/parents/parents.module';
 import { TeachersModule } from './modules/teachers/teachers.module';
 import { AdminModule } from './modules/admin/admin.module';
 import { SearchModule } from './modules/search/search.module';
+import { MetricsModule } from './modules/metrics/metrics.module';
 
 @Module({
   imports: [
@@ -34,6 +35,7 @@ import { SearchModule } from './modules/search/search.module';
     TeachersModule,
     AdminModule,
     SearchModule,
+    MetricsModule,
     LoggerModule.forRoot({
       pinoHttp: {
         level: process.env.LOG_LEVEL ?? 'info',
