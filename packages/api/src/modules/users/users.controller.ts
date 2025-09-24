@@ -1,4 +1,4 @@
-import { Controller, Get, UseGuards } from '@nestjs/common';
+import { Controller, Get, UseGuards, Request } from '@nestjs/common';
 import { ApiBearerAuth, ApiOkResponse, ApiTags } from '@nestjs/swagger';
 import { UsersService } from './users.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
@@ -12,6 +12,12 @@ import { Role } from '../auth/roles.enum';
 @UseGuards(JwtAuthGuard, RolesGuard)
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
+
+  @Get('me')
+  @ApiOkResponse({ description: 'Current user profile' })
+  getProfile(@Request() req: any) {
+    return this.usersService.findById(req.user.userId);
+  }
 
   @Get()
   @Roles(Role.Admin, Role.Teacher)

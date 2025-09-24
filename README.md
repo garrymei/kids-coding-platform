@@ -66,6 +66,45 @@
 
 ---
 
+## 🏗️ 工作区与脚本约定
+
+本项目采用 **pnpm monorepo** 架构，包含以下工作区：
+
+- `apps/*` - 前端应用（学生端、家长端、教师端）
+- `server/*` - 后端服务（API、WebSocket）
+- `packages/*` - 共享包（UI组件、工具库、API客户端）
+- `docs/*` - 项目文档
+
+### 根目录脚本
+
+```bash
+# 构建所有包
+pnpm build
+
+# 代码检查
+pnpm lint
+
+# 运行测试
+pnpm test
+
+# 开发模式
+pnpm dev
+
+# 版本管理
+pnpm changeset
+
+# 格式化代码
+pnpm format
+```
+
+### 包管理约定
+
+- 使用 `pnpm -r` 递归执行所有包的脚本
+- 使用 `--if-present` 避免包缺少脚本时报错
+- 使用 `--filter` 指定特定包执行命令
+
+---
+
 ## 📂 项目目录结构
 
 ```
@@ -161,6 +200,7 @@ make db-down
 ### 授权流程
 
 #### 家长查看学生数据
+
 1. 家长输入学生邮箱或分享码申请查看
 2. 系统向学生发送授权请求通知
 3. 学生在授权中心同意/拒绝，可设置权限范围和过期时间
@@ -168,6 +208,7 @@ make db-down
 5. 学生可随时撤销授权
 
 #### 教师查看学生数据
+
 1. 教师创建班级并生成邀请码
 2. 学生使用邀请码申请加入班级
 3. 教师审核通过后，自动创建访问授权
@@ -191,12 +232,12 @@ make db-down
 
 ### 相关文档
 
-| 文档类型 | 说明 | 链接 |
-|---------|------|------|
-| 安全基线政策 | 数据安全和隐私保护基线要求 | [docs/policy/safety-baseline.md](docs/policy/safety-baseline.md) |
-| RBAC 权限矩阵 | 基于角色的访问控制清单 | [docs/security/RBAC_MATRIX.md](docs/security/RBAC_MATRIX.md) |
-| 审计日志规范 | 审计字段定义和导出需求 | [docs/audit/README.md](docs/audit/README.md) |
-| 数据库设计 | 数据模型和关系设计 | [docs/database/README.md](docs/database/README.md) |
+| 文档类型      | 说明                       | 链接                                                             |
+| ------------- | -------------------------- | ---------------------------------------------------------------- |
+| 安全基线政策  | 数据安全和隐私保护基线要求 | [docs/policy/safety-baseline.md](docs/policy/safety-baseline.md) |
+| RBAC 权限矩阵 | 基于角色的访问控制清单     | [docs/security/RBAC_MATRIX.md](docs/security/RBAC_MATRIX.md)     |
+| 审计日志规范  | 审计字段定义和导出需求     | [docs/audit/README.md](docs/audit/README.md)                     |
+| 数据库设计    | 数据模型和关系设计         | [docs/database/README.md](docs/database/README.md)               |
 
 ## 📚 文档导航
 

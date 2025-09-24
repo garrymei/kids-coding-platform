@@ -34,6 +34,7 @@ erDiagram
         string school
         string className
         boolean discoverable
+        string anonymousId
         string passwordHash
         int roleId FK
         string status
@@ -103,6 +104,7 @@ erDiagram
         string purpose
         string[] scope
         string status
+        string reason
         datetime expiresAt
         datetime createdAt
         datetime updatedAt
@@ -118,7 +120,8 @@ erDiagram
         string ipAddress
         string userAgent
         string severity
-        datetime ts
+        datetime createdAt
+        datetime updatedAt
     }
 
     MetricsSnapshot {

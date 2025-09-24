@@ -4,11 +4,13 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "lint": "pnpm -r --if-present run lint",
     "build": "pnpm -r --if-present run build",
+    "lint": "pnpm -r --if-present run lint",
     "test": "pnpm -r --if-present run test",
-    "format": "prettier --write .",
+    "dev": "pnpm -r --if-present run dev",
+    "changeset": "pnpm exec changeset",
     "changeset:version": "pnpm exec changeset version",
+    "format": "prettier --write .",
     "prepare": "husky",
     "db:migrate": "pnpm --filter @kids/api exec prisma migrate deploy",
     "db:migrate:dev": "pnpm --filter @kids/api exec prisma migrate dev"

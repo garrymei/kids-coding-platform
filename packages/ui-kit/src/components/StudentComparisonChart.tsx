@@ -68,7 +68,11 @@ const StudentComparisonChart: React.FC<StudentComparisonChartProps> = ({
     }
   };
 
-  const visibleMetrics = showMetrics.map(getMetricConfig).filter(Boolean);
+  const visibleMetrics = showMetrics.map(getMetricConfig).filter(Boolean) as Array<{
+    key: string;
+    name: string;
+    color: string;
+  }>;
 
   const CustomTooltip = ({ active, payload, label }: any) => {
     if (active && payload && payload.length) {
@@ -106,7 +110,7 @@ const StudentComparisonChart: React.FC<StudentComparisonChartProps> = ({
           <YAxis tick={{ fontSize: 12 }} />
           <Tooltip content={<CustomTooltip />} />
           <Legend />
-          {visibleMetrics.map((metric, index) => (
+          {visibleMetrics.map((metric) => (
             <Bar key={metric.key} dataKey={metric.key} fill={metric.color} name={metric.name} />
           ))}
         </BarChart>

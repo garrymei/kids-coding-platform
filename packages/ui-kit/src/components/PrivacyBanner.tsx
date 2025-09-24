@@ -1,17 +1,17 @@
 import React, { useState, useEffect } from 'react';
 
-interface PrivacyBannerProps {
+export interface PrivacyBannerProps {
   onAccept?: () => void;
   onDecline?: () => void;
   showDecline?: boolean;
   className?: string;
 }
 
-export function PrivacyBanner({ 
-  onAccept, 
-  onDecline, 
-  showDecline = true, 
-  className = '' 
+export function PrivacyBanner({
+  onAccept,
+  onDecline,
+  showDecline = true,
+  className = '',
 }: PrivacyBannerProps) {
   const [isVisible, setIsVisible] = useState(false);
   const [isAccepted, setIsAccepted] = useState(false);
@@ -49,16 +49,21 @@ export function PrivacyBanner({
           <h4>隐私保护提醒</h4>
           <p>
             我们严格保护您的隐私和个人信息。使用本平台即表示您同意我们的
-            <a href="/legal/privacy" target="_blank" rel="noopener noreferrer">隐私政策</a>
+            <a href="/legal/privacy" target="_blank" rel="noopener noreferrer">
+              隐私政策
+            </a>
             和
-            <a href="/legal/terms" target="_blank" rel="noopener noreferrer">服务条款</a>。
+            <a href="/legal/terms" target="_blank" rel="noopener noreferrer">
+              服务条款
+            </a>
+            。
           </p>
           <p className="privacy-banner__highlight">
             特别提醒：本平台面向儿童用户，我们遵循严格的儿童隐私保护标准。
           </p>
         </div>
       </div>
-      
+
       <div className="privacy-banner__actions">
         {showDecline && (
           <button
@@ -75,7 +80,7 @@ export function PrivacyBanner({
           我同意
         </button>
       </div>
-      
+
       <div className="privacy-banner__links">
         <a href="/legal/privacy" target="_blank" rel="noopener noreferrer">
           隐私政策
@@ -93,3 +98,5 @@ export function PrivacyBanner({
     </div>
   );
 }
+
+export default PrivacyBanner;

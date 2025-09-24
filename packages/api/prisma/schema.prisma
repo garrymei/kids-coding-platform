@@ -30,6 +30,7 @@ model User {
   school                String?    // 学校名称
   className             String?    // 班级名称
   discoverable          Boolean    @default(false) // 是否可被搜索
+  anonymousId           String?    // 匿名ID，用于搜索
   passwordHash          String?
   roleId                Int
   role                  Role       @relation(fields: [roleId], references: [id])
@@ -130,6 +131,8 @@ model AccessGrant {
   scope        String[]    // 例如: ["progress:read", "works:read", "metrics:read"]
   status       GrantStatus @default(ACTIVE)
   expiresAt    DateTime?
+  grantedAt    DateTime?   // 授权时间
+  revokedAt    DateTime?   // 撤销时间
   relationshipId String?   @db.Uuid
   relationship   Relationship? @relation(fields: [relationshipId], references: [id], onDelete: Cascade)
   grantee      User        @relation("AccessGrants", fields: [granteeId], references: [id], onDelete: Cascade)
@@ -148,6 +151,7 @@ model Consent {
   purpose     String      // 例如: "parent-view", "teacher-progress"
   scope       String[]    // 例如: ["progress:read", "works:read"]
   status      ConsentStatus @default(PENDING)
+  reason      String?     // 申请理由或拒绝理由
   expiresAt   DateTime?
   student     User        @relation("StudentConsents", fields: [studentId], references: [id], onDelete: Cascade)
   requester   User        @relation("RequesterConsents", fields: [requesterId], references: [id], onDelete: Cascade)
@@ -166,7 +170,8 @@ model AuditLog {
   targetId   String   @db.Uuid
   metadata   Json?    // 额外的元数据，记录"查看了谁的什么数据"等
   actor      User     @relation("AuditLogs", fields: [actorId], references: [id], onDelete: Cascade)
-  ts         DateTime @default(now()) // 使用 ts 字段名
+  createdAt  DateTime @default(now()) // 使用 createdAt 字段名
+  updatedAt  DateTime @updatedAt
 
   @@map("audit_logs")
 }

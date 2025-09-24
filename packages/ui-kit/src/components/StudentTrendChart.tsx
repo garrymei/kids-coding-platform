@@ -84,7 +84,12 @@ const StudentTrendChart: React.FC<StudentTrendChartProps> = ({
     }
   };
 
-  const visibleMetrics = showMetrics.map(getMetricConfig).filter(Boolean);
+  const visibleMetrics = showMetrics.map(getMetricConfig).filter(Boolean) as Array<{
+    key: string;
+    name: string;
+    color: string;
+    unit: string;
+  }>;
 
   const CustomTooltip = ({ active, payload, label }: any) => {
     if (active && payload && payload.length) {
@@ -120,7 +125,7 @@ const StudentTrendChart: React.FC<StudentTrendChartProps> = ({
           <YAxis tick={{ fontSize: 12 }} />
           <Tooltip content={<CustomTooltip />} />
           <Legend />
-          {visibleMetrics.map((metric, index) => (
+          {visibleMetrics.map((metric) => (
             <Line
               key={metric.key}
               type="monotone"

@@ -20,7 +20,8 @@
     "lint": "eslint \"src/**/*.{ts,tsx}\""
   },
   "peerDependencies": {
-    "react": ">=18"
+    "react": ">=18",
+    "recharts": ">=2.0.0"
   },
   "devDependencies": {
     "typescript": "^5.9.2"
