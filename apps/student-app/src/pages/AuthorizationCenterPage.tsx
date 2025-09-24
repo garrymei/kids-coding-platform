@@ -1,457 +1,613 @@
 import React, { useState, useEffect } from 'react';
-import { Card, Badge, Button, Progress } from '@kids/ui-kit';
-import { useFormValidation, FormField, FormSelect, FormCheckbox } from '@kids/forms';
-import { httpClient } from '../services/http';
-import { z } from 'zod';
+import { Card, Button, Table, Tag, Space, message, Modal, Input, Select, DatePicker } from 'antd';
+import {
+  UserOutlined,
+  TeamOutlined,
+  ClockCircleOutlined,
+  CheckOutlined,
+  CloseOutlined,
+  ExclamationCircleOutlined,
+} from '@ant-design/icons';
 
-// 待审批请求的 schema
-const pendingRequestSchema = z.object({
-  id: z.string(),
-  requester: z.object({
-    id: z.string(),
-    displayName: z.string(),
-    email: z.string(),
-    role: z.object({
-      name: z.string(),
-    }),
-  }),
-  purpose: z.string(),
-  reason: z.string(),
-  createdAt: z.string(),
-  expiresAt: z.string().nullable(),
-});
+interface AuthorizationOverview {
+  pendingRequests: number;
+  activeRelationships: number;
+  classCount: number;
+  recentActivities: Array<{
+    action: string;
+    timestamp: string;
+    metadata: any;
+  }>;
+}
 
-// 已授权关系的 schema
-const authorizedRelationshipSchema = z.object({
-  id: z.string(),
-  party: z.object({
-    id: z.string(),
-    displayName: z.string(),
-    email: z.string(),
-    role: z.object({
-      name: z.string(),
-    }),
-  }),
-  status: z.string(),
-  accessGrants: z.array(z.object({
-    id: z.string(),
-    scope: z.array(z.string()),
-    status: z.string(),
-    expiresAt: z.string().nullable(),
-  })),
-  createdAt: z.string(),
-});
+interface PendingRequest {
+  id: string;
+  requester: {
+    id: string;
+    displayName: string;
+    email: string;
+    role: {
+      name: string;
+    };
+  };
+  purpose: string;
+  scope: string[];
+  reason: string;
+  expiresAt?: string;
+  createdAt: string;
+}
 
-// 已撤销关系的 schema
-const revokedRelationshipSchema = z.object({
-  id: z.string(),
-  party: z.object({
-    id: z.string(),
-    displayName: z.string(),
-    email: z.string(),
-    role: z.object({
-      name: z.string(),
-    }),
-  }),
-  status: z.string(),
-  revokedAt: z.string(),
-  reason: z.string().optional(),
-});
+interface ActiveRelationship {
+  id: string;
+  party: {
+    id: string;
+    displayName: string;
+    email: string;
+    role: {
+      name: string;
+    };
+  };
+  source: string;
+  accessGrants: Array<{
+    id: string;
+    scope: string[];
+    expiresAt?: string;
+    createdAt: string;
+  }>;
+  createdAt: string;
+}
 
-type PendingRequest = z.infer<typeof pendingRequestSchema>;
-type AuthorizedRelationship = z.infer<typeof authorizedRelationshipSchema>;
-type RevokedRelationship = z.infer<typeof revokedRelationshipSchema>;
+interface ClassRelationship {
+  id: string;
+  class: {
+    id: string;
+    name: string;
+    description?: string;
+    code: string;
+    teacher: {
+      id: string;
+      displayName: string;
+      email: string;
+    };
+  };
+  status: string;
+  joinedAt: string;
+  canLeave: boolean;
+}
 
-const scopeOptions = [
-  { value: 'progress:read', label: '查看学习进度' },
-  { value: 'works:read', label: '查看作品' },
-  { value: 'badges:read', label: '查看徽章' },
-  { value: 'courses:read', label: '查看课程' },
-];
-
-const durationOptions = [
-  { value: '1h', label: '1小时' },
-  { value: '1d', label: '1天' },
-  { value: '1w', label: '1周' },
-  { value: '1m', label: '1个月' },
-  { value: '3m', label: '3个月' },
-  { value: '1y', label: '1年' },
-  { value: 'never', label: '永久' },
-];
-
-export function AuthorizationCenterPage() {
-  const [activeTab, setActiveTab] = useState<'pending' | 'authorized' | 'revoked'>('pending');
+const AuthorizationCenterPage: React.FC = () => {
+  const [overview, setOverview] = useState<AuthorizationOverview | null>(null);
   const [pendingRequests, setPendingRequests] = useState<PendingRequest[]>([]);
-  const [authorizedRelationships, setAuthorizedRelationships] = useState<AuthorizedRelationship[]>([]);
-  const [revokedRelationships, setRevokedRelationships] = useState<RevokedRelationship[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [activeRelationships, setActiveRelationships] = useState<ActiveRelationship[]>([]);
+  const [classRelationships, setClassRelationships] = useState<ClassRelationship[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [approveModalVisible, setApproveModalVisible] = useState(false);
   const [selectedRequest, setSelectedRequest] = useState<PendingRequest | null>(null);
-  const [showResponseForm, setShowResponseForm] = useState(false);
-
-  // 响应表单
-  const {
-    register,
-    handleSubmit,
-    formState: { errors, isSubmitting },
-    watch,
-    setValue,
-  } = useFormValidation({
-    schema: z.object({
-      status: z.enum(['APPROVED', 'REJECTED']),
-      scopes: z.array(z.string()).optional(),
-      duration: z.string().optional(),
-    }),
-    defaultValues: {
-      status: 'APPROVED',
-      scopes: ['progress:read'],
-      duration: '1m',
-    },
+  const [approvalData, setApprovalData] = useState({
+    scopes: [] as string[],
+    expiresAt: undefined as any,
   });
 
-  const selectedScopes = watch('scopes') || [];
-  const selectedDuration = watch('duration');
-
-  useEffect(() => {
-    loadData();
-  }, []);
-
-  const loadData = async () => {
+  // 获取授权中心概览
+  const fetchOverview = async () => {
     try {
-      setLoading(true);
-      const [requestsRes, relationshipsRes, revokedRes] = await Promise.all([
-        httpClient.get('/relationships/pending-requests'),
-        httpClient.get('/relationships/my-relationships'),
-        httpClient.get('/relationships/revoked-relationships'),
-      ]);
-      
-      setPendingRequests(requestsRes);
-      setAuthorizedRelationships(relationshipsRes.filter((r: any) => r.status === 'ACTIVE'));
-      setRevokedRelationships(revokedRes);
+      // TODO: 调用 API 获取概览
+      // const response = await api.get('/students/authorization-center/overview');
+      // setOverview(response.data);
+
+      // 模拟数据
+      setOverview({
+        pendingRequests: 2,
+        activeRelationships: 5,
+        classCount: 3,
+        recentActivities: [
+          {
+            action: 'approve_relationship_request',
+            timestamp: '2024-01-03T10:00:00Z',
+            metadata: { requesterId: 'parent-1', scopes: ['progress:read', 'works:read'] },
+          },
+        ],
+      });
     } catch (error) {
-      console.error('加载数据失败:', error);
-    } finally {
-      setLoading(false);
+      message.error('获取概览失败');
     }
   };
 
-  const handleResponseRequest = (request: PendingRequest) => {
-    setSelectedRequest(request);
-    setShowResponseForm(true);
+  // 获取待处理请求
+  const fetchPendingRequests = async () => {
+    try {
+      // TODO: 调用 API 获取待处理请求
+      // const response = await api.get('/students/authorization-center/pending-requests');
+      // setPendingRequests(response.data);
+
+      // 模拟数据
+      setPendingRequests([
+        {
+          id: '1',
+          requester: {
+            id: 'parent-1',
+            displayName: '张妈妈',
+            email: 'parent@example.com',
+            role: { name: 'parent' },
+          },
+          purpose: 'parent-view',
+          scope: ['progress:read', 'works:read'],
+          reason: '想了解孩子的学习情况',
+          expiresAt: '2024-12-31T23:59:59Z',
+          createdAt: '2024-01-03T10:00:00Z',
+        },
+      ]);
+    } catch (error) {
+      message.error('获取待处理请求失败');
+    }
   };
 
-  const onSubmitResponse = async (data: any) => {
+  // 获取活跃关系
+  const fetchActiveRelationships = async () => {
+    try {
+      // TODO: 调用 API 获取活跃关系
+      // const response = await api.get('/students/authorization-center/active-relationships');
+      // setActiveRelationships(response.data);
+
+      // 模拟数据
+      setActiveRelationships([
+        {
+          id: '1',
+          party: {
+            id: 'teacher-1',
+            displayName: '李老师',
+            email: 'teacher@example.com',
+            role: { name: 'teacher' },
+          },
+          source: 'CLASS_INVITE',
+          accessGrants: [
+            {
+              id: 'grant-1',
+              scope: ['progress:read', 'metrics:read', 'works:read'],
+              expiresAt: '2024-12-31T23:59:59Z',
+              createdAt: '2024-01-01T10:00:00Z',
+            },
+          ],
+          createdAt: '2024-01-01T10:00:00Z',
+        },
+      ]);
+    } catch (error) {
+      message.error('获取活跃关系失败');
+    }
+  };
+
+  // 获取班级关系
+  const fetchClassRelationships = async () => {
+    try {
+      // TODO: 调用 API 获取班级关系
+      // const response = await api.get('/students/authorization-center/class-relationships');
+      // setClassRelationships(response.data);
+
+      // 模拟数据
+      setClassRelationships([
+        {
+          id: '1',
+          class: {
+            id: 'class-1',
+            name: '初一(3)班',
+            description: '编程入门班级',
+            code: 'A1B2C3',
+            teacher: {
+              id: 'teacher-1',
+              displayName: '李老师',
+              email: 'teacher@example.com',
+            },
+          },
+          status: 'ACTIVE',
+          joinedAt: '2024-01-01T10:00:00Z',
+          canLeave: true,
+        },
+      ]);
+    } catch (error) {
+      message.error('获取班级关系失败');
+    }
+  };
+
+  // 批准请求
+  const handleApproveRequest = async () => {
     if (!selectedRequest) return;
 
     try {
-      const expiresAt = data.duration === 'never' 
-        ? null 
-        : new Date(Date.now() + getDurationMs(data.duration)).toISOString();
+      // TODO: 调用 API 批准请求
+      // await api.post(`/students/authorization-center/approve-request/${selectedRequest.id}`, approvalData);
+      // message.success('请求已批准');
+      // setApproveModalVisible(false);
+      // fetchPendingRequests();
+      // fetchActiveRelationships();
 
-      await httpClient.post('/relationships/respond-to-request', {
-        consentId: selectedRequest.id,
-        status: data.status,
-        scopes: data.status === 'APPROVED' ? data.scopes : undefined,
-        expiresAt,
-      });
-
-      setShowResponseForm(false);
-      setSelectedRequest(null);
-      loadData();
+      message.success('请求已批准（模拟）');
+      setApproveModalVisible(false);
     } catch (error) {
-      console.error('响应请求失败:', error);
+      message.error('批准请求失败');
     }
   };
 
+  // 拒绝请求
+  const handleRejectRequest = async (requestId: string) => {
+    Modal.confirm({
+      title: '确认拒绝',
+      icon: <ExclamationCircleOutlined />,
+      content: '确定要拒绝这个关注请求吗？',
+      onOk: async () => {
+        try {
+          // TODO: 调用 API 拒绝请求
+          // await api.post(`/students/authorization-center/reject-request/${requestId}`, {});
+          // message.success('请求已拒绝');
+          // fetchPendingRequests();
+
+          message.success('请求已拒绝（模拟）');
+        } catch (error) {
+          message.error('拒绝请求失败');
+        }
+      },
+    });
+  };
+
+  // 撤销关系
   const handleRevokeRelationship = async (relationshipId: string) => {
-    if (!confirm('确定要撤销此授权吗？')) return;
+    Modal.confirm({
+      title: '确认撤销',
+      icon: <ExclamationCircleOutlined />,
+      content: '确定要撤销这个关系吗？撤销后对方将无法再查看您的数据。',
+      onOk: async () => {
+        try {
+          // TODO: 调用 API 撤销关系
+          // await api.delete(`/students/authorization-center/revoke-relationship/${relationshipId}`, {});
+          // message.success('关系已撤销');
+          // fetchActiveRelationships();
 
-    try {
-      await httpClient.put(`/relationships/relationships/${relationshipId}`, {
-        status: 'REVOKED',
-      });
-      loadData();
-    } catch (error) {
-      console.error('撤销授权失败:', error);
-    }
+          message.success('关系已撤销（模拟）');
+        } catch (error) {
+          message.error('撤销关系失败');
+        }
+      },
+    });
   };
 
-  const handleUpdateAccessGrant = async (grantId: string, scopes: string[]) => {
-    try {
-      await httpClient.put(`/relationships/access-grants/${grantId}`, {
-        scopes,
-      });
-      loadData();
-    } catch (error) {
-      console.error('更新授权失败:', error);
-    }
+  // 退出班级
+  const handleLeaveClass = async (classId: string) => {
+    Modal.confirm({
+      title: '确认退出',
+      icon: <ExclamationCircleOutlined />,
+      content: '确定要退出这个班级吗？退出后老师将无法再查看您的数据。',
+      onOk: async () => {
+        try {
+          // TODO: 调用 API 退出班级
+          // await api.post(`/students/authorization-center/leave-class/${classId}`, {});
+          // message.success('已退出班级');
+          // fetchClassRelationships();
+          // fetchActiveRelationships();
+
+          message.success('已退出班级（模拟）');
+        } catch (error) {
+          message.error('退出班级失败');
+        }
+      },
+    });
   };
 
-  const getDurationMs = (duration: string) => {
-    switch (duration) {
-      case '1h': return 60 * 60 * 1000;
-      case '1d': return 24 * 60 * 60 * 1000;
-      case '1w': return 7 * 24 * 60 * 60 * 1000;
-      case '1m': return 30 * 24 * 60 * 60 * 1000;
-      case '3m': return 90 * 24 * 60 * 60 * 1000;
-      case '1y': return 365 * 24 * 60 * 60 * 1000;
-      default: return 0;
-    }
-  };
+  useEffect(() => {
+    fetchOverview();
+    fetchPendingRequests();
+    fetchActiveRelationships();
+    fetchClassRelationships();
+  }, []);
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleString('zh-CN');
-  };
-
-  const getRoleLabel = (role: string) => {
-    switch (role) {
-      case 'parent': return '家长';
-      case 'teacher': return '教师';
-      default: return role;
-    }
-  };
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'ACTIVE': return 'success';
-      case 'PENDING': return 'warning';
-      case 'REVOKED': return 'danger';
-      case 'EXPIRED': return 'danger';
-      default: return 'info';
-    }
-  };
-
-  const getScopeLabel = (scope: string) => {
-    switch (scope) {
-      case 'progress:read': return '学习进度';
-      case 'works:read': return '作品查看';
-      case 'badges:read': return '徽章查看';
-      case 'courses:read': return '课程查看';
-      default: return scope;
-    }
-  };
-
-  if (loading) {
-    return <div className="loading">加载中...</div>;
-  }
-
-  return (
-    <div className="authorization-center-page">
-      <div className="page-header">
-        <h1>授权管理中心</h1>
-        <p>管理谁可以查看您的学习数据</p>
-      </div>
-
-      {/* 标签页导航 */}
-      <div className="tab-navigation">
-        <button
-          className={`tab-button ${activeTab === 'pending' ? 'active' : ''}`}
-          onClick={() => setActiveTab('pending')}
-        >
-          待审批 ({pendingRequests.length})
-        </button>
-        <button
-          className={`tab-button ${activeTab === 'authorized' ? 'active' : ''}`}
-          onClick={() => setActiveTab('authorized')}
-        >
-          已授权 ({authorizedRelationships.length})
-        </button>
-        <button
-          className={`tab-button ${activeTab === 'revoked' ? 'active' : ''}`}
-          onClick={() => setActiveTab('revoked')}
-        >
-          已撤销 ({revokedRelationships.length})
-        </button>
-      </div>
-
-      {/* 待审批请求 */}
-      {activeTab === 'pending' && (
-        <Card heading="待处理的访问请求">
-          {pendingRequests.length === 0 ? (
-            <div className="empty-state">
-              <p>暂无待处理的请求</p>
-            </div>
-          ) : (
-            <div className="request-list">
-              {pendingRequests.map((request) => (
-                <div key={request.id} className="request-item">
-                  <div className="request-info">
-                    <h3>{request.requester.displayName}</h3>
-                    <p>{getRoleLabel(request.requester.role.name)} • {request.requester.email}</p>
-                    <p><strong>申请目的:</strong> {request.purpose}</p>
-                    <p><strong>申请理由:</strong> {request.reason}</p>
-                    <p><strong>申请时间:</strong> {formatDate(request.createdAt)}</p>
-                  </div>
-                  <div className="request-actions">
-                    <Button
-                      variant="primary"
-                      onClick={() => handleResponseRequest(request)}
-                    >
-                      处理请求
-                    </Button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </Card>
-      )}
-
-      {/* 已授权关系 */}
-      {activeTab === 'authorized' && (
-        <Card heading="已授权的关系">
-          {authorizedRelationships.length === 0 ? (
-            <div className="empty-state">
-              <p>暂无授权关系</p>
-            </div>
-          ) : (
-            <div className="relationship-list">
-              {authorizedRelationships.map((relationship) => (
-                <div key={relationship.id} className="relationship-item">
-                  <div className="relationship-info">
-                    <h3>{relationship.party.displayName}</h3>
-                    <p>{getRoleLabel(relationship.party.role.name)} • {relationship.party.email}</p>
-                    <div className="grants">
-                      {relationship.accessGrants.map((grant) => (
-                        <div key={grant.id} className="grant-item">
-                          <Badge
-                            text={grant.scope.map(getScopeLabel).join(', ')}
-                            tone={getStatusColor(grant.status)}
-                          />
-                          {grant.expiresAt && (
-                            <small>过期时间: {formatDate(grant.expiresAt)}</small>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                    <p><strong>建立时间:</strong> {formatDate(relationship.createdAt)}</p>
-                  </div>
-                  <div className="relationship-actions">
-                    <Button
-                      variant="ghost"
-                      onClick={() => handleRevokeRelationship(relationship.id)}
-                    >
-                      撤销授权
-                    </Button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </Card>
-      )}
-
-      {/* 已撤销关系 */}
-      {activeTab === 'revoked' && (
-        <Card heading="已撤销的关系">
-          {revokedRelationships.length === 0 ? (
-            <div className="empty-state">
-              <p>暂无已撤销的关系</p>
-            </div>
-          ) : (
-            <div className="relationship-list">
-              {revokedRelationships.map((relationship) => (
-                <div key={relationship.id} className="relationship-item revoked">
-                  <div className="relationship-info">
-                    <h3>{relationship.party.displayName}</h3>
-                    <p>{getRoleLabel(relationship.party.role.name)} • {relationship.party.email}</p>
-                    <p><strong>撤销时间:</strong> {formatDate(relationship.revokedAt)}</p>
-                    {relationship.reason && (
-                      <p><strong>撤销原因:</strong> {relationship.reason}</p>
-                    )}
-                  </div>
-                  <div className="relationship-status">
-                    <Badge text="已撤销" tone="danger" />
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </Card>
-      )}
-
-      {/* 响应请求模态框 */}
-      {showResponseForm && selectedRequest && (
-        <div className="modal-overlay">
-          <div className="modal">
-            <h2>处理访问请求</h2>
-            <p>来自: {selectedRequest.requester.displayName} ({getRoleLabel(selectedRequest.requester.role.name)})</p>
-            <p>申请目的: {selectedRequest.purpose}</p>
-            
-            <form onSubmit={handleSubmit(onSubmitResponse)}>
-              <FormField
-                label="处理决定"
-                error={errors.status}
-                required
-              >
-                <FormSelect
-                  {...register('status')}
-                  options={[
-                    { value: 'APPROVED', label: '同意' },
-                    { value: 'REJECTED', label: '拒绝' },
-                  ]}
-                />
-              </FormField>
-
-              {watch('status') === 'APPROVED' && (
-                <>
-                  <FormField
-                    label="授权范围"
-                    error={errors.scopes}
-                    helpText="选择允许查看的数据范围"
-                  >
-                    <div className="scope-checkboxes">
-                      {scopeOptions.map((option) => (
-                        <FormCheckbox
-                          key={option.value}
-                          {...register('scopes')}
-                          label={option.label}
-                          checked={selectedScopes.includes(option.value)}
-                          onChange={(e) => {
-                            const value = option.value;
-                            if (e.target.checked) {
-                              setValue('scopes', [...selectedScopes, value]);
-                            } else {
-                              setValue('scopes', selectedScopes.filter(s => s !== value));
-                            }
-                          }}
-                        />
-                      ))}
-                    </div>
-                  </FormField>
-
-                  <FormField
-                    label="授权期限"
-                    error={errors.duration}
-                    helpText="选择授权的有效期"
-                  >
-                    <FormSelect
-                      {...register('duration')}
-                      options={durationOptions}
-                    />
-                  </FormField>
-                </>
-              )}
-
-              <div className="form-actions">
-                <Button
-                  type="button"
-                  variant="ghost"
-                  onClick={() => setShowResponseForm(false)}
-                >
-                  取消
-                </Button>
-                <Button
-                  type="submit"
-                  variant="primary"
-                  disabled={isSubmitting}
-                >
-                  {isSubmitting ? '处理中...' : '确认'}
-                </Button>
-              </div>
-            </form>
+  const pendingColumns = [
+    {
+      title: '申请人',
+      dataIndex: ['requester', 'displayName'],
+      key: 'requester',
+      render: (name: string, record: PendingRequest) => (
+        <div>
+          <div>{name}</div>
+          <div style={{ fontSize: '12px', color: '#666' }}>
+            {record.requester.role.name === 'parent' ? '家长' : '教师'}
           </div>
         </div>
+      ),
+    },
+    {
+      title: '申请目的',
+      dataIndex: 'purpose',
+      key: 'purpose',
+      render: (purpose: string) => (
+        <Tag color="blue">{purpose === 'parent-view' ? '家长查看' : '教师查看'}</Tag>
+      ),
+    },
+    {
+      title: '申请范围',
+      dataIndex: 'scope',
+      key: 'scope',
+      render: (scope: string[]) => (
+        <Space wrap>
+          {scope.map((s) => (
+            <Tag key={s} color="green">
+              {s}
+            </Tag>
+          ))}
+        </Space>
+      ),
+    },
+    {
+      title: '申请理由',
+      dataIndex: 'reason',
+      key: 'reason',
+    },
+    {
+      title: '申请时间',
+      dataIndex: 'createdAt',
+      key: 'createdAt',
+      render: (date: string) => new Date(date).toLocaleString(),
+    },
+    {
+      title: '操作',
+      key: 'actions',
+      render: (_, record: PendingRequest) => (
+        <Space>
+          <Button
+            type="primary"
+            size="small"
+            icon={<CheckOutlined />}
+            onClick={() => {
+              setSelectedRequest(record);
+              setApprovalData({
+                scopes: record.scope,
+                expiresAt: record.expiresAt ? new Date(record.expiresAt) : undefined,
+              });
+              setApproveModalVisible(true);
+            }}
+          >
+            批准
+          </Button>
+          <Button
+            danger
+            size="small"
+            icon={<CloseOutlined />}
+            onClick={() => handleRejectRequest(record.id)}
+          >
+            拒绝
+          </Button>
+        </Space>
+      ),
+    },
+  ];
+
+  const relationshipColumns = [
+    {
+      title: '关系方',
+      dataIndex: ['party', 'displayName'],
+      key: 'party',
+      render: (name: string, record: ActiveRelationship) => (
+        <div>
+          <div>{name}</div>
+          <div style={{ fontSize: '12px', color: '#666' }}>
+            {record.party.role.name === 'parent' ? '家长' : '教师'}
+          </div>
+        </div>
+      ),
+    },
+    {
+      title: '来源',
+      dataIndex: 'source',
+      key: 'source',
+      render: (source: string) => (
+        <Tag color={source === 'CLASS_INVITE' ? 'blue' : 'green'}>
+          {source === 'CLASS_INVITE' ? '班级邀请' : '搜索申请'}
+        </Tag>
+      ),
+    },
+    {
+      title: '授权范围',
+      dataIndex: 'accessGrants',
+      key: 'accessGrants',
+      render: (grants: any[]) => (
+        <Space wrap>
+          {grants.map((grant) =>
+            grant.scope.map((s: string) => (
+              <Tag key={s} color="green">
+                {s}
+              </Tag>
+            )),
+          )}
+        </Space>
+      ),
+    },
+    {
+      title: '过期时间',
+      dataIndex: 'accessGrants',
+      key: 'expiresAt',
+      render: (grants: any[]) =>
+        grants[0]?.expiresAt ? new Date(grants[0].expiresAt).toLocaleDateString() : '永不过期',
+    },
+    {
+      title: '操作',
+      key: 'actions',
+      render: (_, record: ActiveRelationship) => (
+        <Button danger size="small" onClick={() => handleRevokeRelationship(record.id)}>
+          撤销
+        </Button>
+      ),
+    },
+  ];
+
+  const classColumns = [
+    {
+      title: '班级名称',
+      dataIndex: ['class', 'name'],
+      key: 'className',
+    },
+    {
+      title: '教师',
+      dataIndex: ['class', 'teacher', 'displayName'],
+      key: 'teacher',
+    },
+    {
+      title: '状态',
+      dataIndex: 'status',
+      key: 'status',
+      render: (status: string) => (
+        <Tag color={status === 'ACTIVE' ? 'green' : 'red'}>
+          {status === 'ACTIVE' ? '已加入' : '已退出'}
+        </Tag>
+      ),
+    },
+    {
+      title: '加入时间',
+      dataIndex: 'joinedAt',
+      key: 'joinedAt',
+      render: (date: string) => new Date(date).toLocaleString(),
+    },
+    {
+      title: '操作',
+      key: 'actions',
+      render: (_, record: ClassRelationship) => (
+        <Button
+          danger
+          size="small"
+          disabled={!record.canLeave}
+          onClick={() => handleLeaveClass(record.class.id)}
+        >
+          退出班级
+        </Button>
+      ),
+    },
+  ];
+
+  return (
+    <div style={{ padding: '24px' }}>
+      <h2>授权中心</h2>
+
+      {/* 概览卡片 */}
+      {overview && (
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(4, 1fr)',
+            gap: '16px',
+            marginBottom: '24px',
+          }}
+        >
+          <Card>
+            <div style={{ textAlign: 'center' }}>
+              <ClockCircleOutlined style={{ fontSize: '24px', color: '#faad14' }} />
+              <div style={{ marginTop: '8px', fontSize: '18px', fontWeight: 'bold' }}>
+                {overview.pendingRequests}
+              </div>
+              <div style={{ color: '#666' }}>待处理请求</div>
+            </div>
+          </Card>
+          <Card>
+            <div style={{ textAlign: 'center' }}>
+              <UserOutlined style={{ fontSize: '24px', color: '#52c41a' }} />
+              <div style={{ marginTop: '8px', fontSize: '18px', fontWeight: 'bold' }}>
+                {overview.activeRelationships}
+              </div>
+              <div style={{ color: '#666' }}>活跃关系</div>
+            </div>
+          </Card>
+          <Card>
+            <div style={{ textAlign: 'center' }}>
+              <TeamOutlined style={{ fontSize: '24px', color: '#1890ff' }} />
+              <div style={{ marginTop: '8px', fontSize: '18px', fontWeight: 'bold' }}>
+                {overview.classCount}
+              </div>
+              <div style={{ color: '#666' }}>加入班级</div>
+            </div>
+          </Card>
+          <Card>
+            <div style={{ textAlign: 'center' }}>
+              <ExclamationCircleOutlined style={{ fontSize: '24px', color: '#722ed1' }} />
+              <div style={{ marginTop: '8px', fontSize: '18px', fontWeight: 'bold' }}>
+                {overview.recentActivities.length}
+              </div>
+              <div style={{ color: '#666' }}>最近活动</div>
+            </div>
+          </Card>
+        </div>
       )}
+
+      {/* 待处理请求 */}
+      <Card title="待处理请求" style={{ marginBottom: '24px' }}>
+        <Table
+          columns={pendingColumns}
+          dataSource={pendingRequests}
+          rowKey="id"
+          pagination={false}
+        />
+      </Card>
+
+      {/* 活跃关系 */}
+      <Card title="活跃关系" style={{ marginBottom: '24px' }}>
+        <Table
+          columns={relationshipColumns}
+          dataSource={activeRelationships}
+          rowKey="id"
+          pagination={false}
+        />
+      </Card>
+
+      {/* 班级关系 */}
+      <Card title="班级关系">
+        <Table
+          columns={classColumns}
+          dataSource={classRelationships}
+          rowKey="id"
+          pagination={false}
+        />
+      </Card>
+
+      {/* 批准请求模态框 */}
+      <Modal
+        title="批准关注请求"
+        open={approveModalVisible}
+        onOk={handleApproveRequest}
+        onCancel={() => setApproveModalVisible(false)}
+        width={600}
+      >
+        {selectedRequest && (
+          <div>
+            <div style={{ marginBottom: '16px' }}>
+              <strong>申请人：</strong>
+              {selectedRequest.requester.displayName}
+            </div>
+            <div style={{ marginBottom: '16px' }}>
+              <strong>申请理由：</strong>
+              {selectedRequest.reason}
+            </div>
+            <div style={{ marginBottom: '16px' }}>
+              <label>授权范围：</label>
+              <Select
+                mode="multiple"
+                value={approvalData.scopes}
+                onChange={(value) => setApprovalData({ ...approvalData, scopes: value })}
+                style={{ width: '100%' }}
+                options={[
+                  { label: 'progress:read - 查看学习进度', value: 'progress:read' },
+                  { label: 'works:read - 查看作品', value: 'works:read' },
+                  { label: 'metrics:read - 查看指标数据', value: 'metrics:read' },
+                ]}
+              />
+            </div>
+            <div>
+              <label>过期时间（可选）：</label>
+              <DatePicker
+                value={approvalData.expiresAt}
+                onChange={(date) => setApprovalData({ ...approvalData, expiresAt: date })}
+                style={{ width: '100%' }}
+                showTime
+              />
+            </div>
+          </div>
+        )}
+      </Modal>
     </div>
   );
-}
+};
+
+export default AuthorizationCenterPage;
