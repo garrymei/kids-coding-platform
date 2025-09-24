@@ -1,441 +1,255 @@
-# RBAC 约束清单 (Role-Based Access Control Matrix)
+# RBAC 权限矩阵
 
 ## 概述
 
-本文档定义了儿童编程平台的基于角色的访问控制矩阵，确保所有路由和功能都有明确的权限控制。所有 PR 必须引用此清单进行权限验证。
+本文档定义了儿童编程平台的基于角色的访问控制（RBAC）权限矩阵，确保不同角色只能访问其职责范围内的功能和数据。
+
+## 核心原则
+
+### 学生自主权
+- **完全控制**: 学生拥有自己数据的完全控制权
+- **显式授权**: 所有访问都需要学生明确同意
+- **随时撤销**: 学生可以随时撤销任何访问权限
+
+### 管理员限制
+- **无权创建关系**: 管理员不能代替学生创建关系
+- **无权绕过授权**: 管理员不能绕过学生的授权机制
+- **仅系统运维**: 管理员只能进行系统运维和申诉仲裁
+
+### 关系驱动访问
+- **家长访问**: 需要学生明确授权，默认不含代码内容
+- **教师访问**: 需要班级关系，只能查看教学相关数据
+- **最小权限**: 只授予必要的只读权限
 
 ## 角色定义
 
-### 系统角色
+### 学生 (Student)
+- 管理自己的可见性设置
+- 审批/撤销关注请求
+- 查看自己的审计摘要
+- 完全控制自己的数据
 
-1. **STUDENT (学生)**
-   - 主要用户，进行编程学习
-   - 可以管理自己的数据和授权
+### 家长 (Parent)
+- 仅在获得授权的范围内只读查看
+- 默认不含代码内容，仅成果/统计
+- 申请关注学生数据
 
-2. **PARENT (家长)**
-   - 学生的监护人
-   - 需要学生授权才能查看数据
+### 教师 (Teacher)
+- 加入"班级关系"后才能查看班级内学生数据
+- 点评作品、下发任务
+- 查看教学相关数据
 
-3. **TEACHER (教师)**
-   - 教学人员
-   - 通过班级管理学生
+### 管理员 (Admin)
+- 无权创建关系/绕过授权
+- 仅做系统运维与申诉仲裁
+- 通过二人审批流处理申诉
 
-4. **ADMIN (管理员)**
-   - 系统管理员
-   - 拥有最高权限
+## 详细权限矩阵
 
-## 权限矩阵
+### 学生权限
+| 功能 | 权限 | 说明 |
+|------|------|------|
+| 管理可见性设置 | `MANAGE_OWN_VISIBILITY` | 控制是否可被搜索 |
+| 审批关注请求 | `APPROVE_RELATIONSHIPS` | 同意/拒绝关注申请 |
+| 撤销关注关系 | `REVOKE_RELATIONSHIPS` | 随时撤销访问权限 |
+| 查看审计摘要 | `VIEW_OWN_AUDIT` | 查看自己的操作记录 |
 
-### 用户管理模块
+### 家长权限
+| 功能 | 权限 | 说明 |
+|------|------|------|
+| 查看授权学生数据 | `VIEW_AUTHORIZED_STUDENT_DATA` | 仅授权范围内，不含代码 |
+| 申请学生访问 | `REQUEST_STUDENT_ACCESS` | 发起关注申请 |
 
-| 路由 | 方法 | STUDENT | PARENT | TEACHER | ADMIN | 说明 |
-|------|------|---------|--------|---------|-------|------|
-| `/users/profile` | GET | ✅ | ✅ | ✅ | ✅ | 查看自己的个人信息 |
-| `/users/profile` | PUT | ✅ | ✅ | ✅ | ✅ | 更新自己的个人信息 |
-| `/users/{id}` | GET | ❌ | ❌ | ❌ | ✅ | 查看其他用户信息 |
-| `/users/{id}` | PUT | ❌ | ❌ | ❌ | ✅ | 更新其他用户信息 |
-| `/users/{id}` | DELETE | ❌ | ❌ | ❌ | ✅ | 删除用户 |
-| `/users` | GET | ❌ | ❌ | ❌ | ✅ | 查看用户列表 |
+### 教师权限
+| 功能 | 权限 | 说明 |
+|------|------|------|
+| 查看班级学生数据 | `VIEW_CLASS_STUDENT_DATA` | 需要班级关系 |
+| 点评作品 | `COMMENT_ON_WORKS` | 仅课堂作品 |
+| 下发任务 | `ASSIGN_TASKS` | 班级内任务 |
+| 管理班级 | `MANAGE_CLASS` | 创建和管理班级 |
 
-### 认证模块
+### 管理员权限
+| 功能 | 权限 | 说明 |
+|------|------|------|
+| 系统运维 | `SYSTEM_MAINTENANCE` | 系统状态、数据导出 |
+| 处理申诉 | `HANDLE_APPEALS` | 二人审批流 |
+| 查看系统审计 | `VIEW_SYSTEM_AUDIT` | 系统级审计日志 |
+| 用户管理 | `MANAGE_USERS` | 用户状态管理 |
 
-| 路由 | 方法 | STUDENT | PARENT | TEACHER | ADMIN | 说明 |
-|------|------|---------|--------|---------|-------|------|
-| `/auth/login` | POST | ✅ | ✅ | ✅ | ✅ | 用户登录 |
-| `/auth/logout` | POST | ✅ | ✅ | ✅ | ✅ | 用户登出 |
-| `/auth/refresh` | POST | ✅ | ✅ | ✅ | ✅ | 刷新令牌 |
-| `/auth/register` | POST | ✅ | ✅ | ✅ | ✅ | 用户注册 |
-| `/auth/forgot-password` | POST | ✅ | ✅ | ✅ | ✅ | 忘记密码 |
-| `/auth/reset-password` | POST | ✅ | ✅ | ✅ | ✅ | 重置密码 |
+## 路由权限矩阵
 
-### 班级管理模块
+### 学生端路由
+| 路由 | 方法 | 权限 | 说明 |
+|------|------|------|------|
+| `/students/permissions/my-data` | GET | `MANAGE_OWN_VISIBILITY` | 查看自己的完整数据 |
+| `/students/permissions/visibility-settings` | GET/PUT | `MANAGE_OWN_VISIBILITY` | 管理可见性设置 |
+| `/students/permissions/pending-requests` | GET | `APPROVE_RELATIONSHIPS` | 获取待处理请求 |
+| `/students/permissions/approve-request/:id` | POST | `APPROVE_RELATIONSHIPS` | 批准关注请求 |
+| `/students/permissions/reject-request/:id` | POST | `APPROVE_RELATIONSHIPS` | 拒绝关注请求 |
+| `/students/permissions/my-relationships` | GET | `REVOKE_RELATIONSHIPS` | 获取关系列表 |
+| `/students/permissions/revoke-relationship/:id` | DELETE | `REVOKE_RELATIONSHIPS` | 撤销关系 |
+| `/students/permissions/audit-summary` | GET | `VIEW_OWN_AUDIT` | 查看审计摘要 |
 
-| 路由 | 方法 | STUDENT | PARENT | TEACHER | ADMIN | 说明 |
-|------|------|---------|--------|---------|-------|------|
-| `/classes` | GET | ❌ | ❌ | ✅ | ✅ | 查看班级列表 |
-| `/classes` | POST | ❌ | ❌ | ✅ | ✅ | 创建班级 |
-| `/classes/{id}` | GET | ❌ | ❌ | ✅ | ✅ | 查看班级详情 |
-| `/classes/{id}` | PUT | ❌ | ❌ | ✅ | ✅ | 更新班级信息 |
-| `/classes/{id}` | DELETE | ❌ | ❌ | ✅ | ✅ | 删除班级 |
-| `/classes/join` | POST | ✅ | ❌ | ❌ | ❌ | 学生加入班级 |
-| `/classes/my-classes` | GET | ✅ | ❌ | ❌ | ❌ | 查看我的班级 |
-| `/classes/{id}/approve` | POST | ❌ | ❌ | ✅ | ✅ | 批准学生入班 |
-| `/classes/{id}/reject` | POST | ❌ | ❌ | ✅ | ✅ | 拒绝学生入班 |
-| `/classes/{id}/leave` | POST | ✅ | ❌ | ❌ | ❌ | 学生退出班级 |
+### 家长端路由
+| 路由 | 方法 | 权限 | 说明 |
+|------|------|------|------|
+| `/parents/permissions/authorized-students` | GET | `VIEW_AUTHORIZED_STUDENT_DATA` | 获取已授权学生列表 |
+| `/parents/permissions/student-data/:id` | GET | `VIEW_AUTHORIZED_STUDENT_DATA` | 查看授权学生数据 |
+| `/parents/permissions/student-progress/:id` | GET | `VIEW_AUTHORIZED_STUDENT_DATA` | 查看学习进度 |
+| `/parents/permissions/student-works/:id` | GET | `VIEW_AUTHORIZED_STUDENT_DATA` | 查看作品（不含代码） |
+| `/parents/permissions/request-access` | POST | `REQUEST_STUDENT_ACCESS` | 申请访问学生数据 |
+| `/parents/permissions/access-status/:id` | GET | `VIEW_AUTHORIZED_STUDENT_DATA` | 查看访问状态 |
 
-### 关系管理模块
+### 教师端路由
+| 路由 | 方法 | 权限 | 说明 |
+|------|------|------|------|
+| `/teachers/permissions/my-classes` | GET | `MANAGE_CLASS` | 获取我的班级列表 |
+| `/teachers/permissions/class-students/:id` | GET | `VIEW_CLASS_STUDENT_DATA` | 获取班级学生列表 |
+| `/teachers/permissions/student-data/:id` | GET | `VIEW_CLASS_STUDENT_DATA` | 查看班级内学生数据 |
+| `/teachers/permissions/student-progress/:id` | GET | `VIEW_CLASS_STUDENT_DATA` | 查看学习进度 |
+| `/teachers/permissions/student-works/:id` | GET | `VIEW_CLASS_STUDENT_DATA` | 查看作品（教学相关） |
+| `/teachers/permissions/comment-work/:id` | POST | `COMMENT_ON_WORKS` | 点评学生作品 |
+| `/teachers/permissions/assign-task` | POST | `ASSIGN_TASKS` | 下发任务 |
+| `/teachers/permissions/class-analytics/:id` | GET | `VIEW_CLASS_STUDENT_DATA` | 获取班级分析数据 |
 
-| 路由 | 方法 | STUDENT | PARENT | TEACHER | ADMIN | 说明 |
-|------|------|---------|--------|---------|-------|------|
-| `/relationships/request-parent-access` | POST | ❌ | ✅ | ❌ | ❌ | 家长申请查看学生数据 |
-| `/relationships/request-teacher-access` | POST | ❌ | ❌ | ✅ | ❌ | 教师申请查看学生数据 |
-| `/relationships/respond-to-request` | POST | ✅ | ❌ | ❌ | ❌ | 学生响应访问请求 |
-| `/relationships/pending-requests` | GET | ✅ | ❌ | ❌ | ❌ | 查看待处理请求 |
-| `/relationships/my-relationships` | GET | ✅ | ✅ | ✅ | ✅ | 查看我的关系 |
-| `/relationships/relationships/{id}` | PUT | ✅ | ✅ | ✅ | ✅ | 更新关系状态 |
-| `/relationships/access-grants/{id}` | PUT | ✅ | ✅ | ✅ | ✅ | 更新访问授权 |
-| `/relationships/access-grants/{id}` | DELETE | ✅ | ✅ | ✅ | ✅ | 撤销访问授权 |
-| `/relationships/accessible-students` | GET | ❌ | ✅ | ✅ | ✅ | 查看可访问的学生 |
-| `/relationships/check-access/{studentId}` | GET | ❌ | ✅ | ✅ | ✅ | 检查访问权限 |
+### 管理员端路由
+| 路由 | 方法 | 权限 | 说明 |
+|------|------|------|------|
+| `/admin/permissions/system-status` | GET | `SYSTEM_MAINTENANCE` | 获取系统状态 |
+| `/admin/permissions/appeals` | GET | `HANDLE_APPEALS` | 获取申诉列表 |
+| `/admin/permissions/handle-appeal/:id` | POST | `HANDLE_APPEALS` | 处理申诉 |
+| `/admin/permissions/second-approval/:id` | POST | `HANDLE_APPEALS` | 二次审批申诉 |
+| `/admin/permissions/system-audit` | GET | `VIEW_SYSTEM_AUDIT` | 查看系统审计日志 |
+| `/admin/permissions/user-management` | GET | `MANAGE_USERS` | 用户管理 |
+| `/admin/permissions/user-status/:id` | PUT | `MANAGE_USERS` | 更新用户状态 |
+| `/admin/permissions/data-export` | GET | `SYSTEM_MAINTENANCE` | 数据导出 |
 
-### 课程管理模块
+## 数据可见性控制
 
-| 路由 | 方法 | STUDENT | PARENT | TEACHER | ADMIN | 说明 |
-|------|------|---------|--------|---------|-------|------|
-| `/courses` | GET | ✅ | ❌ | ✅ | ✅ | 查看课程列表 |
-| `/courses` | POST | ❌ | ❌ | ✅ | ✅ | 创建课程 |
-| `/courses/{id}` | GET | ✅ | ❌ | ✅ | ✅ | 查看课程详情 |
-| `/courses/{id}` | PUT | ❌ | ❌ | ✅ | ✅ | 更新课程信息 |
-| `/courses/{id}` | DELETE | ❌ | ❌ | ✅ | ✅ | 删除课程 |
-| `/courses/{id}/enroll` | POST | ✅ | ❌ | ❌ | ❌ | 学生报名课程 |
-| `/courses/my-courses` | GET | ✅ | ❌ | ❌ | ❌ | 查看我的课程 |
+### 学生数据过滤规则
 
-### 学生数据模块
-
-| 路由 | 方法 | STUDENT | PARENT | TEACHER | ADMIN | 说明 |
-|------|------|---------|--------|---------|-------|------|
-| `/students/{id}/data` | GET | ✅* | ✅* | ✅* | ✅ | 查看学生数据 |
-| `/students/{id}/progress` | GET | ✅* | ✅* | ✅* | ✅ | 查看学习进度 |
-| `/students/{id}/works` | GET | ✅* | ✅* | ✅* | ✅ | 查看学生作品 |
-| `/students/{id}/badges` | GET | ✅* | ✅* | ✅* | ✅ | 查看学生徽章 |
-| `/students/{id}/courses` | GET | ✅* | ✅* | ✅* | ✅ | 查看学生课程 |
-
-*注：需要相应的访问授权
-
-### 作品管理模块
-
-| 路由 | 方法 | STUDENT | PARENT | TEACHER | ADMIN | 说明 |
-|------|------|---------|--------|---------|-------|------|
-| `/works` | GET | ✅ | ❌ | ✅ | ✅ | 查看作品列表 |
-| `/works` | POST | ✅ | ❌ | ❌ | ❌ | 创建作品 |
-| `/works/{id}` | GET | ✅ | ✅* | ✅* | ✅ | 查看作品详情 |
-| `/works/{id}` | PUT | ✅ | ❌ | ❌ | ❌ | 更新作品 |
-| `/works/{id}` | DELETE | ✅ | ❌ | ❌ | ❌ | 删除作品 |
-| `/works/{id}/submit` | POST | ✅ | ❌ | ❌ | ❌ | 提交作品 |
-| `/works/{id}/review` | POST | ❌ | ❌ | ✅ | ✅ | 点评作品 |
-| `/works/{id}/approve` | POST | ❌ | ❌ | ✅ | ✅ | 批准作品 |
-
-*注：需要相应的访问授权
-
-### 审计日志模块
-
-| 路由 | 方法 | STUDENT | PARENT | TEACHER | ADMIN | 说明 |
-|------|------|---------|--------|---------|-------|------|
-| `/audit/logs` | GET | ❌ | ❌ | ❌ | ✅ | 查看审计日志 |
-| `/audit/logs/export` | POST | ❌ | ❌ | ❌ | ✅ | 导出审计日志 |
-| `/audit/logs/statistics` | GET | ❌ | ❌ | ❌ | ✅ | 查看审计统计 |
-| `/audit/my-logs` | GET | ✅ | ✅ | ✅ | ✅ | 查看我的操作日志 |
-
-### 系统管理模块
-
-| 路由 | 方法 | STUDENT | PARENT | TEACHER | ADMIN | 说明 |
-|------|------|---------|--------|---------|-------|------|
-| `/admin/users` | GET | ❌ | ❌ | ❌ | ✅ | 管理用户 |
-| `/admin/roles` | GET | ❌ | ❌ | ❌ | ✅ | 管理角色 |
-| `/admin/permissions` | GET | ❌ | ❌ | ❌ | ✅ | 管理权限 |
-| `/admin/system` | GET | ❌ | ❌ | ❌ | ✅ | 系统配置 |
-| `/admin/backup` | POST | ❌ | ❌ | ❌ | ✅ | 系统备份 |
-| `/admin/restore` | POST | ❌ | ❌ | ❌ | ✅ | 系统恢复 |
-
-## 权限检查实现
-
-### 装饰器实现
-
+#### 学生查看自己数据
 ```typescript
-// 角色装饰器
-@Roles(Role.STUDENT, Role.PARENT)
-@Get('my-data')
-async getMyData() {
-  // 只有学生和家长可以访问
-}
-
-// 权限装饰器
-@RequirePermission('student:read')
-@Get('students/:id')
-async getStudent(@Param('id') id: string) {
-  // 需要学生读取权限
-}
-
-// 资源所有者装饰器
-@ResourceOwner('student')
-@Put('students/:id')
-async updateStudent(@Param('id') id: string) {
-  // 只有资源所有者可以访问
+// 完整数据访问
+{
+  id, email, displayName, nickname, school, className,
+  discoverable, role, learningData, createdAt, updatedAt
 }
 ```
 
-### 守卫实现
-
+#### 家长查看学生数据
 ```typescript
-// 角色守卫
-@Injectable()
-export class RolesGuard implements CanActivate {
-  canActivate(context: ExecutionContext): boolean {
-    const requiredRoles = this.reflector.get<string[]>('roles', context.getHandler());
-    const user = context.switchToHttp().getRequest().user;
-    
-    return requiredRoles.some(role => user.role === role);
-  }
-}
-
-// 权限守卫
-@Injectable()
-export class PermissionGuard implements CanActivate {
-  canActivate(context: ExecutionContext): boolean {
-    const requiredPermission = this.reflector.get<string>('permission', context.getHandler());
-    const user = context.switchToHttp().getRequest().user;
-    
-    return user.permissions.includes(requiredPermission);
-  }
+// 仅授权范围内的只读数据
+{
+  id, displayName, // 不包含邮箱
+  nickname?, school?, className?, // 根据授权
+  learningProgress?, // 过滤后的进度数据
+  works?, // 不含代码内容
+  metrics?, // 统计指标
+  accessInfo: { scopes, expiresAt, grantedAt }
 }
 ```
 
-### 中间件实现
-
+#### 教师查看学生数据
 ```typescript
-// 权限检查中间件
-export const checkPermission = (permission: string) => {
-  return async (req: Request, res: Response, next: NextFunction) => {
-    const user = req.user;
-    
-    if (!user.permissions.includes(permission)) {
-      return res.status(403).json({ error: '权限不足' });
-    }
-    
-    next();
-  };
-};
-```
-
-## 特殊权限规则
-
-### 数据访问权限
-
-1. **学生数据访问**
-   - 学生本人：完全访问
-   - 家长：需要明确授权
-   - 教师：需要班级关系
-   - 管理员：完全访问
-
-2. **班级数据访问**
-   - 班级教师：完全访问
-   - 班级学生：只读访问
-   - 其他用户：无访问权限
-
-3. **作品数据访问**
-   - 作品作者：完全访问
-   - 班级教师：点评权限
-   - 授权用户：只读访问
-
-### 动态权限检查
-
-```typescript
-// 动态权限检查示例
-@Injectable()
-export class DataAccessGuard implements CanActivate {
-  async canActivate(context: ExecutionContext): Promise<boolean> {
-    const request = context.switchToHttp().getRequest();
-    const user = request.user;
-    const resourceId = request.params.id;
-    
-    // 检查是否有访问权限
-    const hasAccess = await this.relationshipService.checkAccessPermission(
-      user.id,
-      resourceId,
-      'progress:read'
-    );
-    
-    return hasAccess;
-  }
+// 班级关系内的教学数据
+{
+  id, displayName, nickname, school, className,
+  teachingData: {
+    progress, metrics, works, // 教学相关内容
+  },
+  classInfo: { classId, className, enrolledAt }
 }
 ```
 
-## 权限测试
-
-### 单元测试
-
+#### 管理员查看学生数据
 ```typescript
-describe('RBAC Guards', () => {
-  it('should allow student to access their own data', async () => {
-    const user = { id: '1', role: 'STUDENT' };
-    const request = { user, params: { id: '1' } };
-    
-    const canActivate = await dataAccessGuard.canActivate({
-      switchToHttp: () => ({ getRequest: () => request })
-    } as ExecutionContext);
-    
-    expect(canActivate).toBe(true);
-  });
-  
-  it('should deny parent access without authorization', async () => {
-    const user = { id: '2', role: 'PARENT' };
-    const request = { user, params: { id: '1' } };
-    
-    const canActivate = await dataAccessGuard.canActivate({
-      switchToHttp: () => ({ getRequest: () => request })
-    } as ExecutionContext);
-    
-    expect(canActivate).toBe(false);
-  });
-});
-```
-
-### 集成测试
-
-```typescript
-describe('RBAC Integration', () => {
-  it('should enforce role-based access control', async () => {
-    // 测试不同角色的访问权限
-    const studentToken = await getAuthToken('student');
-    const parentToken = await getAuthToken('parent');
-    const teacherToken = await getAuthToken('teacher');
-    
-    // 学生可以访问自己的数据
-    await request(app)
-      .get('/students/1/data')
-      .set('Authorization', `Bearer ${studentToken}`)
-      .expect(200);
-    
-    // 家长无授权不能访问
-    await request(app)
-      .get('/students/1/data')
-      .set('Authorization', `Bearer ${parentToken}`)
-      .expect(403);
-    
-    // 教师无班级关系不能访问
-    await request(app)
-      .get('/students/1/data')
-      .set('Authorization', `Bearer ${teacherToken}`)
-      .expect(403);
-  });
-});
-```
-
-## 权限审计
-
-### 权限变更记录
-
-```typescript
-// 权限变更审计
-@Injectable()
-export class PermissionAuditService {
-  async logPermissionChange(
-    actorId: string,
-    targetUserId: string,
-    oldPermissions: string[],
-    newPermissions: string[],
-    reason: string
-  ) {
-    await this.auditService.log({
-      actorId,
-      action: 'permission_change',
-      targetType: 'user',
-      targetId: targetUserId,
-      metadata: {
-        oldPermissions,
-        newPermissions,
-        reason,
-        changes: this.calculateChanges(oldPermissions, newPermissions)
-      }
-    });
-  }
+// 仅系统运维数据
+{
+  id, email, displayName, nickname, school, className,
+  discoverable, role,
+  systemData: { accountStatus, lastLogin }, // 不含学习内容
+  createdAt, updatedAt
 }
 ```
 
-### 权限使用监控
+## 权限检查流程
 
+### 1. 权限装饰器检查
 ```typescript
-// 权限使用监控
-@Injectable()
-export class PermissionMonitorService {
-  async trackPermissionUsage(userId: string, permission: string, resource: string) {
-    await this.auditService.log({
-      actorId: userId,
-      action: 'permission_usage',
-      targetType: 'resource',
-      targetId: resource,
-      metadata: {
-        permission,
-        resource,
-        timestamp: new Date()
-      }
-    });
-  }
+@RequirePermissions(Permission.VIEW_AUTHORIZED_STUDENT_DATA)
+@UseGuards(JwtAuthGuard, PermissionsGuard)
+```
+
+### 2. 角色权限验证
+```typescript
+// 根据用户角色检查权限
+switch (userRole) {
+  case 'student': return checkStudentPermissions();
+  case 'parent': return checkParentPermissions();
+  case 'teacher': return checkTeacherPermissions();
+  case 'admin': return checkAdminPermissions();
 }
 ```
 
-## 合规要求
+### 3. 数据访问验证
+```typescript
+// 检查是否有访问特定数据的权限
+const hasAccess = await visibilityService.hasDataAccess(
+  viewerId, targetStudentId, dataType
+);
+```
 
-### 最小权限原则
+### 4. 数据过滤
+```typescript
+// 根据查看者角色过滤数据
+const filteredData = await visibilityService.filterStudentData(
+  studentId, viewerId, viewerRole
+);
+```
 
-1. **默认拒绝**
-   - 所有权限默认拒绝
-   - 需要明确授权才能访问
+## 安全约束
 
-2. **最小必要权限**
-   - 只授予必要的权限
-   - 定期审查和清理权限
+### 管理员限制
+- ❌ 不能创建学生关系
+- ❌ 不能绕过学生授权
+- ❌ 不能查看学习内容
+- ✅ 只能进行系统运维
+- ✅ 只能处理申诉（需二人审批）
 
-3. **权限分离**
-   - 不同角色权限分离
-   - 避免权限集中
+### 关系创建权
+- ✅ 学生端：通过授权中心
+- ✅ 课堂入班：通过班级邀请
+- ❌ 管理员：不能代替学生决定
 
-### 权限生命周期管理
+### 数据保护
+- 🔒 默认私有：学生数据默认仅学生可见
+- 🔍 显式授权：所有访问需要明确同意
+- 📊 最小权限：只授予必要的只读权限
+- 📝 全链路审计：所有访问都有记录
 
-1. **权限创建**
-   - 明确授权理由
-   - 设置过期时间
-   - 记录授权过程
+## 实施检查清单
 
-2. **权限使用**
-   - 监控权限使用
-   - 记录访问日志
-   - 检测异常使用
+### 权限控制
+- [ ] 使用 `@RequirePermissions()` 装饰器
+- [ ] 实现 `PermissionsGuard` 权限检查
+- [ ] 使用 `VisibilityService` 数据过滤
+- [ ] 记录所有权限变更到审计日志
 
-3. **权限撤销**
-   - 及时撤销过期权限
-   - 记录撤销原因
-   - 验证撤销效果
+### 数据保护
+- [ ] 家长默认不能查看代码内容
+- [ ] 教师只能查看班级内学生数据
+- [ ] 管理员不能查看学习内容
+- [ ] 所有数据访问都有审计记录
 
-## 更新维护
-
-### 权限矩阵更新
-
-1. **新增功能时**
-   - 更新权限矩阵
-   - 添加新的权限检查
-   - 更新测试用例
-
-2. **修改功能时**
-   - 审查权限变更
-   - 更新相关文档
-   - 通知相关团队
-
-3. **删除功能时**
-   - 清理相关权限
-   - 更新权限矩阵
-   - 清理测试用例
-
-### 定期审查
-
-1. **月度审查**
-   - 检查权限使用情况
-   - 识别未使用权限
-   - 优化权限分配
-
-2. **季度审查**
-   - 审查权限矩阵完整性
-   - 检查权限实现正确性
-   - 更新合规要求
-
-3. **年度审查**
-   - 全面审查权限架构
-   - 评估安全风险
-   - 制定改进计划
+### 关系管理
+- [ ] 学生拥有关系创建控制权
+- [ ] 管理员不能代替学生创建关系
+- [ ] 支持随时撤销访问权限
+- [ ] 关系状态变更都有记录
 
 ---
 
-**文档版本**: v1.0  
-**最后更新**: 2024-01-02  
-**维护人员**: 安全团队  
-**下次审查**: 2024-04-02
+**文档版本**: v2.0  
+**最后更新**: 2024-01-03  
+**维护人员**: 安全团队
