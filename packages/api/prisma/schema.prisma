@@ -26,6 +26,10 @@ model User {
   id                    String     @id @default(uuid()) @db.Uuid
   email                 String     @unique
   displayName           String?
+  nickname              String?    // 搜索昵称
+  school                String?    // 学校名称
+  className             String?    // 班级名称
+  discoverable          Boolean    @default(false) // 是否可被搜索
   passwordHash          String?
   roleId                Int
   role                  Role       @relation(fields: [roleId], references: [id])
@@ -38,11 +42,14 @@ model User {
   partyRelationships    Relationship[] @relation("PartyRelationships")
   // 授权相关
   accessGrants          AccessGrant[] @relation("AccessGrants")
+  studentAccessGrants   AccessGrant[] @relation("StudentAccessGrants")
   // 同意书相关
   studentConsents       Consent[]  @relation("StudentConsents")
   requesterConsents     Consent[]  @relation("RequesterConsents")
   // 审计日志
   auditLogs             AuditLog[] @relation("AuditLogs")
+  // 指标快照
+  metricsSnapshots      MetricsSnapshot[]
   createdAt             DateTime   @default(now())
   updatedAt             DateTime   @updatedAt
 }
@@ -63,8 +70,8 @@ model Class {
   description   String?
   ownerTeacherId String   @db.Uuid
   ownerTeacher  User     @relation("ClassOwner", fields: [ownerTeacherId], references: [id])
-  inviteCode    String   @unique
-  isActive      Boolean  @default(true)
+  code          String   @unique // 邀请码
+  status        ClassStatus @default(ACTIVE)
   enrollments   ClassEnrollment[]
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
@@ -94,11 +101,12 @@ model Relationship {
   partyId     String   @db.Uuid
   partyRole   PartyRole
   source      RelationshipSource
-  status      RelationshipStatus @default(ACTIVE)
+  status      RelationshipStatus @default(PENDING)
   student     User     @relation("StudentRelationships", fields: [studentId], references: [id], onDelete: Cascade)
   party       User     @relation("PartyRelationships", fields: [partyId], references: [id], onDelete: Cascade)
   accessGrants AccessGrant[]
   createdAt   DateTime @default(now())
+  revokedAt   DateTime?
   updatedAt   DateTime @updatedAt
 
   @@unique([studentId, partyId])
@@ -108,15 +116,15 @@ model Relationship {
 // 访问授权表
 model AccessGrant {
   id           String      @id @default(uuid()) @db.Uuid
-  resourceType ResourceType
-  resourceId   String      @db.Uuid
   granteeId    String      @db.Uuid
-  scope        String[]    // 例如: ["progress:read", "works:read"]
+  studentId    String      @db.Uuid
+  scope        String[]    // 例如: ["progress:read", "works:read", "metrics:read"]
   status       GrantStatus @default(ACTIVE)
   expiresAt    DateTime?
   relationshipId String?   @db.Uuid
   relationship   Relationship? @relation(fields: [relationshipId], references: [id], onDelete: Cascade)
   grantee      User        @relation("AccessGrants", fields: [granteeId], references: [id], onDelete: Cascade)
+  student      User        @relation("StudentAccessGrants", fields: [studentId], references: [id], onDelete: Cascade)
   createdAt    DateTime    @default(now())
   updatedAt    DateTime    @updatedAt
 
@@ -129,6 +137,7 @@ model Consent {
   studentId   String      @db.Uuid
   requesterId String      @db.Uuid
   purpose     String      // 例如: "parent-view", "teacher-progress"
+  scope       String[]    // 例如: ["progress:read", "works:read"]
   status      ConsentStatus @default(PENDING)
   expiresAt   DateTime?
   student     User        @relation("StudentConsents", fields: [studentId], references: [id], onDelete: Cascade)
@@ -146,14 +155,38 @@ model AuditLog {
   action     String   // 例如: "view_progress", "grant_access", "revoke_access"
   targetType String   // 例如: "student", "class", "relationship"
   targetId   String   @db.Uuid
-  metadata   Json?    // 额外的元数据
+  metadata   Json?    // 额外的元数据，记录"查看了谁的什么数据"等
   actor      User     @relation("AuditLogs", fields: [actorId], references: [id], onDelete: Cascade)
-  createdAt  DateTime @default(now())
+  ts         DateTime @default(now()) // 使用 ts 字段名
 
   @@map("audit_logs")
 }
 
+// 指标快照表
+model MetricsSnapshot {
+  id              String   @id @default(uuid()) @db.Uuid
+  studentId       String   @db.Uuid
+  date            DateTime @db.Date
+  chapterId       String?  @db.Uuid
+  tasksDone       Int      @default(0)
+  accuracy        Float    @default(0.0)
+  timeSpentMin    Int      @default(0)
+  streakDays      Int      @default(0)
+  xpGained        Int      @default(0)
+  student         User     @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  createdAt       DateTime @default(now())
+
+  @@unique([studentId, date, chapterId])
+  @@map("metrics_snapshots")
+}
+
 // 枚举定义
+enum ClassStatus {
+  ACTIVE
+  INACTIVE
+  ARCHIVED
+}
+
 enum EnrollmentStatus {
   PENDING
   ACTIVE
@@ -166,21 +199,16 @@ enum PartyRole {
 }
 
 enum RelationshipSource {
-  INVITE_CODE
-  CLASS_LINK
-  MANUAL
+  SHARE_CODE
+  SEARCH
+  CLASS_INVITE
 }
 
 enum RelationshipStatus {
+  PENDING
   ACTIVE
-  INACTIVE
   REVOKED
-}
-
-enum ResourceType {
-  STUDENT_PROGRESS
-  STUDENT_WORKS
-  CLASS_PROGRESS
+  EXPIRED
 }
 
 enum GrantStatus {

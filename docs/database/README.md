@@ -24,6 +24,10 @@ CREATE TABLE users (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     email VARCHAR(255) UNIQUE NOT NULL,
     display_name VARCHAR(100),
+    nickname VARCHAR(50),              -- 搜索昵称
+    school VARCHAR(100),               -- 学校名称
+    class_name VARCHAR(50),            -- 班级名称
+    discoverable BOOLEAN DEFAULT false, -- 是否可被搜索
     password_hash VARCHAR(255),
     role_id INTEGER REFERENCES roles(id),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -40,8 +44,8 @@ CREATE TABLE classes (
     name VARCHAR(100) NOT NULL,
     description TEXT,
     owner_teacher_id UUID REFERENCES users(id),
-    invite_code VARCHAR(20) UNIQUE NOT NULL,
-    is_active BOOLEAN DEFAULT true,
+    code VARCHAR(20) UNIQUE NOT NULL,        -- 邀请码
+    status VARCHAR(20) DEFAULT 'ACTIVE',     -- 班级状态
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
@@ -67,9 +71,10 @@ CREATE TABLE relationships (
     student_id UUID REFERENCES users(id) ON DELETE CASCADE,
     party_id UUID REFERENCES users(id) ON DELETE CASCADE,
     party_role VARCHAR(20) NOT NULL, -- PARENT, TEACHER
-    source VARCHAR(20) NOT NULL, -- INVITE_CODE, CLASS_LINK, MANUAL
-    status VARCHAR(20) DEFAULT 'ACTIVE',
+    source VARCHAR(20) NOT NULL, -- SHARE_CODE, SEARCH, CLASS_INVITE
+    status VARCHAR(20) DEFAULT 'PENDING', -- PENDING, ACTIVE, REVOKED, EXPIRED
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    revoked_at TIMESTAMP, -- 撤销时间
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     UNIQUE(student_id, party_id)
 );
@@ -77,10 +82,9 @@ CREATE TABLE relationships (
 -- 访问授权表
 CREATE TABLE access_grants (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    resource_type VARCHAR(50) NOT NULL, -- STUDENT_PROGRESS, STUDENT_WORKS, CLASS_PROGRESS
-    resource_id UUID NOT NULL,
     grantee_id UUID REFERENCES users(id) ON DELETE CASCADE,
-    scope TEXT[] NOT NULL, -- ['progress:read', 'works:read']
+    student_id UUID REFERENCES users(id) ON DELETE CASCADE,
+    scope TEXT[] NOT NULL, -- ['progress:read', 'works:read', 'metrics:read']
     status VARCHAR(20) DEFAULT 'ACTIVE',
     expires_at TIMESTAMP,
     relationship_id UUID REFERENCES relationships(id) ON DELETE CASCADE,
@@ -94,6 +98,7 @@ CREATE TABLE consents (
     student_id UUID REFERENCES users(id) ON DELETE CASCADE,
     requester_id UUID REFERENCES users(id) ON DELETE CASCADE,
     purpose VARCHAR(100) NOT NULL,
+    scope TEXT[] NOT NULL, -- ['progress:read', 'works:read']
     reason TEXT NOT NULL,
     status VARCHAR(20) DEFAULT 'PENDING',
     expires_at TIMESTAMP,
@@ -112,10 +117,29 @@ CREATE TABLE audit_logs (
     action VARCHAR(100) NOT NULL,
     target_type VARCHAR(50) NOT NULL,
     target_id UUID NOT NULL,
-    metadata JSONB,
+    metadata JSONB, -- 额外的元数据，记录"查看了谁的什么数据"等
     ip_address INET,
     user_agent TEXT,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    ts TIMESTAMP DEFAULT CURRENT_TIMESTAMP -- 使用ts字段名
+);
+```
+
+#### 5. 指标快照 (Metrics Snapshots)
+
+```sql
+-- 指标快照表
+CREATE TABLE metrics_snapshots (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    student_id UUID REFERENCES users(id) ON DELETE CASCADE,
+    date DATE NOT NULL,
+    chapter_id UUID, -- 章节ID，可为空表示总体指标
+    tasks_done INTEGER DEFAULT 0,
+    accuracy DECIMAL(5,2) DEFAULT 0.0, -- 准确率 (0.00-1.00)
+    time_spent_min INTEGER DEFAULT 0, -- 学习时长（分钟）
+    streak_days INTEGER DEFAULT 0, -- 连续学习天数
+    xp_gained INTEGER DEFAULT 0, -- 获得经验值
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(student_id, date, chapter_id)
 );
 ```
 
@@ -131,9 +155,11 @@ erDiagram
     USERS ||--o{ RELATIONSHIPS : party
     RELATIONSHIPS ||--o{ ACCESS_GRANTS : creates
     USERS ||--o{ ACCESS_GRANTS : grants
+    USERS ||--o{ ACCESS_GRANTS : "student access"
     USERS ||--o{ CONSENTS : student
     USERS ||--o{ CONSENTS : requester
     USERS ||--o{ AUDIT_LOGS : actor
+    USERS ||--o{ METRICS_SNAPSHOTS : "has metrics"
 
     ROLES {
         int id PK
@@ -146,6 +172,10 @@ erDiagram
         uuid id PK
         string email UK
         string display_name
+        string nickname
+        string school
+        string class_name
+        boolean discoverable
         string password_hash
         int role_id FK
         timestamp created_at
@@ -157,8 +187,8 @@ erDiagram
         string name
         text description
         uuid owner_teacher_id FK
-        string invite_code UK
-        boolean is_active
+        string code UK
+        string status
         timestamp created_at
         timestamp updated_at
     }
@@ -180,14 +210,14 @@ erDiagram
         string source
         string status
         timestamp created_at
+        timestamp revoked_at
         timestamp updated_at
     }
 
     ACCESS_GRANTS {
         uuid id PK
-        string resource_type
-        uuid resource_id
         uuid grantee_id FK
+        uuid student_id FK
         string[] scope
         string status
         timestamp expires_at
@@ -201,6 +231,7 @@ erDiagram
         uuid student_id FK
         uuid requester_id FK
         string purpose
+        string[] scope
         text reason
         string status
         timestamp expires_at
@@ -217,6 +248,19 @@ erDiagram
         jsonb metadata
         inet ip_address
         text user_agent
+        timestamp ts
+    }
+
+    METRICS_SNAPSHOTS {
+        uuid id PK
+        uuid student_id FK
+        date date
+        uuid chapter_id
+        int tasks_done
+        decimal accuracy
+        int time_spent_min
+        int streak_days
+        int xp_gained
         timestamp created_at
     }
 ```
@@ -230,11 +274,15 @@ erDiagram
 CREATE INDEX idx_users_email ON users(email);
 CREATE INDEX idx_users_role_id ON users(role_id);
 CREATE INDEX idx_users_created_at ON users(created_at);
+CREATE INDEX idx_users_discoverable ON users(discoverable);
+CREATE INDEX idx_users_nickname ON users(nickname);
+CREATE INDEX idx_users_school ON users(school);
+CREATE INDEX idx_users_class_name ON users(class_name);
 
 -- 班级表索引
 CREATE INDEX idx_classes_owner_teacher_id ON classes(owner_teacher_id);
-CREATE INDEX idx_classes_invite_code ON classes(invite_code);
-CREATE INDEX idx_classes_is_active ON classes(is_active);
+CREATE INDEX idx_classes_code ON classes(code);
+CREATE INDEX idx_classes_status ON classes(status);
 
 -- 班级注册表索引
 CREATE INDEX idx_class_enrollments_class_id ON class_enrollments(class_id);
@@ -245,10 +293,11 @@ CREATE INDEX idx_class_enrollments_status ON class_enrollments(status);
 CREATE INDEX idx_relationships_student_id ON relationships(student_id);
 CREATE INDEX idx_relationships_party_id ON relationships(party_id);
 CREATE INDEX idx_relationships_status ON relationships(status);
+CREATE INDEX idx_relationships_source ON relationships(source);
 
 -- 访问授权表索引
 CREATE INDEX idx_access_grants_grantee_id ON access_grants(grantee_id);
-CREATE INDEX idx_access_grants_resource_id ON access_grants(resource_id);
+CREATE INDEX idx_access_grants_student_id ON access_grants(student_id);
 CREATE INDEX idx_access_grants_status ON access_grants(status);
 CREATE INDEX idx_access_grants_expires_at ON access_grants(expires_at);
 
@@ -261,7 +310,12 @@ CREATE INDEX idx_consents_status ON consents(status);
 CREATE INDEX idx_audit_logs_actor_id ON audit_logs(actor_id);
 CREATE INDEX idx_audit_logs_target_type ON audit_logs(target_type);
 CREATE INDEX idx_audit_logs_target_id ON audit_logs(target_id);
-CREATE INDEX idx_audit_logs_created_at ON audit_logs(created_at);
+CREATE INDEX idx_audit_logs_ts ON audit_logs(ts);
+
+-- 指标快照表索引
+CREATE INDEX idx_metrics_snapshots_student_id ON metrics_snapshots(student_id);
+CREATE INDEX idx_metrics_snapshots_date ON metrics_snapshots(date);
+CREATE INDEX idx_metrics_snapshots_chapter_id ON metrics_snapshots(chapter_id);
 CREATE INDEX idx_audit_logs_action ON audit_logs(action);
 ```
 
