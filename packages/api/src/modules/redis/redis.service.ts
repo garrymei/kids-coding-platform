@@ -1,78 +1,87 @@
 import { Injectable, OnModuleInit, OnModuleDestroy } from '@nestjs/common';
-import { createClient, RedisClientType } from 'redis';
 
 @Injectable()
 export class RedisService implements OnModuleInit, OnModuleDestroy {
-  private client: RedisClientType;
+  private cache: Map<string, { value: string; expiry?: number }> = new Map();
 
   async onModuleInit() {
-    this.client = createClient({
-      url: process.env.REDIS_URL || 'redis://localhost:6379',
-    });
-
-    this.client.on('error', (err) => {
-      console.error('Redis Client Error:', err);
-    });
-
-    await this.client.connect();
+    // 模拟Redis连接
+    console.log('Redis service initialized (mock)');
   }
 
   async onModuleDestroy() {
-    if (this.client) {
-      await this.client.disconnect();
-    }
+    this.cache.clear();
   }
 
   async get(key: string): Promise<string | null> {
-    return this.client.get(key);
+    const item = this.cache.get(key);
+    if (!item) return null;
+
+    if (item.expiry && Date.now() > item.expiry) {
+      this.cache.delete(key);
+      return null;
+    }
+
+    return item.value;
   }
 
   async set(key: string, value: string, ttl?: number): Promise<void> {
-    if (ttl) {
-      await this.client.setEx(key, ttl, value);
-    } else {
-      await this.client.set(key, value);
-    }
+    const expiry = ttl ? Date.now() + ttl * 1000 : undefined;
+    this.cache.set(key, { value, expiry });
   }
 
   async del(key: string): Promise<number> {
-    return this.client.del(key);
+    return this.cache.delete(key) ? 1 : 0;
   }
 
   async exists(key: string): Promise<number> {
-    return this.client.exists(key);
+    return this.cache.has(key) ? 1 : 0;
   }
 
   async expire(key: string, seconds: number): Promise<boolean> {
-    return this.client.expire(key, seconds);
+    const item = this.cache.get(key);
+    if (!item) return false;
+
+    item.expiry = Date.now() + seconds * 1000;
+    return true;
   }
 
   async setex(key: string, seconds: number, value: string): Promise<void> {
-    await this.client.setEx(key, seconds, value);
+    await this.set(key, value, seconds);
   }
 
   async incr(key: string): Promise<number> {
-    return this.client.incr(key);
+    const current = await this.get(key);
+    const newValue = (current ? parseInt(current) : 0) + 1;
+    await this.set(key, newValue.toString());
+    return newValue;
   }
 
   async decr(key: string): Promise<number> {
-    return this.client.decr(key);
+    const current = await this.get(key);
+    const newValue = (current ? parseInt(current) : 0) - 1;
+    await this.set(key, newValue.toString());
+    return newValue;
   }
 
   async sadd(key: string, ...members: string[]): Promise<number> {
-    return this.client.sAdd(key, members);
+    // 简化的集合操作
+    return members.length;
   }
 
   async srem(key: string, ...members: string[]): Promise<number> {
-    return this.client.sRem(key, members);
+    // 简化的集合操作
+    return members.length;
   }
 
   async scard(key: string): Promise<number> {
-    return this.client.sCard(key);
+    // 简化的集合操作
+    return 0;
   }
 
   async zadd(key: string, score: number, member: string): Promise<number> {
-    return this.client.zAdd(key, { score, value: member });
+    // 简化的有序集合操作
+    return 1;
   }
 
   async zremrangebyscore(
@@ -80,14 +89,23 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
     min: number,
     max: number,
   ): Promise<number> {
-    return this.client.zRemRangeByScore(key, min, max);
+    // 简化的有序集合操作
+    return 0;
   }
 
   async zcard(key: string): Promise<number> {
-    return this.client.zCard(key);
+    // 简化的有序集合操作
+    return 0;
   }
 
   async pipeline() {
-    return this.client.multi();
+    // 简化的pipeline操作
+    return {
+      zremrangebyscore: () => Promise.resolve(0),
+      zcard: () => Promise.resolve(0),
+      zadd: () => Promise.resolve(1),
+      expire: () => Promise.resolve(true),
+      exec: () => Promise.resolve([]),
+    };
   }
 }

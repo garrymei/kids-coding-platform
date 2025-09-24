@@ -1,28 +1,33 @@
-import { 
-  Controller, 
-  Get, 
-  Post, 
-  Put, 
-  Delete, 
-  Body, 
-  Param, 
+import {
+  Controller,
+  Get,
+  Post,
+  Put,
+  Delete,
+  Body,
+  Param,
   UseGuards,
   Request,
   HttpCode,
   HttpStatus,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiBearerAuth,
+} from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { Role } from '../auth/roles.enum';
 import { ClassesService } from './classes.service';
-import { 
-  CreateClassDto, 
-  UpdateClassDto, 
-  JoinClassDto, 
-  ApproveEnrollmentDto, 
-  RejectEnrollmentDto 
+import {
+  CreateClassDto,
+  UpdateClassDto,
+  JoinClassDto,
+  ApproveEnrollmentDto,
+  RejectEnrollmentDto,
 } from './dto/classes.dto';
 
 @ApiTags('classes')
@@ -33,7 +38,7 @@ export class ClassesController {
   constructor(private readonly classesService: ClassesService) {}
 
   @Post()
-  @Roles(Role.TEACHER)
+  @Roles(Role.Teacher)
   @ApiOperation({ summary: '创建班级' })
   @ApiResponse({ status: 201, description: '班级创建成功' })
   async createClass(@Request() req, @Body() createClassDto: CreateClassDto) {
@@ -41,7 +46,7 @@ export class ClassesController {
   }
 
   @Get()
-  @Roles(Role.TEACHER)
+  @Roles(Role.Teacher)
   @ApiOperation({ summary: '获取教师的班级列表' })
   @ApiResponse({ status: 200, description: '获取成功' })
   async getTeacherClasses(@Request() req) {
@@ -49,7 +54,7 @@ export class ClassesController {
   }
 
   @Get(':id')
-  @Roles(Role.TEACHER)
+  @Roles(Role.Teacher)
   @ApiOperation({ summary: '获取班级详情' })
   @ApiResponse({ status: 200, description: '获取成功' })
   async getClassById(@Request() req, @Param('id') classId: string) {
@@ -57,7 +62,7 @@ export class ClassesController {
   }
 
   @Put(':id')
-  @Roles(Role.TEACHER)
+  @Roles(Role.Teacher)
   @ApiOperation({ summary: '更新班级信息' })
   @ApiResponse({ status: 200, description: '更新成功' })
   async updateClass(
@@ -65,11 +70,15 @@ export class ClassesController {
     @Param('id') classId: string,
     @Body() updateClassDto: UpdateClassDto,
   ) {
-    return this.classesService.updateClass(classId, req.user.userId, updateClassDto);
+    return this.classesService.updateClass(
+      classId,
+      req.user.userId,
+      updateClassDto,
+    );
   }
 
   @Delete(':id')
-  @Roles(Role.TEACHER)
+  @Roles(Role.Teacher)
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ summary: '删除班级' })
   @ApiResponse({ status: 204, description: '删除成功' })
@@ -78,7 +87,7 @@ export class ClassesController {
   }
 
   @Post('join')
-  @Roles(Role.STUDENT)
+  @Roles(Role.Student)
   @ApiOperation({ summary: '学生加入班级' })
   @ApiResponse({ status: 201, description: '加入成功' })
   async joinClass(@Request() req, @Body() joinClassDto: JoinClassDto) {
@@ -86,7 +95,7 @@ export class ClassesController {
   }
 
   @Get('my-classes')
-  @Roles(Role.STUDENT)
+  @Roles(Role.Student)
   @ApiOperation({ summary: '获取学生的班级列表' })
   @ApiResponse({ status: 200, description: '获取成功' })
   async getStudentClasses(@Request() req) {
@@ -94,7 +103,7 @@ export class ClassesController {
   }
 
   @Post(':id/approve')
-  @Roles(Role.TEACHER)
+  @Roles(Role.Teacher)
   @ApiOperation({ summary: '批准学生加入班级' })
   @ApiResponse({ status: 200, description: '批准成功' })
   async approveEnrollment(
@@ -102,11 +111,15 @@ export class ClassesController {
     @Param('id') classId: string,
     @Body() approveDto: ApproveEnrollmentDto,
   ) {
-    return this.classesService.approveEnrollment(classId, approveDto.enrollmentId, req.user.userId);
+    return this.classesService.approveEnrollment(
+      classId,
+      approveDto.enrollmentId,
+      req.user.userId,
+    );
   }
 
   @Post(':id/reject')
-  @Roles(Role.TEACHER)
+  @Roles(Role.Teacher)
   @ApiOperation({ summary: '拒绝学生加入班级' })
   @ApiResponse({ status: 200, description: '拒绝成功' })
   async rejectEnrollment(
@@ -114,11 +127,15 @@ export class ClassesController {
     @Param('id') classId: string,
     @Body() rejectDto: RejectEnrollmentDto,
   ) {
-    return this.classesService.rejectEnrollment(classId, rejectDto.enrollmentId, req.user.userId);
+    return this.classesService.rejectEnrollment(
+      classId,
+      rejectDto.enrollmentId,
+      req.user.userId,
+    );
   }
 
   @Post(':id/leave')
-  @Roles(Role.STUDENT)
+  @Roles(Role.Student)
   @ApiOperation({ summary: '学生退出班级' })
   @ApiResponse({ status: 200, description: '退出成功' })
   async leaveClass(@Request() req, @Param('id') classId: string) {

@@ -1,5 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { Cron, CronExpression } from '@nestjs/schedule';
+// import { Cron, CronExpression } from '@nestjs/schedule';
 import { PrismaService } from '../../../prisma/prisma.service';
 
 export interface ExpirationConfig {
@@ -264,7 +264,7 @@ export class ExpirationManagementService {
   }
 
   // 定时任务：处理过期的权限
-  @Cron(CronExpression.EVERY_HOUR)
+  // @Cron(CronExpression.EVERY_HOUR)
   async handleExpiredPermissions(): Promise<void> {
     this.logger.log('开始处理过期的权限授权...');
 
@@ -309,7 +309,7 @@ export class ExpirationManagementService {
   }
 
   // 定时任务：发送到期提醒
-  @Cron(CronExpression.EVERY_DAY_AT_9AM)
+  // @Cron(CronExpression.EVERY_DAY_AT_9AM)
   async sendExpirationWarnings(): Promise<void> {
     this.logger.log('开始发送权限到期提醒...');
 

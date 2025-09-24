@@ -1,12 +1,17 @@
-import { Injectable, BadRequestException, TooManyRequestsException } from '@nestjs/common';
+import {
+  Injectable,
+  BadRequestException,
+  HttpException,
+  HttpStatus,
+} from '@nestjs/common';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { randomBytes } from 'crypto';
 
 export enum SearchVisibility {
-  PRIVATE = 'private',           // 默认不可搜索
-  SCHOOL_ONLY = 'school_only',   // 仅同校可见
+  PRIVATE = 'private', // 默认不可搜索
+  SCHOOL_ONLY = 'school_only', // 仅同校可见
   ANONYMOUS_ID = 'anonymous_id', // 仅知道匿名ID可搜索
-  PUBLIC = 'public',             // 完全公开（不推荐）
+  PUBLIC = 'public', // 完全公开（不推荐）
 }
 
 export interface SearchResult {
@@ -38,7 +43,7 @@ export class SearchStrategyService {
       nickname?: string;
       school?: string;
       className?: string;
-    }
+    },
   ) {
     const student = await this.prisma.user.findUnique({
       where: { id: studentId },
@@ -131,17 +136,14 @@ export class SearchStrategyService {
         '搜索时只会显示您的昵称和学校信息，不会暴露真实姓名',
         '您可以随时关闭此功能，关闭后立即生效',
         '即使开启了搜索，其他人也需要您的同意才能关注您',
-        '您可以随时撤销任何人的关注权限'
+        '您可以随时撤销任何人的关注权限',
       ],
       risks: [
         '可能被不熟悉的人搜索到',
         '需要谨慎设置昵称和学校信息',
-        '可能收到更多的关注申请'
+        '可能收到更多的关注申请',
       ],
-      benefits: [
-        '方便家长和老师找到您',
-        '提高建立关注关系的效率'
-      ]
+      benefits: ['方便家长和老师找到您', '提高建立关注关系的效率'],
     };
   }
 
@@ -149,7 +151,7 @@ export class SearchStrategyService {
   async checkSearchPermission(
     searcherId: string,
     targetStudentId: string,
-    searchType: 'nickname' | 'anonymous_id'
+    searchType: 'nickname' | 'anonymous_id',
   ): Promise<boolean> {
     const searcher = await this.prisma.user.findUnique({
       where: { id: searcherId },
@@ -202,7 +204,7 @@ export class SearchStrategyService {
   async filterSearchResults(
     results: any[],
     searcherId: string,
-    searchType: 'nickname' | 'anonymous_id'
+    searchType: 'nickname' | 'anonymous_id',
   ): Promise<SearchResult[]> {
     const searcher = await this.prisma.user.findUnique({
       where: { id: searcherId },
@@ -213,7 +215,7 @@ export class SearchStrategyService {
       return [];
     }
 
-    return results.map(student => ({
+    return results.map((student) => ({
       id: student.id,
       anonymousId: student.anonymousId || this.generateAnonymousId(),
       nickname: student.nickname,
@@ -231,12 +233,20 @@ export class SearchStrategyService {
     if (!nickname || nickname.length <= 2) {
       return nickname;
     }
-    
+
     if (nickname.length <= 4) {
-      return nickname[0] + '*'.repeat(nickname.length - 2) + nickname[nickname.length - 1];
+      return (
+        nickname[0] +
+        '*'.repeat(nickname.length - 2) +
+        nickname[nickname.length - 1]
+      );
     }
-    
-    return nickname[0] + '*'.repeat(nickname.length - 2) + nickname[nickname.length - 1];
+
+    return (
+      nickname[0] +
+      '*'.repeat(nickname.length - 2) +
+      nickname[nickname.length - 1]
+    );
   }
 
   // 获取学校摘要
@@ -244,11 +254,11 @@ export class SearchStrategyService {
     if (!school) {
       return '未设置学校';
     }
-    
+
     if (className) {
       return `${school} - ${className}`;
     }
-    
+
     return school;
   }
 }

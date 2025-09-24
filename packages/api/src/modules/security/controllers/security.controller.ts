@@ -522,7 +522,11 @@ export class SecurityController {
     await this.appealArbitrationService.reviewAppeal(
       appealId,
       req.user.userId,
-      review,
+      {
+        appealId,
+        reviewerId: req.user.userId,
+        ...review,
+      },
     );
 
     return { success: true };

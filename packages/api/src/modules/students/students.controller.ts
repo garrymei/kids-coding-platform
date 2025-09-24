@@ -1,25 +1,31 @@
-import { 
-  Controller, 
-  Get, 
-  Post, 
-  Put, 
-  Body, 
-  Param, 
+import {
+  Controller,
+  Get,
+  Post,
+  Put,
+  Body,
+  Param,
   UseGuards,
   Request,
   Query,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiQuery } from '@nestjs/swagger';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiBearerAuth,
+  ApiQuery,
+} from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { Role } from '../auth/roles.enum';
 import { StudentsService } from './students.service';
-import { 
-  UpdateSearchabilityDto, 
-  SearchStudentDto, 
+import {
+  UpdateSearchabilityDto,
+  SearchStudentDto,
   CreateFollowRequestDto,
-  GenerateShareCodeDto 
+  GenerateShareCodeDto,
 } from './dto/students.dto';
 
 @ApiTags('students')
@@ -30,15 +36,18 @@ export class StudentsController {
   constructor(private readonly studentsService: StudentsService) {}
 
   @Put('search-settings')
-  @Roles(Role.STUDENT)
+  @Roles(Role.Student)
   @ApiOperation({ summary: '更新搜索设置' })
   @ApiResponse({ status: 200, description: '更新成功' })
-  async updateSearchability(@Request() req, @Body() updateDto: UpdateSearchabilityDto) {
+  async updateSearchability(
+    @Request() req,
+    @Body() updateDto: UpdateSearchabilityDto,
+  ) {
     return this.studentsService.updateSearchability(req.user.userId, updateDto);
   }
 
   @Get('search-settings')
-  @Roles(Role.STUDENT)
+  @Roles(Role.Student)
   @ApiOperation({ summary: '获取搜索设置' })
   @ApiResponse({ status: 200, description: '获取成功' })
   async getSearchSettings(@Request() req) {
@@ -46,7 +55,7 @@ export class StudentsController {
   }
 
   @Get('search-explanation')
-  @Roles(Role.STUDENT)
+  @Roles(Role.Student)
   @ApiOperation({ summary: '获取搜索功能说明' })
   @ApiResponse({ status: 200, description: '获取成功' })
   async getSearchExplanation() {
@@ -54,7 +63,7 @@ export class StudentsController {
   }
 
   @Get('search')
-  @Roles(Role.PARENT, Role.TEACHER)
+  @Roles(Role.Parent, Role.Teacher)
   @ApiOperation({ summary: '搜索可关注的学生' })
   @ApiResponse({ status: 200, description: '搜索成功' })
   async searchStudents(@Query() searchDto: SearchStudentDto) {
@@ -62,18 +71,24 @@ export class StudentsController {
   }
 
   @Post('follow-request')
-  @Roles(Role.PARENT, Role.TEACHER)
+  @Roles(Role.Parent, Role.Teacher)
   @ApiOperation({ summary: '创建关注申请' })
   @ApiResponse({ status: 201, description: '申请创建成功' })
-  async createFollowRequest(@Request() req, @Body() createDto: CreateFollowRequestDto) {
+  async createFollowRequest(
+    @Request() req,
+    @Body() createDto: CreateFollowRequestDto,
+  ) {
     return this.studentsService.createFollowRequest(req.user.userId, createDto);
   }
 
   @Post('share-code')
-  @Roles(Role.STUDENT)
+  @Roles(Role.Student)
   @ApiOperation({ summary: '生成分享码' })
   @ApiResponse({ status: 201, description: '分享码生成成功' })
-  async generateShareCode(@Request() req, @Body() generateDto: GenerateShareCodeDto) {
+  async generateShareCode(
+    @Request() req,
+    @Body() generateDto: GenerateShareCodeDto,
+  ) {
     return this.studentsService.generateShareCode(req.user.userId, generateDto);
   }
 

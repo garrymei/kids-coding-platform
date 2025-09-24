@@ -164,22 +164,17 @@ export class RateLimitService {
     const windowStart = now - config.windowMs;
 
     // 使用Redis的滑动窗口算法
-    const pipeline = this.redis.pipeline();
-
     // 移除过期的请求记录
-    pipeline.zremrangebyscore(key, 0, windowStart);
+    await this.redis.zremrangebyscore(key, 0, windowStart);
 
     // 获取当前窗口内的请求数
-    pipeline.zcard(key);
+    const currentCount = await this.redis.zcard(key);
 
     // 添加当前请求
-    pipeline.zadd(key, now, `${now}-${Math.random()}`);
+    await this.redis.zadd(key, now, `${now}-${Math.random()}`);
 
     // 设置过期时间
-    pipeline.expire(key, Math.ceil(config.windowMs / 1000));
-
-    const results = await pipeline.exec();
-    const currentCount = results[1][1] as number;
+    await this.redis.expire(key, Math.ceil(config.windowMs / 1000));
 
     const remaining = Math.max(0, config.maxRequests - currentCount - 1);
     const resetTime = now + config.windowMs;

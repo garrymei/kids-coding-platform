@@ -1,20 +1,28 @@
-import { Injectable, NotFoundException, ForbiddenException, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  ForbiddenException,
+  BadRequestException,
+} from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
-import { 
-  RequestParentAccessDto, 
-  RequestTeacherAccessDto, 
+import {
+  RequestParentAccessDto,
+  RequestTeacherAccessDto,
   RespondToAccessRequestDto,
   UpdateRelationshipDto,
-  UpdateAccessGrantDto 
+  UpdateAccessGrantDto,
 } from './dto/relationships.dto';
-import { PartyRole, RelationshipSource, ConsentStatus, GrantStatus } from '@prisma/client';
+// import { PartyRole, RelationshipSource, ConsentStatus, GrantStatus } from '@prisma/client';
 
 @Injectable()
 export class RelationshipsService {
   constructor(private readonly prisma: PrismaService) {}
 
   // 家长申请查看学生数据
-  async requestParentAccess(parentId: string, requestDto: RequestParentAccessDto) {
+  async requestParentAccess(
+    parentId: string,
+    requestDto: RequestParentAccessDto,
+  ) {
     // 查找学生
     const student = await this.prisma.user.findUnique({
       where: { email: requestDto.studentEmail },
@@ -75,7 +83,10 @@ export class RelationshipsService {
   }
 
   // 教师申请查看学生数据
-  async requestTeacherAccess(teacherId: string, requestDto: RequestTeacherAccessDto) {
+  async requestTeacherAccess(
+    teacherId: string,
+    requestDto: RequestTeacherAccessDto,
+  ) {
     // 查找学生
     const student = await this.prisma.user.findUnique({
       where: { email: requestDto.studentEmail },
@@ -136,7 +147,10 @@ export class RelationshipsService {
   }
 
   // 学生响应访问请求
-  async respondToAccessRequest(studentId: string, responseDto: RespondToAccessRequestDto) {
+  async respondToAccessRequest(
+    studentId: string,
+    responseDto: RespondToAccessRequestDto,
+  ) {
     // 查找同意书
     const consent = await this.prisma.consent.findFirst({
       where: {
@@ -159,8 +173,10 @@ export class RelationshipsService {
     const updatedConsent = await this.prisma.consent.update({
       where: { id: responseDto.consentId },
       data: {
-        status: responseDto.status as ConsentStatus,
-        expiresAt: responseDto.expiresAt ? new Date(responseDto.expiresAt) : consent.expiresAt,
+        status: responseDto.status as any,
+        expiresAt: responseDto.expiresAt
+          ? new Date(responseDto.expiresAt)
+          : consent.expiresAt,
       },
     });
 
@@ -179,7 +195,8 @@ export class RelationshipsService {
         create: {
           studentId,
           partyId: consent.requesterId,
-          partyRole: consent.requester.role.name === 'parent' ? PartyRole.PARENT : PartyRole.TEACHER,
+          partyRole:
+            consent.requester.role.name === 'parent' ? 'PARENT' : 'TEACHER',
           source: 'MANUAL',
           status: 'ACTIVE',
         },
@@ -292,14 +309,15 @@ export class RelationshipsService {
   }
 
   // 更新关系状态
-  async updateRelationship(relationshipId: string, userId: string, updateDto: UpdateRelationshipDto) {
+  async updateRelationship(
+    relationshipId: string,
+    userId: string,
+    updateDto: UpdateRelationshipDto,
+  ) {
     const relationship = await this.prisma.relationship.findFirst({
       where: {
         id: relationshipId,
-        OR: [
-          { studentId: userId },
-          { partyId: userId },
-        ],
+        OR: [{ studentId: userId }, { partyId: userId }],
       },
     });
 
@@ -330,7 +348,11 @@ export class RelationshipsService {
   }
 
   // 更新访问授权
-  async updateAccessGrant(grantId: string, userId: string, updateDto: UpdateAccessGrantDto) {
+  async updateAccessGrant(
+    grantId: string,
+    userId: string,
+    updateDto: UpdateAccessGrantDto,
+  ) {
     const grant = await this.prisma.accessGrant.findFirst({
       where: {
         id: grantId,
@@ -373,7 +395,11 @@ export class RelationshipsService {
   }
 
   // 检查用户是否有权限访问学生数据
-  async checkAccessPermission(granteeId: string, studentId: string, scope: string) {
+  async checkAccessPermission(
+    granteeId: string,
+    studentId: string,
+    scope: string,
+  ) {
     const grant = await this.prisma.accessGrant.findFirst({
       where: {
         granteeId,
@@ -382,10 +408,7 @@ export class RelationshipsService {
           has: scope,
         },
         status: 'ACTIVE',
-        OR: [
-          { expiresAt: null },
-          { expiresAt: { gt: new Date() } },
-        ],
+        OR: [{ expiresAt: null }, { expiresAt: { gt: new Date() } }],
       },
     });
 
@@ -398,10 +421,7 @@ export class RelationshipsService {
       where: {
         granteeId,
         status: 'ACTIVE',
-        OR: [
-          { expiresAt: null },
-          { expiresAt: { gt: new Date() } },
-        ],
+        OR: [{ expiresAt: null }, { expiresAt: { gt: new Date() } }],
       },
       include: {
         grantee: {
@@ -416,7 +436,7 @@ export class RelationshipsService {
     });
 
     // 获取学生信息
-    const studentIds = grants.map(grant => grant.resourceId);
+    const studentIds = grants.map((grant) => grant.resourceId);
     const students = await this.prisma.user.findMany({
       where: {
         id: { in: studentIds },
@@ -442,14 +462,16 @@ export class RelationshipsService {
     relationshipId: string,
     expiresAt?: Date,
   ) {
-    const grants = scopes.map(scope => ({
-      resourceType: scope.includes('progress') ? 'STUDENT_PROGRESS' : 'STUDENT_WORKS',
+    const grants = scopes.map((scope) => ({
+      resourceType: scope.includes('progress')
+        ? 'STUDENT_PROGRESS'
+        : 'STUDENT_WORKS',
       resourceId: studentId,
       granteeId,
       scope: [scope],
       relationshipId,
       expiresAt,
-      status: 'ACTIVE' as GrantStatus,
+      status: 'ACTIVE' as any,
     }));
 
     return this.prisma.accessGrant.createMany({

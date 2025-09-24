@@ -1,6 +1,14 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsString, IsNotEmpty, IsEmail, IsOptional, IsEnum, IsArray, IsDateString } from 'class-validator';
-import { PartyRole, RelationshipSource } from '@prisma/client';
+import {
+  IsString,
+  IsNotEmpty,
+  IsEmail,
+  IsOptional,
+  IsEnum,
+  IsArray,
+  IsDateString,
+} from 'class-validator';
+// import { PartyRole, RelationshipSource } from '@prisma/client';
 
 export class RequestParentAccessDto {
   @ApiProperty({ example: 'student@example.com', description: '学生邮箱' })
@@ -18,7 +26,11 @@ export class RequestParentAccessDto {
   @IsNotEmpty()
   reason: string;
 
-  @ApiProperty({ example: '2024-12-31T23:59:59Z', description: '授权过期时间', required: false })
+  @ApiProperty({
+    example: '2024-12-31T23:59:59Z',
+    description: '授权过期时间',
+    required: false,
+  })
   @IsDateString()
   @IsOptional()
   expiresAt?: string;
@@ -40,7 +52,11 @@ export class RequestTeacherAccessDto {
   @IsNotEmpty()
   reason: string;
 
-  @ApiProperty({ example: '2024-12-31T23:59:59Z', description: '授权过期时间', required: false })
+  @ApiProperty({
+    example: '2024-12-31T23:59:59Z',
+    description: '授权过期时间',
+    required: false,
+  })
   @IsDateString()
   @IsOptional()
   expiresAt?: string;
@@ -56,13 +72,21 @@ export class RespondToAccessRequestDto {
   @IsEnum(['APPROVED', 'REJECTED'])
   status: 'APPROVED' | 'REJECTED';
 
-  @ApiProperty({ example: ['progress:read', 'works:read'], description: '授权范围', required: false })
+  @ApiProperty({
+    example: ['progress:read', 'works:read'],
+    description: '授权范围',
+    required: false,
+  })
   @IsArray()
   @IsString({ each: true })
   @IsOptional()
   scopes?: string[];
 
-  @ApiProperty({ example: '2024-12-31T23:59:59Z', description: '授权过期时间', required: false })
+  @ApiProperty({
+    example: '2024-12-31T23:59:59Z',
+    description: '授权过期时间',
+    required: false,
+  })
   @IsDateString()
   @IsOptional()
   expiresAt?: string;
@@ -80,7 +104,11 @@ export class UpdateAccessGrantDto {
   @IsString({ each: true })
   scopes: string[];
 
-  @ApiProperty({ example: '2024-12-31T23:59:59Z', description: '授权过期时间', required: false })
+  @ApiProperty({
+    example: '2024-12-31T23:59:59Z',
+    description: '授权过期时间',
+    required: false,
+  })
   @IsDateString()
   @IsOptional()
   expiresAt?: string;

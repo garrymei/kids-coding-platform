@@ -1,4 +1,4 @@
-import { Injectable, TooManyRequestsException } from '@nestjs/common';
+import { Injectable, HttpException, HttpStatus } from '@nestjs/common';
 import { PrismaService } from '../../../prisma/prisma.service';
 
 export interface RateLimitConfig {
@@ -28,26 +28,26 @@ export class RateLimitService {
   // 检查搜索速率限制
   async checkSearchRateLimit(
     identifier: string, // IP地址或用户ID
-    identifierType: 'ip' | 'user'
+    identifierType: 'ip' | 'user',
   ): Promise<void> {
     await this.checkRateLimit(
       identifier,
       identifierType,
       'search',
-      this.searchRateLimit
+      this.searchRateLimit,
     );
   }
 
   // 检查申请速率限制
   async checkRequestRateLimit(
     identifier: string,
-    identifierType: 'ip' | 'user'
+    identifierType: 'ip' | 'user',
   ): Promise<void> {
     await this.checkRateLimit(
       identifier,
       identifierType,
       'request',
-      this.requestRateLimit
+      this.requestRateLimit,
     );
   }
 
@@ -56,7 +56,7 @@ export class RateLimitService {
     identifier: string,
     identifierType: 'ip' | 'user',
     action: string,
-    config: RateLimitConfig
+    config: RateLimitConfig,
   ): Promise<void> {
     const now = new Date();
     const windowStart = new Date(now.getTime() - config.windowMs);
@@ -95,7 +95,7 @@ export class RateLimitService {
         },
       });
 
-      throw new TooManyRequestsException(config.message);
+      throw new HttpException(config.message, HttpStatus.TOO_MANY_REQUESTS);
     }
 
     // 记录当前请求
@@ -122,13 +122,14 @@ export class RateLimitService {
   async getRateLimitStatus(
     identifier: string,
     identifierType: 'ip' | 'user',
-    action: string
+    action: string,
   ): Promise<{
     remaining: number;
     resetTime: Date;
     limit: number;
   }> {
-    const config = action === 'search' ? this.searchRateLimit : this.requestRateLimit;
+    const config =
+      action === 'search' ? this.searchRateLimit : this.requestRateLimit;
     const now = new Date();
     const windowStart = new Date(now.getTime() - config.windowMs);
 
