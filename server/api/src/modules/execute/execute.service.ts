@@ -2,9 +2,10 @@ import { BadRequestException, Injectable } from '@nestjs/common';
 import { performance } from 'node:perf_hooks';
 import { Script, createContext } from 'node:vm';
 import { ExecuteJudgeDto, ExecuteRequestDto, ExecuteResponse, ExecutionError } from './dto/execute-request.dto';
+import { RunAndJudgeRequestDto, RunAndJudgeResponseDto } from './dto/run-and-judge-request.dto';
 import { EventBridgeService } from './event-bridge.service';
 import { JudgeService } from '../judge/judge.service';
-import { ExecutionEvent } from './eventParser';
+import { ExecutionEvent, extractArtifacts } from './eventParser';
 import { dockerRunner } from '../../../../executor/dockerRunner';
 
 const MAX_OUTPUT_BYTES = 64 * 1024;
@@ -415,5 +416,72 @@ export class ExecuteService {
     }
     const truncatedValue = buffer.subarray(0, MAX_OUTPUT_BYTES).toString('utf8');
     return { value: truncatedValue, truncated: true };
+  }
+
+  /**
+   * 执行代码并判题的组合端点
+   */
+  async runAndJudge(request: RunAndJudgeRequestDto): Promise<RunAndJudgeResponseDto> {
+    try {
+      // 1. 执行代码
+      const executeRequest: ExecuteRequestDto = {
+        code: request.code,
+        language: request.language,
+        levelId: request.levelId,
+        inputs: request.inputs,
+      };
+
+      const executionResult = await this.run(executeRequest);
+
+      // 2. 提取执行产物
+      const events = parseEvents(executionResult.stdout);
+      const artifacts = extractArtifacts(executionResult.stdout, events);
+
+      // 3. 执行判题
+      const judgeResult = await this.judgeService.evaluateStrategy({
+        strategy: request.strategy,
+        expected: request.expected,
+        output: {
+          stdout: executionResult.stdout,
+          events,
+        },
+        args: request.args,
+        metadata: {
+          ...request.metadata,
+          levelId: request.levelId,
+          language: request.language,
+        },
+      });
+
+      // 4. 计算奖励
+      const rewards = judgeResult.ok
+        ? { xp: 20, coins: 5, badges: [] }
+        : { xp: 0, coins: 0, badges: [] };
+
+      return {
+        execution: {
+          stdout: executionResult.stdout,
+          stderr: executionResult.stderr || '',
+          exitCode: executionResult.exitCode || 0,
+          duration: executionResult.duration || 0,
+          events,
+          artifacts,
+        },
+        judgment: {
+          passed: judgeResult.ok,
+          message: judgeResult.details?.message || (judgeResult.ok ? 'Passed' : 'Failed'),
+          details: judgeResult.details?.details,
+          visualization: judgeResult.details?.visualization,
+          metrics: judgeResult.details?.metrics,
+          diff: judgeResult.details?.diff,
+          warnings: judgeResult.details?.warnings,
+        },
+        rewards,
+      };
+    } catch (error) {
+      throw new BadRequestException(
+        `Run and judge failed: ${error instanceof Error ? error.message : String(error)}`
+      );
+    }
   }
 }

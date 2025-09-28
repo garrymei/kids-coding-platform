@@ -4,7 +4,9 @@ import { judgeIO } from './strategies/io.strategy';
 import { judgeEventSeq } from './strategies/event-seq.strategy';
 import { judgeLEDStrategy } from './strategies/led.strategy';
 import { EventBridgeService } from '../execute/event-bridge.service';
-import { ExecutionEvent } from '../execute/eventParser';
+import { ExecutionEvent, extractArtifacts } from '../execute/eventParser';
+import { StrategyFactory } from '../../../../packages/judge-stub/src/strategies/strategy-factory';
+import { JudgeInput, JudgeResult as NewJudgeResult } from '../../../../packages/judge-stub/src/strategies/judge-strategy.interface';
 
 type JudgeStrategy = 'stdout' | 'pixel' | 'music' | 'maze';
 
@@ -26,7 +28,7 @@ export class JudgeService {
         break;
       }
       case 'led': {
-        // LED ×¨ÓÃÅĞÌâ²ßÂÔ
+        // LED ×¨ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
         const res = judgeLEDStrategy({
           code: dto.actual.code || '',
           grader: dto.expected,
@@ -37,19 +39,19 @@ export class JudgeService {
         break;
       }
       case 'maze': {
-        // ÏÈÖ§³Ö×î³£¼ûµÄÊÂ¼şĞòÁĞÅĞÌâ
+        // ï¿½ï¿½Ö§ï¿½ï¿½ï¿½î³£ï¿½ï¿½ï¿½ï¿½ï¿½Â¼ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
         const res = judgeEventSeq(dto.expected.events, dto.actual);
         ok = res.ok;
         details = res;
         break;
       }
       default: {
-        // ÆäËüÀàĞÍÏÈ·µ»ØÎ´ÊµÏÖ
+        // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½È·ï¿½ï¿½ï¿½Î´Êµï¿½ï¿½
         return { ok: false, score: 0, stars: 0, details: { message: 'Not implemented' } };
       }
     }
 
-    // ¼ò»¯£ºok=3ĞÇ£¬·ñÔò1ĞÇ£»½±Àø¿ÉÓÉ¹Ø¿¨ÅäÖÃ¾ö¶¨£¬ÕâÀïÖ»×öÕ¼Î»
+    // ï¿½ò»¯£ï¿½ok=3ï¿½Ç£ï¿½ï¿½ï¿½ï¿½ï¿½1ï¿½Ç£ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½É¹Ø¿ï¿½ï¿½ï¿½ï¿½Ã¾ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ö»ï¿½ï¿½Õ¼Î»
     const stars = ok ? 3 : 1;
     const score = stars;
     const rewards = ok ? { xp: 20, coins: 5, badges: [] } : { xp: 0, coins: 0 };
@@ -58,6 +60,62 @@ export class JudgeService {
   }
 
   async evaluateStrategy(params: {
+    strategy: JudgeStrategy;
+    expected: any;
+    output: { stdout: string; events: ExecutionEvent[] };
+    args?: Record<string, unknown>;
+    metadata?: Record<string, any>;
+  }): Promise<JudgeEvaluationResult> {
+    const { strategy, expected, output, args = {}, metadata = {} } = params;
+
+    try {
+      // ä½¿ç”¨æ–°çš„ç»Ÿä¸€åˆ¤é¢˜æ¥å£
+      const judgeStrategy = StrategyFactory.getStrategy(strategy);
+      if (judgeStrategy) {
+        // æå–æ‰§è¡Œäº§ç‰©
+        const artifacts = extractArtifacts(output.stdout, output.events);
+        
+        const judgeInput: JudgeInput = {
+          strategy,
+          expected,
+          output: {
+            stdout: output.stdout,
+            events: output.events,
+            artifacts,
+          },
+          args,
+          metadata,
+        };
+
+        const result: NewJudgeResult = judgeStrategy.judge(judgeInput);
+        
+        return {
+          ok: result.passed,
+          details: {
+            message: result.message,
+            details: result.details,
+            visualization: result.visualization,
+            metrics: result.metrics,
+            diff: result.diff,
+            warnings: result.warnings,
+          },
+        };
+      }
+
+      // å›é€€åˆ°æ—§çš„åˆ¤é¢˜é€»è¾‘
+      return this.evaluateStrategyLegacy(params);
+    } catch (error) {
+      return {
+        ok: false,
+        details: {
+          message: 'Judge evaluation failed',
+          error: error instanceof Error ? error.message : String(error),
+        },
+      };
+    }
+  }
+
+  private async evaluateStrategyLegacy(params: {
     strategy: JudgeStrategy;
     expected: any;
     output: { stdout: string; events: ExecutionEvent[] };
