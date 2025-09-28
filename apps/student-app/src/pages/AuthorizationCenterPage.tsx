@@ -75,7 +75,7 @@ interface ClassRelationship {
   canLeave: boolean;
 }
 
-const AuthorizationCenterPage: React.FC = () => {
+const AuthorizationCenterPage = () => {
   const [overview, setOverview] = useState<AuthorizationOverview | null>(null);
   const [pendingRequests, setPendingRequests] = useState<PendingRequest[]>([]);
   const [activeRelationships, setActiveRelationships] = useState<ActiveRelationship[]>([]);

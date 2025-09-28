@@ -1,0 +1,101 @@
+{
+  "packs": [
+    {
+      "lang": "python",
+      "gameType": "pixel",
+      "world": "像素画廊",
+      "name": "壁画修复组",
+      "summary": "用代码填色修复文明壁画。",
+      "unlock": {
+        "requires": ["python/maze"],
+        "minLevel": 4
+      },
+      "rewards": {
+        "badges": ["壁画修复师"],
+        "firstClearBonusXP": 50
+      },
+      "levelCount": 0
+    },
+    {
+      "lang": "python",
+      "gameType": "open",
+      "world": "创意工坊",
+      "name": "自由创作间",
+      "summary": "将所学融会贯通，创作你的实验岛作品。",
+      "unlock": {
+        "requires": ["python/music"],
+        "minLevel": 6
+      },
+      "rewards": {
+        "badges": ["创意新星"],
+        "firstClearBonusXP": 80
+      },
+      "levelCount": 0
+    },
+    {
+      "lang": "python",
+      "gameType": "music",
+      "world": "音乐森林",
+      "name": "旋律唤醒队",
+      "summary": "用音符序列唤醒沉睡的岛灵。",
+      "unlock": {
+        "requires": ["python/pixel"],
+        "minLevel": 5
+      },
+      "rewards": {
+        "badges": ["旋律使者"],
+        "firstClearBonusXP": 60
+      },
+      "levelCount": 0
+    },
+    {
+      "lang": "python",
+      "gameType": "maze",
+      "world": "遗迹迷宫",
+      "name": "遗迹探索队",
+      "summary": "控制机器人探索通道，寻找能量核心。",
+      "unlock": {
+        "requires": ["python/led"],
+        "minLevel": 3
+      },
+      "rewards": {
+        "badges": ["迷宫探险家"],
+        "firstClearBonusXP": 70
+      },
+      "levelCount": 0
+    },
+    {
+      "lang": "python",
+      "gameType": "led",
+      "world": "能源站",
+      "name": "LED 能源恢复中心",
+      "summary": "电路失灵，通过程序控制灯阵恢复供电。",
+      "unlock": {
+        "requires": ["python/io"],
+        "minLevel": 2
+      },
+      "rewards": {
+        "badges": ["能源修复者"],
+        "firstClearBonusXP": 60
+      },
+      "levelCount": 0
+    },
+    {
+      "lang": "python",
+      "gameType": "io",
+      "world": "灯塔区",
+      "name": "IO 输出型 · 灯塔信号中心",
+      "summary": "灯塔失去通讯，学徒从输出、输入到数据整理，逐步恢复信号与外界联系。",
+      "unlock": {
+        "requires": [],
+        "minLevel": 1
+      },
+      "rewards": {
+        "badges": ["灯塔信使"],
+        "firstClearBonusXP": 50
+      },
+      "levelCount": 0
+    }
+  ],
+  "levels": []
+}

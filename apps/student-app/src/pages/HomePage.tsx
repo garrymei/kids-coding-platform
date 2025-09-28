@@ -1,7 +1,9 @@
 import { Badge, Button, Card, Progress, tokens } from '@kids/ui-kit';
+import { useNavigate } from 'react-router-dom';
 import { useStudentState, useStudentActions } from '../store/studentStore.js';
 
 export function HomePage() {
+  const navigate = useNavigate();
   const { displayName, xp, streakDays, focusCourseId, courses } = useStudentState();
   const actions = useStudentActions();
 
@@ -38,7 +40,15 @@ export function HomePage() {
                 value={focusCourse.progress}
                 label={`${focusCourse.title} · ${focusCourse.lessonsCompleted}/${focusCourse.lessonsTotal}`}
               />
-              <Button onClick={() => actions.completeLesson(focusCourse.id)}>完成下一节</Button>
+              <Button
+                onClick={() => {
+                  // 计算下一关并跳转
+                  const nextLevelId = `py-io-001`; // 临时假数据
+                  navigate(`/play/${nextLevelId}`);
+                }}
+              >
+                完成下一节
+              </Button>
             </div>
           ) : null}
         </Card>
@@ -65,10 +75,18 @@ export function HomePage() {
       <section className="page-grid__column">
         <Card heading="快捷入口">
           <div className="quick-actions">
-            <Button variant="secondary">课程地图</Button>
-            <Button variant="secondary">闯关挑战</Button>
-            <Button variant="secondary">作品集</Button>
-            <Button variant="ghost">排行榜</Button>
+            <Button variant="secondary" onClick={() => navigate('/hub/python')}>
+              课程地图
+            </Button>
+            <Button variant="secondary" onClick={() => navigate('/hub/python/led')}>
+              闯关挑战
+            </Button>
+            <Button variant="secondary" onClick={() => navigate('/works')}>
+              作品集
+            </Button>
+            <Button variant="ghost" onClick={() => navigate('/leaderboard')}>
+              排行榜
+            </Button>
           </div>
         </Card>
         <Card heading="成长提醒">

@@ -1,0 +1,24 @@
+{
+  "id": "py-io-001",
+  "title": "你好，实验岛！",
+  "lang": "python",
+  "gameType": "io",
+  "difficulty": 1,
+  "story": "灯塔需要一条测试讯息，确认你已到达。",
+  "goals": ["打印 Hello, Island!"],
+  "starter": { "blockly": "<xml/>", "code": "print('')  # TODO" },
+  "grader": {
+    "mode": "io",
+    "io": {
+      "cases": [{ "in": "", "out": "Hello, Island!\\n" }],
+      "match": "exact"
+    },
+    "constraints": {
+      "maxTimeMs": 3000,
+      "maxMemMB": 64,
+      "forbiddenImports": ["os", "sys", "subprocess"]
+    }
+  },
+  "rewards": { "xp": 10, "coins": 5, "badges": ["启航者"] },
+  "hints": ["使用 print()", "注意大小写与标点"]
+}

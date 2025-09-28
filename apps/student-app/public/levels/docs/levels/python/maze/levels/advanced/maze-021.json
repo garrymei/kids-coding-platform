@@ -1,0 +1,26 @@
+{
+  "id": "py-maze-021",
+  "title": "右手法则",
+  "lang": "python",
+  "gameType": "maze",
+  "difficulty": 3,
+  "story": "复杂通道，尝试右手法则探索。",
+  "goals": ["实现函数封装并到达终点"],
+  "starter": { "blockly": "<xml/>", "code": "def step():\n    pass\n# TODO: 右手法则" },
+  "assets": { "maze": ["########", "#S....E#", "########"], "maxSteps3Star": 8 },
+  "grader": {
+    "mode": "event",
+    "events": {
+      "channel": "maze",
+      "collectFromAPI": true
+    },
+    "checks": [
+      { "type": "goal", "name": "reach_end", "must": true },
+      { "type": "maxSteps", "value": 8 }
+    ],
+    "constraints": {
+      "requireStructures": ["def"]
+    }
+  },
+  "rewards": { "xp": 40, "coins": 12, "badges": ["算法入门"] }
+}

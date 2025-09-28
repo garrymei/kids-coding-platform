@@ -1,0 +1,23 @@
+{
+  "id": "py-music-001",
+  "title": "第一声",
+  "lang": "python",
+  "gameType": "music",
+  "difficulty": 1,
+  "story": "奏出森林的第一声。",
+  "goals": ["在 tick=0 播放 C 音符，时值=1"],
+  "starter": {
+    "blockly": "<xml/>",
+    "code": "# 事件格式：note <tick> <pitch> <dur>\nprint('note 0 C 1')"
+  },
+  "grader": {
+    "mode": "event",
+    "events": {
+      "channel": "music",
+      "collectFromStdout": true,
+      "mapRule": "stdout line 'note t p d'"
+    },
+    "checks": [{ "type": "eventSeq", "expect": ["note 0 C 1"] }]
+  },
+  "rewards": { "xp": 12, "coins": 5, "badges": [] }
+}

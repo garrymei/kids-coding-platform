@@ -36,6 +36,25 @@ jobs:
           path: ${{ steps.pnpm-cache.outputs.STORE_PATH }}
           key: pnpm-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
 
+  typecheck:
+    needs: setup
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Restore pnpm store
+        uses: actions/cache/restore@v4
+        with:
+          path: ${{ needs.setup.outputs.pnpm-store-path }}
+          key: pnpm-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm -r typecheck
+
   lint:
     needs: setup
     runs-on: ubuntu-latest
@@ -71,17 +90,18 @@ jobs:
           )
           for file in "${files[@]}"; do
             if [ ! -f "$file" ]; then
-              echo "‚ù?Missing required policy file: $file"
+              echo "ÔøΩ?Missing required policy file: $file"
               exit 1
             else
-              echo "‚ú?Found: $file"
+              echo "ÔøΩ?Found: $file"
             fi
           done
-          echo "‚ú?All required policy files exist"
+          echo "ÔøΩ?All required policy files exist"
 
   build:
     needs:
       - setup
+      - typecheck
       - lint
       - policy-check
     runs-on: ubuntu-latest

@@ -1,0 +1,23 @@
+{
+  "id": "py-io-002",
+  "title": "回声频道",
+  "lang": "python",
+  "gameType": "io",
+  "difficulty": 1,
+  "story": "灯塔回声频道被动监听，请把输入原样回传。",
+  "goals": ["读取一行输入并原样输出"],
+  "starter": { "blockly": "<xml/>", "code": "s = input().strip()\n# TODO: 回显 s" },
+  "grader": {
+    "mode": "io",
+    "io": {
+      "cases": [{ "in": "Code Island\\n", "out": "Code Island\\n" }],
+      "match": "exact"
+    },
+    "constraints": {
+      "maxTimeMs": 3000,
+      "maxMemMB": 64
+    }
+  },
+  "rewards": { "xp": 12, "coins": 5, "badges": [] },
+  "hints": ["input() 读取一行", "print(s) 输出"]
+}

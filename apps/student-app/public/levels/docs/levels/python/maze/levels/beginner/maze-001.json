@@ -1,0 +1,27 @@
+{
+  "id": "py-maze-001",
+  "title": "直线前进",
+  "lang": "python",
+  "gameType": "maze",
+  "difficulty": 1,
+  "story": "遗迹入口通畅，直达第一检查点。",
+  "goals": ["到达终点"],
+  "starter": {
+    "blockly": "<xml/>",
+    "code": "# API: move(), turn_left(), scan()\n# TODO: 前进到终点\n"
+  },
+  "assets": { "maze": ["#####", "#S..E#", "#####"], "maxSteps3Star": 4 },
+  "grader": {
+    "mode": "event",
+    "events": {
+      "channel": "maze",
+      "collectFromAPI": true,
+      "expectedGoal": "reach_end"
+    },
+    "checks": [
+      { "type": "goal", "name": "reach_end", "must": true },
+      { "type": "maxSteps", "value": 4 }
+    ]
+  },
+  "rewards": { "xp": 20, "coins": 8, "badges": [] }
+}

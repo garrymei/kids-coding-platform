@@ -1,0 +1,26 @@
+{
+  "id": "py-maze-011",
+  "title": "右转再前",
+  "lang": "python",
+  "gameType": "maze",
+  "difficulty": 2,
+  "story": "路径有转角，观察再行动。",
+  "goals": ["抵达终点，步数≤10 获 3 星"],
+  "starter": { "blockly": "<xml/>", "code": "# 使用 scan() 判断障碍\n" },
+  "assets": { "maze": ["######", "#S...#", "#.##E#", "######"], "maxSteps3Star": 10 },
+  "grader": {
+    "mode": "event",
+    "events": {
+      "channel": "maze",
+      "collectFromAPI": true
+    },
+    "checks": [
+      { "type": "goal", "name": "reach_end", "must": true },
+      { "type": "maxSteps", "value": 10 }
+    ],
+    "constraints": {
+      "requireStructures": ["def"]
+    }
+  },
+  "rewards": { "xp": 30, "coins": 10, "badges": ["函数小能手"] }
+}

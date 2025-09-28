@@ -8,6 +8,7 @@
     "dev:h5": "vite --mode development",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
+    "typecheck": "tsc --noEmit",
     "preview": "vite preview"
   },
   "dependencies": {
