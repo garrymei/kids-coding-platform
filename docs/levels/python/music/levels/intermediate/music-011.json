@@ -1,0 +1,24 @@
+{
+  "id": "py-music-011",
+  "title": "节拍练习",
+  "lang": "python",
+  "gameType": "music",
+  "difficulty": 2,
+  "story": "按 0、1、2、3 Tick 播放 C D E F。",
+  "goals": ["形成等间隔四拍"],
+  "starter": {
+    "blockly": "<xml/>",
+    "code": "notes=[('C',0),('D',1),('E',2),('F',3)]\nfor p,t in notes:\n    print(f'note {t} {p} 1')"
+  },
+  "grader": {
+    "mode": "event",
+    "events": {
+      "channel": "music",
+      "collectFromStdout": true
+    },
+    "checks": [
+      { "type": "eventSeq", "expect": ["note 0 C 1", "note 1 D 1", "note 2 E 1", "note 3 F 1"] }
+    ]
+  },
+  "rewards": { "xp": 22, "coins": 8, "badges": [] }
+}

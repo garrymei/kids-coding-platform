@@ -1,0 +1,19 @@
+{
+  "id": "py-pixel-011",
+  "title": "几何拼图",
+  "lang": "python",
+  "gameType": "pixel",
+  "difficulty": 3,
+  "story": "修复简单几何拼接图案。",
+  "goals": ["构造指定矩阵并输出"],
+  "starter": { "blockly": "<xml/>", "code": "# 提示：分模块函数生成局部" },
+  "assets": { "size": 8, "target": "matrix://预置或在判题侧存储" },
+  "grader": {
+    "mode": "io",
+    "io": {
+      "cases": [{ "in": "", "out": "<由判题侧输出期望>" }],
+      "match": "exact"
+    }
+  },
+  "rewards": { "xp": 32, "coins": 12, "badges": [] }
+}

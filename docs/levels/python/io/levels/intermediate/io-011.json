@@ -1,0 +1,30 @@
+{
+  "id": "py-io-011",
+  "title": "营养液配比",
+  "lang": "python",
+  "gameType": "io",
+  "difficulty": 2,
+  "story": "岛上植物需要精准营养，计算配比以恢复生机。",
+  "goals": ["读取两数，输出 a/(a+b) 保留两位小数"],
+  "starter": {
+    "blockly": "<xml/>",
+    "code": "a=float(input()); b=float(input())\n# 输出比例，保留两位小数"
+  },
+  "grader": {
+    "mode": "io",
+    "io": {
+      "cases": [
+        { "in": "30\\n70\\n", "out": "0.30\\n" },
+        { "in": "3\\n2\\n", "out": "0.60\\n" }
+      ],
+      "match": "tolerance",
+      "tolerance": 0.005
+    },
+    "constraints": {
+      "maxTimeMs": 3000,
+      "maxMemMB": 64
+    }
+  },
+  "rewards": { "xp": 20, "coins": 8, "badges": [] },
+  "hints": ["round(x,2)", "用 float 避免整除"]
+}

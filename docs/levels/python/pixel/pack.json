@@ -1,0 +1,9 @@
+{
+  "lang": "python",
+  "gameType": "pixel",
+  "world": "像素画廊",
+  "name": "壁画修复组",
+  "summary": "用代码填色修复文明壁画。",
+  "unlock": { "requires": ["python/maze"], "minLevel": 4 },
+  "rewards": { "badges": ["壁画修复师"], "firstClearBonusXP": 50 }
+}

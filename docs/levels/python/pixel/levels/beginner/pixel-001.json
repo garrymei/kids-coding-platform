@@ -1,0 +1,22 @@
+{
+  "id": "py-pixel-001",
+  "title": "5×5 笑脸",
+  "lang": "python",
+  "gameType": "pixel",
+  "difficulty": 2,
+  "story": "从最简单的笑脸开始修复。",
+  "goals": ["输出5行，每行由0/1组成，构成笑脸"],
+  "starter": {
+    "blockly": "<xml/>",
+    "code": "canvas=[[0]*5 for _ in range(5)]\n# TODO: 填 1 并逐行打印字符串"
+  },
+  "assets": { "size": 5 },
+  "grader": {
+    "mode": "io",
+    "io": {
+      "cases": [{ "in": "", "out": "01110\\n01010\\n00000\\n10001\\n01110\\n" }],
+      "match": "exact"
+    }
+  },
+  "rewards": { "xp": 35, "coins": 12, "badges": ["嵌套循环"] }
+}

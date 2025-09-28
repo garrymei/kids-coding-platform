@@ -1,0 +1,9 @@
+{
+  "lang": "python",
+  "gameType": "maze",
+  "world": "遗迹迷宫",
+  "name": "遗迹探索队",
+  "summary": "控制机器人探索通道，寻找能量核心。",
+  "unlock": { "requires": ["python/led"], "minLevel": 3 },
+  "rewards": { "badges": ["迷宫探险家"], "firstClearBonusXP": 70 }
+}

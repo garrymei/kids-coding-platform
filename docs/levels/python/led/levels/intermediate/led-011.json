@@ -1,0 +1,23 @@
+{
+  "id": "py-led-011",
+  "title": "依次点亮 5 盏灯",
+  "lang": "python",
+  "gameType": "led",
+  "difficulty": 2,
+  "story": "恢复一段电路：从 0 到 4 依次点亮。",
+  "goals": ["on0→on1→on2→on3→on4"],
+  "starter": { "blockly": "<xml/>", "code": "for i in range(5):\n    print(f'on{i}')" },
+  "assets": { "gridWidth": 5, "gridHeight": 1 },
+  "grader": {
+    "mode": "event",
+    "events": {
+      "channel": "led",
+      "collectFromStdout": true
+    },
+    "checks": [{ "type": "eventSeq", "expect": ["on0", "on1", "on2", "on3", "on4"] }],
+    "constraints": {
+      "requireStructures": ["for"]
+    }
+  },
+  "rewards": { "xp": 30, "coins": 10, "badges": ["循环达人"] }
+}

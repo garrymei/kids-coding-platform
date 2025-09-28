@@ -1,0 +1,9 @@
+{
+  "lang": "python",
+  "gameType": "open",
+  "world": "创意工坊",
+  "name": "自由创作间",
+  "summary": "将所学融会贯通，创作你的实验岛作品。",
+  "unlock": { "requires": ["python/music"], "minLevel": 6 },
+  "rewards": { "badges": ["创意新星"], "firstClearBonusXP": 80 }
+}

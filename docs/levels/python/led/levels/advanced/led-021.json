@@ -1,0 +1,20 @@
+{
+  "id": "py-led-021",
+  "title": "交替灯阵",
+  "lang": "python",
+  "gameType": "led",
+  "difficulty": 3,
+  "story": "按奇亮偶灭点亮 8 盏灯。",
+  "goals": ["终局输出 10101010"],
+  "starter": { "blockly": "<xml/>", "code": "# 生成 '10101010' 并 print\n" },
+  "assets": { "gridWidth": 8, "gridHeight": 1 },
+  "grader": {
+    "mode": "io",
+    "io": {
+      "cases": [{ "in": "", "out": "10101010\\n" }],
+      "match": "exact"
+    }
+  },
+  "rewards": { "xp": 26, "coins": 10, "badges": [] },
+  "hints": ["i%2 判奇偶", "字符串拼接"]
+}

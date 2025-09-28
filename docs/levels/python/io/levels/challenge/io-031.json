@@ -1,0 +1,23 @@
+{
+  "id": "py-io-031",
+  "title": "电报码解码",
+  "lang": "python",
+  "gameType": "io",
+  "difficulty": 4,
+  "story": "信号被编码为 A3-B1… 还原为字母序列。",
+  "goals": ["解析如 C1-D2 → C D D"],
+  "starter": { "blockly": "<xml/>", "code": "code=input().strip()\n# TODO: 解析并空格连接" },
+  "grader": {
+    "mode": "io",
+    "io": {
+      "cases": [{ "in": "C1-D2\\n", "out": "C D D\\n" }],
+      "match": "regex",
+      "pattern": "^([A-Z][0-9]+)(-[A-Z][0-9]+)*\\n$"
+    },
+    "constraints": {
+      "forbiddenImports": ["re", "os", "sys", "subprocess"]
+    }
+  },
+  "rewards": { "xp": 35, "coins": 12, "badges": ["字符串能手"] },
+  "hints": ["split('-')", "s[0] 字母，s[1:] 次数"]
+}

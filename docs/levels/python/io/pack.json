@@ -1,0 +1,9 @@
+{
+  "lang": "python",
+  "gameType": "io",
+  "world": "灯塔区",
+  "name": "IO 输出型 · 灯塔信号中心",
+  "summary": "灯塔失去通讯，学徒从输出、输入到数据整理，逐步恢复信号与外界联系。",
+  "unlock": { "requires": [], "minLevel": 1 },
+  "rewards": { "badges": ["灯塔信使"], "firstClearBonusXP": 50 }
+}

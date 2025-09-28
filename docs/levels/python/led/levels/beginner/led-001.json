@@ -1,0 +1,25 @@
+{
+  "id": "py-led-001",
+  "title": "点亮第一盏灯",
+  "lang": "python",
+  "gameType": "led",
+  "difficulty": 1,
+  "story": "能源站测试：点亮 0 号灯。",
+  "goals": ["输出事件 on0"],
+  "starter": { "blockly": "<xml/>", "code": "print('on0')  # 提示：事件以 on{i} 表示" },
+  "assets": { "gridWidth": 1, "gridHeight": 1 },
+  "grader": {
+    "mode": "event",
+    "events": {
+      "channel": "led",
+      "collectFromStdout": true,
+      "mapRule": "stdout line 'on{i}' => event 'on{i}'"
+    },
+    "checks": [{ "type": "eventSeq", "expect": ["on0"] }],
+    "constraints": {
+      "maxTimeMs": 3000,
+      "maxMemMB": 64
+    }
+  },
+  "rewards": { "xp": 12, "coins": 5, "badges": [] }
+}

@@ -1,0 +1,9 @@
+{
+  "lang": "python",
+  "gameType": "music",
+  "world": "音乐森林",
+  "name": "旋律唤醒队",
+  "summary": "用音符序列唤醒沉睡的岛灵。",
+  "unlock": { "requires": ["python/pixel"], "minLevel": 5 },
+  "rewards": { "badges": ["旋律使者"], "firstClearBonusXP": 60 }
+}

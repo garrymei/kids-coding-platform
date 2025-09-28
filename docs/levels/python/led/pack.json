@@ -1,0 +1,9 @@
+{
+  "lang": "python",
+  "gameType": "led",
+  "world": "能源站",
+  "name": "LED 能源恢复中心",
+  "summary": "电路失灵，通过程序控制灯阵恢复供电。",
+  "unlock": { "requires": ["python/io"], "minLevel": 2 },
+  "rewards": { "badges": ["能源修复者"], "firstClearBonusXP": 60 }
+}

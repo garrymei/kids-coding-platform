@@ -1,0 +1,38 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Level",
+  "type": "object",
+  "required": [
+    "id",
+    "title",
+    "lang",
+    "gameType",
+    "difficulty",
+    "goals",
+    "starter",
+    "grader",
+    "rewards"
+  ],
+  "properties": {
+    "id": { "type": "string" },
+    "title": { "type": "string" },
+    "lang": { "type": "string", "enum": ["python", "javascript"] },
+    "gameType": { "type": "string", "enum": ["io", "led", "maze", "pixel", "music", "open"] },
+    "difficulty": { "type": "integer", "minimum": 1, "maximum": 5 },
+    "goals": { "type": "array", "items": { "type": "string" } },
+    "story": { "type": "string" },
+    "starter": {
+      "type": "object",
+      "required": ["blockly", "code"],
+      "properties": {
+        "blockly": { "type": "string" },
+        "code": { "type": "string" }
+      }
+    },
+    "assets": { "type": "object" },
+    "grader": { "type": "object" },
+    "rewards": { "type": "object" },
+    "hints": { "type": "array", "items": { "type": "string" } },
+    "examples": { "type": "array", "items": { "type": "object" } }
+  }
+}

@@ -1,0 +1,27 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Game Pack",
+  "type": "object",
+  "required": ["lang", "gameType", "world", "name", "summary", "unlock"],
+  "properties": {
+    "lang": { "type": "string", "enum": ["python", "javascript"] },
+    "gameType": { "type": "string", "enum": ["io", "led", "maze", "pixel", "music", "open"] },
+    "world": { "type": "string" },
+    "name": { "type": "string" },
+    "summary": { "type": "string" },
+    "unlock": {
+      "type": "object",
+      "properties": {
+        "requires": { "type": "array", "items": { "type": "string" } },
+        "minLevel": { "type": "integer" }
+      }
+    },
+    "rewards": {
+      "type": "object",
+      "properties": {
+        "badges": { "type": "array", "items": { "type": "string" } },
+        "firstClearBonusXP": { "type": "integer" }
+      }
+    }
+  }
+}
