@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, Button, Badge } from '@kids/ui-kit';
 import { useFormValidation, FormField, FormInput, FormCheckbox } from '@kids/forms';
 import { httpClient } from '../services/http';
@@ -108,7 +108,7 @@ export function SearchSettingsPage() {
                 {...register('isSearchable')}
                 label="开启搜索功能"
                 checked={isSearchable}
-                onChange={(e) => handleToggleSearchable(e.target.checked)}
+                onChange={(e: any) => handleToggleSearchable(e.target.checked)}
               />
             </FormField>
           </div>

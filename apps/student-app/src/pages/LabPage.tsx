@@ -1,25 +1,13 @@
-﻿import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+﻿import { useCallback, useEffect, useMemo, useState } from 'react';
 import * as Blockly from 'blockly';
-import 'blockly/python';
-import 'blockly/javascript';
+// Dynamic imports for language generators
+// import 'blockly/python';
+// import 'blockly/javascript';
 import { BlocklyWorkspace, createCodeGenerator } from '@kids/blockly-extensions';
 import { Badge, Button, Card } from '@kids/ui-kit';
-
-type RunStatus = 'idle' | 'running' | 'success' | 'error';
-
-type ExecuteResponse = {
-  jobId: string;
-  ok: boolean;
-  results?: Array<{
-    stdout?: string;
-    stderr?: string;
-    exitCode?: number | null;
-    timedOut?: boolean;
-    durationMs?: number;
-    usage?: { cpuSeconds?: number; memoryBytes?: number };
-  }>;
-  error?: unknown;
-};
+import { useCodeExecution, type RunStatus } from '../hooks/useCodeExecution';
+import { useWebSocket } from '../hooks/useWebSocket';
+import { config } from '@kids/config';
 
 const statusTone: Record<RunStatus, 'info' | 'warning' | 'success' | 'danger'> = {
   idle: 'info',
@@ -35,166 +23,79 @@ const statusLabel: Record<RunStatus, string> = {
   error: 'Error',
 };
 
-const EXECUTOR_HTTP_URL =
-  import.meta.env.VITE_EXECUTOR_HTTP_URL ??
-  import.meta.env.VITE_EXECUTOR_URL ??
-  'http://localhost:4060/execute';
-
-const EXECUTOR_WS_BASE = import.meta.env.VITE_EXECUTOR_WS_URL ?? 'ws://localhost:4070';
-
 export function LabPage() {
   const [workspace, setWorkspace] = useState<Blockly.WorkspaceSvg | null>(null);
   const [pythonCode, setPythonCode] = useState('');
-  const [consoleText, setConsoleText] = useState(
-    'Build your blocks on the left and click “Run Code” to send them to the sandbox.',
-  );
-  const [status, setStatus] = useState<RunStatus>('idle');
-  const [rewardMessage, setRewardMessage] = useState<string | null>(null);
-  const generator = useMemo(() => createCodeGenerator(Blockly), []);
-  const wsRef = useRef<WebSocket | null>(null);
+  const [libsLoaded, setLibsLoaded] = useState(false);
 
-  useEffect(() => () => {
-    wsRef.current?.close();
+  // Load language generation libraries dynamically
+  useEffect(() => {
+    Promise.all([import('blockly/python'), import('blockly/javascript')]).then(() => {
+      setLibsLoaded(true);
+    });
   }, []);
+
+  const generator = useMemo(() => {
+    if (!libsLoaded) return null;
+    return createCodeGenerator(Blockly);
+  }, [libsLoaded]);
+
+  const { execute, reset, status, consoleText, rewardMessage, jobId, setConsoleText } =
+    useCodeExecution(generator);
+  const { connect, disconnect } = useWebSocket();
+
+  useEffect(() => {
+    if (jobId) {
+      const url = `${config.executor.wsUrl.replace(/\/$/, '')}/run-results/${encodeURIComponent(jobId)}`;
+      connect(url, {
+        onOpen: () => setConsoleText((prev) => `${prev}\n[ws] Connected to ${url}`),
+        onMessage: (event) => {
+          try {
+            const payload = JSON.parse(event.data);
+            if (payload?.type === 'run-result') {
+              const message = Array.isArray(payload?.payload?.stdout)
+                ? payload.payload.stdout.join('\n')
+                : String(payload?.payload?.stdout ?? 'Sandbox replied');
+              setConsoleText((prev) => `${prev}\n[ws] ${message}`);
+            } else if (payload?.type === 'error') {
+              setConsoleText((prev) => `${prev}\n[ws-error] ${payload?.payload?.message ?? 'Unknown'}`);
+            }
+          } catch (error) {
+            setConsoleText((prev) => `${prev}\n[ws-error] ${(error as Error).message}`);
+          }
+        },
+        onError: () => setConsoleText((prev) => `${prev}\n[ws-error] Connection error`),
+        onClose: () => setConsoleText((prev) => `${prev}\n[ws] Connection closed`),
+      });
+    }
+
+    return () => {
+      disconnect();
+    };
+  }, [jobId, connect, disconnect, setConsoleText]);
 
   const handleWorkspaceChange = useCallback(
     (ws: Blockly.WorkspaceSvg) => {
       setWorkspace(ws);
-      try {
-        setPythonCode(generator.toPython(ws));
-        setStatus('idle');
-        setRewardMessage(null);
-      } catch (error) {
-        setStatus('error');
-        setConsoleText(error instanceof Error ? error.message : String(error));
+      if (generator) {
+        try {
+          setPythonCode(generator.toPython(ws));
+        } catch (error) {
+          // Errors during generation are handled by the execution hook if attempted
+        }
       }
     },
     [generator],
   );
 
-  const connectToWebSocket = useCallback((jobId: string) => {
-    if (!jobId) return;
-    const base = EXECUTOR_WS_BASE.replace(/\/$/, '');
-    const url = `${base}/run-results/${encodeURIComponent(jobId)}`;
-
-    try {
-      wsRef.current?.close();
-      const socket = new WebSocket(url);
-      wsRef.current = socket;
-
-      socket.onopen = () => {
-        setConsoleText((prev) => `${prev}\n[ws] Connected to ${url}`);
-      };
-
-      socket.onmessage = (event) => {
-        try {
-          const payload = JSON.parse(event.data);
-          if (payload?.type === 'run-result') {
-            const message = Array.isArray(payload?.payload?.stdout)
-              ? payload.payload.stdout.join('\n')
-              : String(payload?.payload?.stdout ?? 'Sandbox replied');
-            setConsoleText((prev) => `${prev}\n[ws] ${message}`);
-            setStatus('success');
-          } else if (payload?.type === 'error') {
-            setConsoleText((prev) => `${prev}\n[ws-error] ${payload?.payload?.message ?? 'Unknown'}`);
-            setStatus('error');
-          }
-        } catch (error) {
-          setConsoleText((prev) => `${prev}\n[ws-error] ${(error as Error).message}`);
-        }
-      };
-
-      socket.onerror = () => {
-        setConsoleText((prev) => `${prev}\n[ws-error] Connection error`);
-      };
-
-      socket.onclose = () => {
-        setConsoleText((prev) => `${prev}\n[ws] Connection closed`);
-      };
-    } catch (error) {
-      setConsoleText((prev) => `${prev}\n[ws-error] ${(error as Error).message}`);
-    }
-  }, []);
-
-  const handleExecute = useCallback(async () => {
-    if (!workspace) {
-      setStatus('error');
-      setConsoleText('Please build blocks on the left before running.');
-      return;
-    }
-
-    try {
-      const latestCode = generator.toPython(workspace);
-      setPythonCode(latestCode);
-      setStatus('running');
-      setConsoleText('Submitting code to executor…');
-      setRewardMessage(null);
-
-      const response = await fetch(EXECUTOR_HTTP_URL, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          language: 'python',
-          source: latestCode,
-          tests: [{ stdin: '' }],
-        }),
-      });
-
-      if (!response.ok) {
-        setStatus('error');
-        setConsoleText(`Executor responded with HTTP ${response.status}`);
-        return;
-      }
-
-      const data = (await response.json()) as ExecuteResponse;
-      if (!data.ok) {
-        setStatus('error');
-        setConsoleText(String(data.error ?? 'Execution failed'));
-        return;
-      }
-
-      const firstResult = data.results?.[0];
-      if (firstResult) {
-        const output = firstResult.stdout?.trim() || firstResult.stderr || 'No stdout captured';
-        if (firstResult.timedOut) {
-          setStatus('error');
-          setConsoleText(`⏱️ Timed out after ${firstResult.durationMs ?? 0} ms\n${output}`);
-          setRewardMessage(null);
-        } else if (firstResult.stderr) {
-          setStatus('error');
-          setConsoleText(output);
-          setRewardMessage(null);
-        } else {
-          setStatus('success');
-          setConsoleText(output);
-          setRewardMessage('🎉 Great job! +20 XP (placeholder reward animation)');
-        }
-      } else {
-        setStatus('error');
-        setConsoleText('Executor returned no results.');
-        setRewardMessage(null);
-      }
-
-      if (data.jobId) {
-        connectToWebSocket(data.jobId);
-      }
-    } catch (error) {
-      setStatus('error');
-      setConsoleText(error instanceof Error ? error.message : String(error));
-      setRewardMessage(null);
-    }
-  }, [connectToWebSocket, generator, workspace]);
+  const handleExecute = useCallback(() => {
+    execute(workspace);
+  }, [execute, workspace]);
 
   const handleClearWorkspace = useCallback(() => {
-    wsRef.current?.close();
-    workspace?.clear();
+    reset(workspace);
     setPythonCode('');
-    setConsoleText('Workspace cleared.');
-    setStatus('idle');
-    setRewardMessage(null);
-  }, [workspace]);
+  }, [reset, workspace]);
 
   return (
     <div className="lab-grid">
@@ -202,7 +103,9 @@ export function LabPage() {
         <div className="lab-grid__toolbar">
           <h2>Lab</h2>
           <Badge tone={statusTone[status]} text={statusLabel[status]} />
-          <Button onClick={handleExecute}>Run Code</Button>
+          <Button onClick={handleExecute} disabled={!libsLoaded}>
+            Run Code
+          </Button>
         </div>
         <div className="lab-grid__canvas">
           <BlocklyWorkspace onWorkspaceChange={handleWorkspaceChange} height={520} />
@@ -220,7 +123,7 @@ export function LabPage() {
 
         <Card heading="Generated Python">
           <pre className="code-preview">
-{pythonCode || '# Blocks will automatically turn into Python here'}
+            {pythonCode || '# Blocks will automatically turn into Python here'}
           </pre>
         </Card>
 
@@ -243,3 +146,5 @@ export function LabPage() {
     </div>
   );
 }
+
+export default LabPage;

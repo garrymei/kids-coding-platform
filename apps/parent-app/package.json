@@ -4,7 +4,7 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
+    "dev": "vite --force",
     "dev:h5": "vite --mode development",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
@@ -13,6 +13,9 @@
   "dependencies": {
     "@kids/forms": "workspace:*",
     "@kids/ui-kit": "workspace:*",
+    "@ant-design/icons": "^5.6.0",
+    "antd": "^5.23.1",
+    "dayjs": "^1.11.13",
     "ky": "^1.7.2",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
@@ -22,6 +25,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.36.0",
+    "@types/antd": "^1.0.0",
     "@types/react": "^19.1.13",
     "@types/react-dom": "^19.1.9",
     "@vitejs/plugin-react": "^5.0.3",

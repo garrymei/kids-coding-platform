@@ -1,11 +1,9 @@
 import { Badge, Button, Card, Progress } from '@kids/ui-kit';
-import { useStudentStore } from '../store/studentStore.js';
+import { useStudentState, useStudentActions } from '../store/studentStore.js';
 
 export function CoursesPage() {
-  const {
-    state: { courses, focusCourseId },
-    actions,
-  } = useStudentStore();
+  const { courses, focusCourseId } = useStudentState();
+  const actions = useStudentActions();
 
   return (
     <div className="page-section">

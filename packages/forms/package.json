@@ -2,11 +2,22 @@
   "name": "@kids/forms",
   "version": "0.0.1",
   "description": "Shared form validation utilities for Kids Coding Platform",
-  "main": "dist/index.js",
+  "main": "dist/index.umd.js",
+  "module": "dist/index.mjs",
   "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "exports": {
+    ".": {
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.umd.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
   "scripts": {
-    "build": "tsc -p tsconfig.build.json",
-    "dev": "tsc -p tsconfig.build.json --watch"
+    "build": "vite build",
+    "dev": "vite build --watch"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.0",
@@ -15,7 +26,10 @@
   },
   "devDependencies": {
     "@types/react": "^19.1.13",
-    "typescript": "~5.8.3"
+    "typescript": "~5.8.3",
+    "@vitejs/plugin-react": "^5.0.3",
+    "vite": "^7.1.7",
+    "vite-plugin-dts": "^3.9.1"
   },
   "peerDependencies": {
     "react": "^19.1.1"

@@ -132,7 +132,10 @@ model AccessGrant {
   status       GrantStatus @default(ACTIVE)
   expiresAt    DateTime?
   grantedAt    DateTime?   // 授权时间
+  grantedBy    String?     @db.Uuid // 授权者
   revokedAt    DateTime?   // 撤销时间
+  revokedBy    String?     @db.Uuid // 撤销者
+  reason       String?     // 授权或撤销原因
   relationshipId String?   @db.Uuid
   relationship   Relationship? @relation(fields: [relationshipId], references: [id], onDelete: Cascade)
   grantee      User        @relation("AccessGrants", fields: [granteeId], references: [id], onDelete: Cascade)
@@ -169,6 +172,10 @@ model AuditLog {
   targetType String   // 例如: "student", "class", "relationship"
   targetId   String   @db.Uuid
   metadata   Json?    // 额外的元数据，记录"查看了谁的什么数据"等
+  ts         DateTime @default(now()) @map("ts") // 时间戳字段
+  ipAddress  String?  @map("ipAddress") // IP地址
+  userAgent  String?  @map("userAgent") // 用户代理
+  severity   String?  @map("severity") // 严重程度
   actor      User     @relation("AuditLogs", fields: [actorId], references: [id], onDelete: Cascade)
   createdAt  DateTime @default(now()) // 使用 createdAt 字段名
   updatedAt  DateTime @updatedAt
@@ -216,6 +223,7 @@ enum RelationshipSource {
   SHARE_CODE
   SEARCH
   CLASS_INVITE
+  MANUAL
 }
 
 enum RelationshipStatus {

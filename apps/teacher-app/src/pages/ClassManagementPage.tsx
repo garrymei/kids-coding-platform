@@ -354,4 +354,5 @@ const ClassManagementPage: React.FC = () => {
   );
 };
 
+export { ClassManagementPage };
 export default ClassManagementPage;

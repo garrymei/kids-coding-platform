@@ -21,9 +21,11 @@
   },
   "peerDependencies": {
     "react": ">=18",
-    "recharts": ">=2.0.0"
+    "recharts": ">=2.0.0",
+    "react-router-dom": ">=6.0.0"
   },
   "devDependencies": {
-    "typescript": "^5.9.2"
+    "typescript": "^5.9.2",
+    "react-router-dom": "^6.28.0"
   }
 }

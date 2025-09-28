@@ -1,24 +1,18 @@
-import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
-import { AppLayout } from './layouts/AppLayout.js';
-import { OverviewPage } from './pages/OverviewPage.js';
-import { ReportsPage } from './pages/ReportsPage.js';
-import { SearchStudentsPage } from './pages/SearchStudentsPage.js';
-import { ChildDataPage } from './pages/ChildDataPage.js';
+import { AppShell, AppRoute } from '@kids/ui-kit';
+import { AppLayout } from './layouts/AppLayout';
+import { ChildDataPage } from './pages/ChildDataPage';
+import { OverviewPage } from './pages/OverviewPage';
+import { ReportsPage } from './pages/ReportsPage';
+import { SearchStudentsPage } from './pages/SearchStudentsPage';
 import './App.css';
 
+const routes: AppRoute[] = [
+  { path: 'dashboard', element: <OverviewPage /> },
+  { path: 'search', element: <SearchStudentsPage /> },
+  { path: 'requests', element: <ChildDataPage /> },
+  { path: 'reports', element: <ReportsPage /> },
+];
+
 export default function App() {
-  return (
-    <BrowserRouter>
-      <Routes>
-        <Route path="/" element={<AppLayout />}>
-          <Route index element={<Navigate to="/dashboard" replace />} />
-          <Route path="dashboard" element={<OverviewPage />} />
-          <Route path="search" element={<SearchStudentsPage />} />
-          <Route path="requests" element={<ChildDataPage />} />
-          <Route path="reports" element={<ReportsPage />} />
-        </Route>
-        <Route path="*" element={<Navigate to="/dashboard" replace />} />
-      </Routes>
-    </BrowserRouter>
-  );
+  return <AppShell routes={routes} layout={AppLayout} defaultRedirect="/dashboard" />;
 }

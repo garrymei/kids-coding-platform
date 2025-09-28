@@ -43,7 +43,11 @@ export default [
     },
   },
   {
-    files: ['packages/api/**/*.{ts,tsx,js,jsx}', 'server/executor/**/*.{ts,tsx,js,jsx}'],
+    files: [
+      'packages/api/**/*.{ts,tsx,js,jsx}',
+      'server/executor/**/*.{ts,tsx,js,jsx}',
+      'server/websocket/**/*.{ts,tsx,js,jsx}',
+    ],
     languageOptions: {
       globals: {
         ...globals.node,
@@ -63,3 +67,4 @@ export default [
     ignores: ['**/dist/**', '**/.taro/**', '**/node_modules/**', '**/.eslintrc.*'],
   },
 ];
+

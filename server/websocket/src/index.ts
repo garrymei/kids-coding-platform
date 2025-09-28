@@ -1,255 +1,177 @@
-import { WebSocketServer } from 'ws';
-import { createServer } from 'http';
-import { parse } from 'url';
-import jwt from 'jsonwebtoken';
-// import { v4 as uuidv4 } from 'uuid';
+import { createServer } from 'node:http';
+import { WebSocketServer, WebSocket } from 'ws';
+import pino from 'pino';
 
-// Node.js types
-declare const process: {
-  env: {
-    JWT_SECRET?: string;
-    WEBSOCKET_PORT?: string;
-  };
-};
+const logger = pino({ name: 'kids-websocket', level: process.env.LOG_LEVEL ?? 'info' });
 
-const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
+const port = Number(process.env.WS_PORT ?? 4070);
 
-interface AuthenticatedWebSocket extends WebSocket {
-  userId?: string;
-  role?: string;
-  sessionId?: string;
+// 限制每个用户的并发连接数
+const MAX_CONNECTIONS_PER_USER = 5;
+const userConnections = new Map<string, Set<WebSocket>>();
+
+const httpServer = createServer();
+const wss = new WebSocketServer({ 
+  server: httpServer,
+  // 限制总连接数
+  maxPayload: 1024 * 1024 // 1MB
+});
+
+// 清理断开的连接
+function cleanupConnections(userId: string, socket: WebSocket) {
+  const userSockets = userConnections.get(userId);
+  if (userSockets) {
+    userSockets.delete(socket);
+    if (userSockets.size === 0) {
+      userConnections.delete(userId);
+    }
+  }
 }
 
-interface WebSocketMessage {
-  type: 'run-results' | 'notifications' | 'heartbeat' | 'subscribe' | 'unsubscribe';
-  data?: unknown;
-  channel?: string;
+function startHeartbeat(socket: WebSocket) {
+  const interval = setInterval(() => {
+    if (socket.readyState !== WebSocket.OPEN) {
+      clearInterval(interval);
+      return;
+    }
+    socket.ping();
+  }, 15000);
+
+  socket.on('close', () => clearInterval(interval));
+  socket.on('error', (error) => logger.warn({ err: error }, 'ws_client_error'));
+
+  return interval;
 }
 
-class WebSocketService {
-  private wss: WebSocketServer;
-  private channels = new Map<string, Set<AuthenticatedWebSocket>>();
-  private userSockets = new Map<string, Set<AuthenticatedWebSocket>>();
-
-  constructor(port: number) {
-    const server = createServer();
-    this.wss = new WebSocketServer({ server });
-
-    this.wss.on('connection', (ws: AuthenticatedWebSocket, request) => {
-      this.handleConnection(ws, request);
-    });
-
-    server.listen(port, () => {
-      console.log(`WebSocket server listening on port ${port}`);
-    });
-
-    // 心跳检测
-    setInterval(() => {
-      this.wss.clients.forEach((ws: AuthenticatedWebSocket) => {
-        if (ws.readyState === WebSocket.OPEN) {
-          ws.ping();
-        }
-      });
-    }, 30000); // 30秒心跳
+// 优化消息发送
+function sendStubMessage(socket: WebSocket, channel: string) {
+  if (socket.readyState !== WebSocket.OPEN) {
+    return;
   }
 
-  private handleConnection(ws: AuthenticatedWebSocket, request: unknown) {
-    const url = parse(request.url || '', true);
-    const token = url.query.token as string;
+  try {
+    let message;
+    if (channel.startsWith('run-results/')) {
+      const sessionId = channel.split('/')[1] ?? 'demo-session';
+      message = {
+        channel,
+        type: 'run-result',
+        payload: {
+          sessionId,
+          status: 'completed',
+          stdout: ['print("Hello Blocks!")'],
+          generatedAt: new Date().toISOString(),
+        },
+      };
+    } else if (channel.startsWith('notifications/')) {
+      const userId = channel.split('/')[1] ?? 'demo-user';
+      message = {
+        channel,
+        type: 'notification',
+        payload: {
+          userId,
+          title: '练习提醒',
+          body: '今日 Blockly 闯关开启，别忘了完成实验室任务哦！',
+          sentAt: new Date().toISOString(),
+        },
+      };
+    } else {
+      message = {
+        channel,
+        type: 'error',
+        payload: { message: 'Unknown channel. Expected run-results/<sessionId> or notifications/<userId>.' },
+      };
+    }
+    
+    // 使用异步发送避免阻塞
+    setImmediate(() => {
+      if (socket.readyState === WebSocket.OPEN) {
+        socket.send(JSON.stringify(message));
+      }
+    });
+  } catch (error) {
+    logger.error({ err: error, channel }, 'Failed to send stub message');
+  }
+}
 
-    if (!token) {
-      ws.close(1008, 'Authentication required');
+// 检查用户连接数限制
+function checkConnectionLimit(userId: string): boolean {
+  const userSockets = userConnections.get(userId) || new Set();
+  return userSockets.size < MAX_CONNECTIONS_PER_USER;
+}
+
+wss.on('connection', (socket, request) => {
+  try {
+    const url = new URL(request.url ?? '/', `http://${request.headers.host ?? 'localhost'}`);
+    const channel = url.pathname.replace(/^\//, '') || 'notifications/demo-user';
+    
+    // 从查询参数或频道中提取用户ID
+    const userId = url.searchParams.get('userId') || 
+                  (channel.startsWith('notifications/') ? channel.split('/')[1] : 'anonymous');
+
+    // 检查连接限制
+    if (!checkConnectionLimit(userId)) {
+      logger.warn({ userId, channel }, 'Connection limit exceeded');
+      socket.close(1008, 'Connection limit exceeded');
       return;
     }
 
-    try {
-      const decoded = jwt.verify(token, JWT_SECRET) as { sub: string; role: string };
-      ws.userId = decoded.sub;
-      ws.role = decoded.role;
+    // 记录用户连接
+    const userSockets = userConnections.get(userId) || new Set();
+    userSockets.add(socket);
+    userConnections.set(userId, userSockets);
 
-      // eslint-disable-next-line no-console
-      console.log(`User ${ws.userId} connected with role ${ws.role}`);
+    logger.info({ msg: 'client_connected', channel, userId, connections: userSockets.size });
 
-      // 添加到用户套接字映射
-      if (!this.userSockets.has(ws.userId)) {
-        this.userSockets.set(ws.userId, new Set());
-      }
-      this.userSockets.get(ws.userId)!.add(ws);
-    } catch (error) {
-      // eslint-disable-next-line no-console
-      console.error('Invalid token:', error);
-      ws.close(1008, 'Invalid token');
-      return;
-    }
-
-    ws.on('message', (data) => {
-      try {
-        const message: WebSocketMessage = JSON.parse(data.toString());
-        this.handleMessage(ws, message);
-      } catch (error) {
-        // eslint-disable-next-line no-console
-        console.error('Invalid message format:', error);
-        ws.send(JSON.stringify({ type: 'error', message: 'Invalid message format' }));
-      }
-    });
-
-    ws.on('close', () => {
-      this.handleDisconnection(ws);
-    });
-
-    ws.on('pong', () => {
-      // 心跳响应
-    });
-
-    // 发送连接确认
-    ws.send(
+    // 发送欢迎消息
+    socket.send(
       JSON.stringify({
-        type: 'connected',
-        message: 'WebSocket connection established',
-        userId: ws.userId,
+        channel,
+        type: 'welcome',
+        payload: {
+          heartbeatIntervalMs: 15000,
+          channels: [],
+        },
       }),
     );
-  }
 
-  private handleMessage(ws: AuthenticatedWebSocket, message: WebSocketMessage) {
-    switch (message.type) {
-      case 'subscribe':
-        this.subscribeToChannel(ws, message.channel!);
-        break;
-      case 'unsubscribe':
-        this.unsubscribeFromChannel(ws, message.channel!);
-        break;
-      case 'heartbeat':
-        ws.send(JSON.stringify({ type: 'heartbeat', timestamp: Date.now() }));
-        break;
-      default:
-        // eslint-disable-next-line no-console
-        console.log('Unknown message type:', message.type);
-    }
-  }
+    const heartbeatInterval = startHeartbeat(socket);
 
-  private subscribeToChannel(ws: AuthenticatedWebSocket, channel: string) {
-    if (!this.channels.has(channel)) {
-      this.channels.set(channel, new Set());
-    }
-    this.channels.get(channel)!.add(ws);
+    // 发送示例消息
+    setTimeout(() => sendStubMessage(socket, channel), 1000);
 
-    // eslint-disable-next-line no-console
-    console.log(`User ${ws.userId} subscribed to channel ${channel}`);
-    ws.send(
-      JSON.stringify({
-        type: 'subscribed',
-        channel: channel,
-      }),
-    );
-  }
-
-  private unsubscribeFromChannel(ws: AuthenticatedWebSocket, channel: string) {
-    const channelSockets = this.channels.get(channel);
-    if (channelSockets) {
-      channelSockets.delete(ws);
-      if (channelSockets.size === 0) {
-        this.channels.delete(channel);
-      }
-    }
-
-    // eslint-disable-next-line no-console
-    console.log(`User ${ws.userId} unsubscribed from channel ${channel}`);
-    ws.send(
-      JSON.stringify({
-        type: 'unsubscribed',
-        channel: channel,
-      }),
-    );
-  }
-
-  private handleDisconnection(ws: AuthenticatedWebSocket) {
-    if (ws.userId) {
-      const userSockets = this.userSockets.get(ws.userId);
-      if (userSockets) {
-        userSockets.delete(ws);
-        if (userSockets.size === 0) {
-          this.userSockets.delete(ws.userId);
-        }
-      }
-    }
-
-    // 从所有频道中移除
-    this.channels.forEach((sockets, channel) => {
-      sockets.delete(ws);
-      if (sockets.size === 0) {
-        this.channels.delete(channel);
-      }
+    // 监听连接关闭
+    socket.on('close', () => {
+      cleanupConnections(userId, socket);
+      clearInterval(heartbeatInterval);
+      logger.info({ msg: 'client_disconnected', channel, userId });
     });
-
-    // eslint-disable-next-line no-console
-    console.log(`User ${ws.userId} disconnected`);
+  } catch (error) {
+    logger.error({ err: error }, 'Error handling WebSocket connection');
+    socket.close(1011, 'Internal server error');
   }
+});
 
-  // 发送运行结果到特定会话
-  public sendRunResult(sessionId: string, result: unknown) {
-    const channel = `run-results/${sessionId}`;
-    const channelSockets = this.channels.get(channel);
-
-    if (channelSockets) {
-      const message = {
-        type: 'run-results',
-        channel: channel,
-        data: result,
-        timestamp: Date.now(),
-      };
-
-      channelSockets.forEach((ws) => {
-        if (ws.readyState === WebSocket.OPEN) {
-          ws.send(JSON.stringify(message));
-        }
-      });
-    }
-  }
-
-  // 发送通知到特定用户
-  public sendNotification(userId: string, notification: unknown) {
-    const channel = `notifications/${userId}`;
-    const channelSockets = this.channels.get(channel);
-
-    if (channelSockets) {
-      const message = {
-        type: 'notifications',
-        channel: channel,
-        data: notification,
-        timestamp: Date.now(),
-      };
-
-      channelSockets.forEach((ws) => {
-        if (ws.readyState === WebSocket.OPEN) {
-          ws.send(JSON.stringify(message));
-        }
-      });
-    }
-  }
-
-  // 广播消息到所有连接
-  public broadcast(message: unknown) {
-    this.wss.clients.forEach((ws) => {
-      if (ws.readyState === WebSocket.OPEN) {
-        ws.send(JSON.stringify(message));
-      }
-    });
-  }
-}
-
-// 启动 WebSocket 服务
-const port = Number(process.env.WEBSOCKET_PORT) || 3001;
-const wsService = new WebSocketService(port);
-
-// 导出服务实例供其他模块使用
-export default wsService;
-
-// 示例：定期发送测试消息
+// 定期清理无效连接
 setInterval(() => {
-  wsService.broadcast({
-    type: 'heartbeat',
-    message: 'Server heartbeat',
-    timestamp: Date.now(),
-  });
-}, 60000); // 每分钟发送一次心跳
+  let totalConnections = 0;
+  for (const [userId, sockets] of userConnections.entries()) {
+    let validSockets = 0;
+    for (const socket of sockets) {
+      if (socket.readyState === WebSocket.OPEN) {
+        validSockets++;
+        totalConnections++;
+      } else {
+        sockets.delete(socket);
+      }
+    }
+    if (validSockets === 0) {
+      userConnections.delete(userId);
+    }
+  }
+  logger.info({ msg: 'connection_cleanup', totalConnections });
+}, 60000); // 每分钟清理一次
+
+httpServer.listen(port, () => {
+  logger.info({ msg: 'websocket_server_listening', port });
+});

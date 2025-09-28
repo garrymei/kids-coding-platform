@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Card, Row, Col, Select, Button, message, Table, Tag, Space, Modal } from 'antd';
 import { BarChartOutlined, LineChartOutlined, UserOutlined } from '@ant-design/icons';
 import { StudentTrendChart, StudentComparisonChart } from '@kids/ui-kit';
+import { httpClient } from '../services/http';
 
 const { Option } = Select;
 
@@ -54,118 +55,34 @@ const StudentComparisonPage: React.FC = () => {
       // const response = await api.get('/classes/my-classes');
       // const students = response.data.flatMap(cls => cls.students);
       // setStudents(students);
-
-      // 模拟数据
-      setStudents([
-        {
-          id: 'student-1',
-          displayName: '小明',
-          nickname: '小明',
-          school: '北京市第一中学',
-          className: '初一(3)班',
-        },
-        {
-          id: 'student-2',
-          displayName: '小红',
-          nickname: '小红',
-          school: '北京市第一中学',
-          className: '初一(3)班',
-        },
-        {
-          id: 'student-3',
-          displayName: '小刚',
-          nickname: '小刚',
-          school: '北京市第一中学',
-          className: '初一(3)班',
-        },
-        {
-          id: 'student-4',
-          displayName: '小丽',
-          nickname: '小丽',
-          school: '北京市第一中学',
-          className: '初一(3)班',
-        },
-        {
-          id: 'student-5',
-          displayName: '小强',
-          nickname: '小强',
-          school: '北京市第一中学',
-          className: '初一(3)班',
-        },
-      ]);
+      
+      // For now, using mock data but with real API structure
+      const mockStudents: Student[] = [
+        { id: 'student-1', displayName: '小明', nickname: 'Ming', school: '第一小学', className: '三年级一班' },
+        { id: 'student-2', displayName: '小红', nickname: 'Hong', school: '第一小学', className: '三年级一班' },
+        { id: 'student-3', displayName: '小刚', nickname: 'Gang', school: '第一小学', className: '三年级一班' },
+        { id: 'student-4', displayName: '小丽', nickname: 'Li', school: '第一小学', className: '三年级一班' },
+      ];
+      setStudents(mockStudents);
     } catch (error) {
       message.error('获取学生列表失败');
     }
   };
 
-  // 获取对比数据
+  // 获取学生对比数据
   const fetchComparisonData = async () => {
-    if (selectedStudents.length === 0) {
-      message.warning('请选择要对比的学生');
-      return;
-    }
+    if (selectedStudents.length === 0) return;
 
     setLoading(true);
     try {
-      // TODO: 调用 API 获取对比数据
-      // const response = await api.post('/metrics/compare', {
-      //   studentIds: selectedStudents,
-      //   metrics: selectedMetrics,
-      //   window: timeWindow
-      // });
-      // setComparisonData(response.data);
-
-      // 模拟数据
-      const mockData: ComparisonData[] = selectedStudents.map((studentId, index) => {
-        const student = students.find((s) => s.id === studentId);
-        return {
-          studentId,
-          studentName: student?.displayName || `学生${studentId.slice(-4)}`,
-          accuracy: Math.random() * 0.4 + 0.6, // 0.6-1.0
-          tasks_done: Math.floor(Math.random() * 50) + 20,
-          time_spent_min: Math.floor(Math.random() * 1000) + 500,
-          rank: index + 1,
-        };
+      const response = await httpClient.post('/metrics/compare', {
+        body: {
+          studentIds: selectedStudents,
+          metrics: selectedMetrics,
+          window: timeWindow
+        }
       });
-
-      // 添加班级统计
-      const avgAccuracy = mockData.reduce((sum, item) => sum + item.accuracy, 0) / mockData.length;
-      const avgTasksDone =
-        mockData.reduce((sum, item) => sum + item.tasks_done, 0) / mockData.length;
-      const avgTimeSpent =
-        mockData.reduce((sum, item) => sum + item.time_spent_min, 0) / mockData.length;
-
-      mockData.push(
-        {
-          studentId: 'class_avg',
-          studentName: '班级平均',
-          accuracy: avgAccuracy,
-          tasks_done: Math.round(avgTasksDone),
-          time_spent_min: Math.round(avgTimeSpent),
-          rank: 0,
-          isAnonymous: true,
-        },
-        {
-          studentId: 'class_p50',
-          studentName: '班级中位数(P50)',
-          accuracy: avgAccuracy * 0.95,
-          tasks_done: Math.round(avgTasksDone * 0.9),
-          time_spent_min: Math.round(avgTimeSpent * 0.9),
-          rank: 0,
-          isAnonymous: true,
-        },
-        {
-          studentId: 'class_p90',
-          studentName: '班级优秀线(P90)',
-          accuracy: avgAccuracy * 1.1,
-          tasks_done: Math.round(avgTasksDone * 1.2),
-          time_spent_min: Math.round(avgTimeSpent * 1.1),
-          rank: 0,
-          isAnonymous: true,
-        },
-      );
-
-      setComparisonData(mockData);
+      setComparisonData(response as any);
     } catch (error) {
       message.error('获取对比数据失败');
     } finally {
@@ -176,32 +93,14 @@ const StudentComparisonPage: React.FC = () => {
   // 获取学生趋势数据
   const fetchStudentTrend = async (studentId: string) => {
     try {
-      // TODO: 调用 API 获取趋势数据
-      // const response = await api.get(`/metrics/students/${studentId}/trend`, {
-      //   params: {
-      //     from: dayjs().subtract(14, 'day').format('YYYY-MM-DD'),
-      //     to: dayjs().format('YYYY-MM-DD'),
-      //     granularity: 'day'
-      //   }
-      // });
-      // setTrendData(prev => ({ ...prev, [studentId]: response.data }));
-
-      // 模拟数据
-      const mockTrendData: TrendData[] = [];
-      for (let i = 0; i < 14; i++) {
-        const date = new Date();
-        date.setDate(date.getDate() - (13 - i));
-        mockTrendData.push({
-          date: date.toISOString().split('T')[0],
-          time_spent_min: Math.floor(Math.random() * 60) + 20,
-          tasks_done: Math.floor(Math.random() * 5) + 1,
-          accuracy: Math.random() * 0.4 + 0.6,
-          xp: Math.floor(Math.random() * 100) + 50,
-          streak: Math.min(i + 1, 10),
-        });
-      }
-
-      setTrendData((prev) => ({ ...prev, [studentId]: mockTrendData }));
+      const response = await httpClient.get(`/metrics/students/${studentId}/trend`, {
+        query: {
+          from: dayjs().subtract(14, 'day').format('YYYY-MM-DD'),
+          to: dayjs().format('YYYY-MM-DD'),
+          granularity: 'day'
+        }
+      });
+      setTrendData(prev => ({ ...prev, [studentId]: response as any }));
     } catch (error) {
       message.error('获取趋势数据失败');
     }
@@ -259,7 +158,7 @@ const StudentComparisonPage: React.FC = () => {
     {
       title: '操作',
       key: 'actions',
-      render: (_, record: Student) => (
+      render: (_: any, record: Student) => (
         <Space>
           <Button
             type="link"
@@ -377,6 +276,7 @@ const StudentComparisonPage: React.FC = () => {
               icon={<BarChartOutlined />}
               onClick={fetchComparisonData}
               loading={loading}
+              disabled={selectedStudents.length === 0}
               style={{ marginTop: '24px' }}
             >
               开始对比

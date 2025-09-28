@@ -7,6 +7,39 @@ import {
 import { PrismaService } from '../../../prisma/prisma.service';
 import { VisibilityService } from '../../auth/services/visibility.service';
 
+// Simple in-memory cache
+interface CacheItem<T> {
+  data: T;
+  expiry: number;
+}
+
+class SimpleCache<T> {
+  private cache = new Map<string, CacheItem<T>>();
+  
+  get(key: string): T | null {
+    const item = this.cache.get(key);
+    if (!item) return null;
+    
+    if (Date.now() > item.expiry) {
+      this.cache.delete(key);
+      return null;
+    }
+    
+    return item.data;
+  }
+  
+  set(key: string, data: T, ttl: number = 5 * 60 * 1000): void { // 5 minutes default
+    this.cache.set(key, {
+      data,
+      expiry: Date.now() + ttl
+    });
+  }
+  
+  clear(): void {
+    this.cache.clear();
+  }
+}
+
 export interface StudentTrendData {
   date: string;
   time_spent_min: number;
@@ -34,52 +67,50 @@ export interface ComparisonRequest {
 
 @Injectable()
 export class MetricsService {
+  private readonly trendCache = new SimpleCache<StudentTrendData[]>();
+  private readonly summaryCache = new SimpleCache<any>();
+  private readonly comparisonCache = new SimpleCache<StudentComparisonData[]>();
+  
   constructor(
     private readonly prisma: PrismaService,
     private readonly visibilityService: VisibilityService,
   ) {}
 
-  // 获取学生成长趋势（纵向）
-  async getStudentTrend(
-    requesterId: string,
-    studentId: string,
-    from: string,
-    to: string,
-    granularity: 'day' | 'week' = 'day',
-  ): Promise<StudentTrendData[]> {
-    // 验证权限 - 暂时跳过权限检查
-    // const hasAccess = await this.visibilityService.checkAccess(requesterId, studentId);
-    // if (!hasAccess) {
-    //   throw new ForbiddenException('您没有权限查看该学生的数据');
-    // }
+  // 获取学生指标摘要
+  async getStudentSummary(requesterId: string, studentId: string) {
+    // 验证权限
+    const hasAccess = await this.visibilityService.hasDataAccess(requesterId, studentId, 'metrics:read');
+    if (!hasAccess) {
+      throw new ForbiddenException('您没有权限查看该学生的数据');
+    }
+
+    // 检查缓存
+    const cacheKey = `summary:${studentId}`;
+    const cached = this.summaryCache.get(cacheKey);
+    if (cached) {
+      return cached;
+    }
 
     // 验证学生存在
     const student = await this.prisma.user.findUnique({
       where: { id: studentId },
-      include: { role: true },
+      select: {
+        id: true,
+        displayName: true,
+        nickname: true,
+      },
     });
 
-    if (!student || student.role.name !== 'student') {
+    if (!student) {
       throw new NotFoundException('学生不存在');
     }
 
-    const fromDate = new Date(from);
-    const toDate = new Date(to);
+    // 获取最近30天的数据
+    const endDate = new Date();
+    const startDate = new Date();
+    startDate.setDate(endDate.getDate() - 30);
 
-    // 根据粒度调整查询
-    let groupByClause: string;
-    let dateFormat: string;
-
-    if (granularity === 'week') {
-      groupByClause = `DATE_TRUNC('week', date)`;
-      dateFormat = `DATE_TRUNC('week', date)::date`;
-    } else {
-      groupByClause = `date`;
-      dateFormat = `date`;
-    }
-
-    // 查询指标快照数据
-    const trendData = await this.prisma.$queryRaw<
+    const summaryData = await this.prisma.$queryRaw<
       Array<{
         date: Date;
         time_spent_min: number;
@@ -90,45 +121,146 @@ export class MetricsService {
       }>
     >`
       SELECT 
-        ${dateFormat} as date,
-        COALESCE(SUM(tasks_done), 0) as tasks_done,
-        COALESCE(AVG(accuracy), 0) as accuracy,
-        COALESCE(SUM(time_spent_min), 0) as time_spent_min,
-        COALESCE(SUM(xp_gained), 0) as xp,
-        COALESCE(MAX(streak_days), 0) as streak
-      FROM metrics_snapshots 
-      WHERE student_id = ${studentId}
-        AND date >= ${fromDate}
-        AND date <= ${toDate}
-      GROUP BY ${groupByClause}
-      ORDER BY date ASC
+        MAX("date") as "date",
+        COALESCE(SUM("timeSpentMin"), 0) as "time_spent_min",
+        COALESCE(SUM("tasksDone"), 0) as "tasks_done",
+        COALESCE(AVG("accuracy"), 0) as "accuracy",
+        COALESCE(SUM("xpGained"), 0) as "xp",
+        COALESCE(MAX("streakDays"), 0) as "streak"
+      FROM "metrics_snapshots" 
+      WHERE "studentId" = ${studentId}
+        AND "date" >= ${startDate}
+        AND "date" <= ${endDate}
+      GROUP BY "studentId"
     `;
 
-    // 填充缺失的日期
-    const result = this.fillMissingDates(
-      trendData,
-      fromDate,
-      toDate,
-      granularity,
-    );
+    const result = summaryData[0] || {
+      date: null,
+      time_spent_min: 0,
+      tasks_done: 0,
+      accuracy: 0,
+      xp: 0,
+      streak: 0,
+    };
 
-    // 记录审计日志
-    await this.prisma.auditLog.create({
-      data: {
-        actorId: requesterId,
-        action: 'view_student_trend',
-        targetType: 'student',
-        targetId: studentId,
-        metadata: {
-          from,
-          to,
-          granularity,
-          dataPoints: result.length,
-        },
-      },
-    });
+    // 缓存结果 (30分钟)
+    this.summaryCache.set(cacheKey, result, 30 * 60 * 1000);
 
     return result;
+  }
+
+  // 获取学生成长趋势（纵向）
+  async getStudentTrend(
+    requesterId: string,
+    studentId: string,
+    from: string,
+    to: string,
+    granularity: 'day' | 'week' = 'day',
+  ): Promise<StudentTrendData[]> {
+    const startTime = Date.now();
+    
+    try {
+      // 验证权限
+      const hasAccess = await this.visibilityService.hasDataAccess(requesterId, studentId, 'progress:read');
+      if (!hasAccess) {
+        throw new ForbiddenException('您没有权限查看该学生的数据');
+      }
+
+      // 检查缓存
+      const cacheKey = `trend:${studentId}:${from}:${to}:${granularity}`;
+      const cached = this.trendCache.get(cacheKey);
+      if (cached) {
+        console.log(`Cache hit for student trend data: ${studentId}`);
+        return cached;
+      }
+
+      // 验证学生存在
+      const student = await this.prisma.user.findUnique({
+        where: { id: studentId },
+        include: { role: true },
+      });
+
+      if (!student || student.role.name !== 'student') {
+        throw new NotFoundException('学生不存在');
+      }
+
+      const fromDate = new Date(from);
+      const toDate = new Date(to);
+
+      // 根据粒度调整查询
+      let groupByClause: string;
+      let dateFormat: string;
+
+      if (granularity === 'week') {
+        groupByClause = `DATE_TRUNC('week', "date")`;
+        dateFormat = `DATE_TRUNC('week', "date")::date`;
+      } else {
+        groupByClause = `"date"`;
+        dateFormat = `"date"`;
+      }
+
+      // 查询指标快照数据
+      const trendData = await this.prisma.$queryRaw<
+        Array<{
+          date: Date;
+          time_spent_min: number;
+          tasks_done: number;
+          accuracy: number;
+          xp: number;
+          streak: number;
+        }>
+      >`
+        SELECT 
+          ${dateFormat} as "date",
+          COALESCE(SUM("timeSpentMin"), 0) as "time_spent_min",
+          COALESCE(SUM("tasksDone"), 0) as "tasks_done",
+          COALESCE(AVG("accuracy"), 0) as "accuracy",
+          COALESCE(SUM("xpGained"), 0) as "xp",
+          COALESCE(MAX("streakDays"), 0) as "streak"
+        FROM "metrics_snapshots" 
+        WHERE "studentId" = ${studentId}
+          AND "date" >= ${fromDate}
+          AND "date" <= ${toDate}
+        GROUP BY ${groupByClause}
+        ORDER BY "date" ASC
+      `;
+
+      // 填充缺失的日期
+      const result = this.fillMissingDates(
+        trendData,
+        fromDate,
+        toDate,
+        granularity,
+      );
+
+      // 缓存结果 (24小时)
+      this.trendCache.set(cacheKey, result, 24 * 60 * 60 * 1000);
+
+      // 记录审计日志
+      await this.prisma.auditLog.create({
+        data: {
+          actorId: requesterId,
+          action: 'view_student_trend',
+          targetType: 'student',
+          targetId: studentId,
+          metadata: {
+            from,
+            to,
+            granularity,
+            dataPoints: result.length,
+          },
+        },
+      });
+
+      const duration = Date.now() - startTime;
+      console.log(`getStudentTrend completed in ${duration}ms for student ${studentId}`);
+
+      return result;
+    } catch (error) {
+      const duration = Date.now() - startTime;
+      console.error(`getStudentTrend failed after ${duration}ms for student ${studentId}:`, error);
+      throw error;
+    }
   }
 
   // 多学生对比（横向）
@@ -136,113 +268,134 @@ export class MetricsService {
     requesterId: string,
     comparisonRequest: ComparisonRequest,
   ): Promise<StudentComparisonData[]> {
+    const startTime = Date.now();
     const { studentIds, metrics, window } = comparisonRequest;
 
-    // 验证请求者身份和权限
-    const requester = await this.prisma.user.findUnique({
-      where: { id: requesterId },
-      include: { role: true },
-    });
+    try {
+      // 生成缓存键
+      const cacheKey = `compare:${requesterId}:${studentIds.sort().join(',')}:${metrics.sort().join(',')}:${window}`;
+      const cached = this.comparisonCache.get(cacheKey);
+      if (cached) {
+        console.log(`Cache hit for student comparison data`);
+        return cached;
+      }
 
-    if (!requester) {
-      throw new NotFoundException('用户不存在');
-    }
+      // 验证请求者身份和权限
+      const requester = await this.prisma.user.findUnique({
+        where: { id: requesterId },
+        include: { role: true },
+      });
 
-    const isTeacher = requester.role.name === 'teacher';
-    const isParent = requester.role.name === 'parent';
+      if (!requester) {
+        throw new NotFoundException('用户不存在');
+      }
 
-    // 计算时间窗口
-    const windowDays = this.parseWindow(window);
-    const endDate = new Date();
-    const startDate = new Date();
-    startDate.setDate(endDate.getDate() - windowDays);
+      const isTeacher = requester.role.name === 'teacher';
+      const isParent = requester.role.name === 'parent';
 
-    let accessibleStudentIds: string[] = [];
-    let classId: string | null = null;
+      // 计算时间窗口
+      const windowDays = this.parseWindow(window);
+      const endDate = new Date();
+      const startDate = new Date();
+      startDate.setDate(endDate.getDate() - windowDays);
 
-    if (isTeacher) {
-      // 教师只能对比同班级学生
-      const teacherClasses = await this.prisma.class.findMany({
-        where: { ownerTeacherId: requesterId, status: 'ACTIVE' },
-        include: {
-          enrollments: {
-            where: { status: 'ACTIVE' },
-            select: { studentId: true },
+      let accessibleStudentIds: string[] = [];
+      let classId: string | null = null;
+
+      if (isTeacher) {
+        // 教师只能对比同班级学生
+        const teacherClasses = await this.prisma.class.findMany({
+          where: { ownerTeacherId: requesterId, status: 'ACTIVE' },
+          include: {
+            enrollments: {
+              where: { status: 'ACTIVE' },
+              select: { studentId: true },
+            },
+          },
+        });
+
+        const classStudentIds = teacherClasses.flatMap((cls) =>
+          cls.enrollments.map((enrollment) => enrollment.studentId),
+        );
+
+        accessibleStudentIds = studentIds.filter((id) =>
+          classStudentIds.includes(id),
+        );
+
+        if (teacherClasses.length > 0) {
+          classId = teacherClasses[0].id; // 假设教师只在一个班级中对比
+        }
+      } else if (isParent) {
+        // 家长只能对比自己的孩子
+        const parentRelationships = await this.prisma.relationship.findMany({
+          where: {
+            partyId: requesterId,
+            partyRole: 'PARENT',
+            status: 'ACTIVE',
+          },
+          select: { studentId: true },
+        });
+
+        const parentStudentIds = parentRelationships.map((rel) => rel.studentId);
+        accessibleStudentIds = studentIds.filter((id) =>
+          parentStudentIds.includes(id),
+        );
+      } else {
+        throw new ForbiddenException('只有家长和教师可以对比学生数据');
+      }
+
+      if (accessibleStudentIds.length === 0) {
+        throw new ForbiddenException('您没有权限查看这些学生的数据');
+      }
+
+      // 查询学生指标数据
+      const studentMetrics = await this.getStudentMetrics(
+        accessibleStudentIds,
+        startDate,
+        endDate,
+        metrics,
+      );
+
+      // 计算排名
+      const rankedData = this.calculateRankings(studentMetrics, metrics);
+
+      // 根据用户角色决定是否显示真实姓名
+      const result = await this.formatComparisonResult(
+        rankedData,
+        requesterId,
+        isTeacher,
+        isParent,
+        classId,
+      );
+
+      // 缓存结果 (1小时)
+      this.comparisonCache.set(cacheKey, result, 60 * 60 * 1000);
+
+      // 记录审计日志
+      await this.prisma.auditLog.create({
+        data: {
+          actorId: requesterId,
+          action: 'compare_students',
+          targetType: 'student',
+          targetId: accessibleStudentIds.join(','),
+          metadata: {
+            studentIds: accessibleStudentIds,
+            metrics,
+            window,
+            resultCount: result.length,
           },
         },
       });
 
-      const classStudentIds = teacherClasses.flatMap((cls) =>
-        cls.enrollments.map((enrollment) => enrollment.studentId),
-      );
+      const duration = Date.now() - startTime;
+      console.log(`compareStudents completed in ${duration}ms for ${studentIds.length} students`);
 
-      accessibleStudentIds = studentIds.filter((id) =>
-        classStudentIds.includes(id),
-      );
-
-      if (teacherClasses.length > 0) {
-        classId = teacherClasses[0].id; // 假设教师只在一个班级中对比
-      }
-    } else if (isParent) {
-      // 家长只能对比自己的孩子
-      const parentRelationships = await this.prisma.relationship.findMany({
-        where: {
-          partyId: requesterId,
-          partyRole: 'PARENT',
-          status: 'ACTIVE',
-        },
-        select: { studentId: true },
-      });
-
-      const parentStudentIds = parentRelationships.map((rel) => rel.studentId);
-      accessibleStudentIds = studentIds.filter((id) =>
-        parentStudentIds.includes(id),
-      );
-    } else {
-      throw new ForbiddenException('只有家长和教师可以对比学生数据');
+      return result;
+    } catch (error) {
+      const duration = Date.now() - startTime;
+      console.error(`compareStudents failed after ${duration}ms:`, error);
+      throw error;
     }
-
-    if (accessibleStudentIds.length === 0) {
-      throw new ForbiddenException('您没有权限查看这些学生的数据');
-    }
-
-    // 查询学生指标数据
-    const studentMetrics = await this.getStudentMetrics(
-      accessibleStudentIds,
-      startDate,
-      endDate,
-      metrics,
-    );
-
-    // 计算排名
-    const rankedData = this.calculateRankings(studentMetrics, metrics);
-
-    // 根据用户角色决定是否显示真实姓名
-    const result = await this.formatComparisonResult(
-      rankedData,
-      requesterId,
-      isTeacher,
-      isParent,
-      classId,
-    );
-
-    // 记录审计日志
-    await this.prisma.auditLog.create({
-      data: {
-        actorId: requesterId,
-        action: 'compare_students',
-        targetType: 'student',
-        targetId: accessibleStudentIds.join(','),
-        metadata: {
-          studentIds: accessibleStudentIds,
-          metrics,
-          window,
-          resultCount: result.length,
-        },
-      },
-    });
-
-    return result;
   }
 
   // 获取学生指标数据
@@ -256,15 +409,15 @@ export class MetricsService {
       .map((metric) => {
         switch (metric) {
           case 'accuracy':
-            return 'AVG(accuracy) as accuracy';
+            return 'AVG("accuracy") as "accuracy"';
           case 'tasks_done':
-            return 'SUM(tasks_done) as tasks_done';
+            return 'SUM("tasksDone") as "tasks_done"';
           case 'time_spent_min':
-            return 'SUM(time_spent_min) as time_spent_min';
+            return 'SUM("timeSpentMin") as "time_spent_min"';
           case 'xp_gained':
-            return 'SUM(xp_gained) as xp_gained';
+            return 'SUM("xpGained") as "xp_gained"';
           case 'streak_days':
-            return 'MAX(streak_days) as streak_days';
+            return 'MAX("streakDays") as "streak_days"';
           default:
             return '0 as ' + metric;
         }
@@ -282,13 +435,13 @@ export class MetricsService {
       }>
     >`
       SELECT 
-        student_id,
+        "studentId" as "student_id",
         ${metricsQuery}
-      FROM metrics_snapshots 
-      WHERE student_id = ANY(${studentIds})
-        AND date >= ${startDate}
-        AND date <= ${endDate}
-      GROUP BY student_id
+      FROM "metrics_snapshots" 
+      WHERE "studentId" = ANY(${studentIds})
+        AND "date" >= ${startDate}
+        AND "date" <= ${endDate}
+      GROUP BY "studentId"
     `;
 
     return result;
@@ -547,5 +700,19 @@ export class MetricsService {
       return parseInt(match[1], 10);
     }
     return 14; // 默认14天
+  }
+
+  // 清除缓存
+  clearCache(): void {
+    this.trendCache.clear();
+    this.summaryCache.clear();
+    this.comparisonCache.clear();
+  }
+
+  // 当学生数据更新时清除相关缓存
+  clearStudentCache(studentId: string): void {
+    // 这里可以实现更精细的缓存清除逻辑
+    // 为简化实现，我们清除所有缓存
+    this.clearCache();
   }
 }

@@ -16,7 +16,7 @@ export class ClassesService {
         name: createClassDto.name,
         description: createClassDto.description,
         ownerTeacherId: teacherId,
-        inviteCode,
+        code: inviteCode,
       },
       include: {
         ownerTeacher: {
@@ -36,7 +36,7 @@ export class ClassesService {
     return this.prisma.class.findMany({
       where: {
         ownerTeacherId: teacherId,
-        isActive: true,
+        status: 'ACTIVE',
       },
       include: {
         enrollments: {
@@ -131,7 +131,7 @@ export class ClassesService {
 
     return this.prisma.class.update({
       where: { id: classId },
-      data: { isActive: false },
+      data: { status: 'INACTIVE' },
     });
   }
 
@@ -139,8 +139,8 @@ export class ClassesService {
     // 查找班级
     const classData = await this.prisma.class.findUnique({
       where: {
-        inviteCode: joinClassDto.inviteCode,
-        isActive: true,
+        code: joinClassDto.inviteCode,
+        status: 'ACTIVE',
       },
     });
 
@@ -327,14 +327,12 @@ export class ClassesService {
     await this.prisma.accessGrant.createMany({
       data: [
         {
-          resourceType: 'STUDENT_PROGRESS',
-          resourceId: studentId,
+          studentId,
           granteeId: classData.ownerTeacherId,
           scope: ['progress:read'],
         },
         {
-          resourceType: 'STUDENT_WORKS',
-          resourceId: studentId,
+          studentId,
           granteeId: classData.ownerTeacherId,
           scope: ['works:read'],
         },
@@ -352,10 +350,7 @@ export class ClassesService {
 
     await this.prisma.accessGrant.updateMany({
       where: {
-        resourceType: {
-          in: ['STUDENT_PROGRESS', 'STUDENT_WORKS'],
-        },
-        resourceId: studentId,
+        studentId,
         granteeId: classData.ownerTeacherId,
       },
       data: {

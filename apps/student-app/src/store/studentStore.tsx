@@ -1,5 +1,6 @@
 import { createContext, useContext, useMemo, useReducer, type ReactNode } from 'react';
 
+// --- STATE AND TYPES ---
 export interface CourseSummary {
   id: string;
   title: string;
@@ -52,6 +53,7 @@ const initialState: StudentState = {
   ],
 };
 
+// --- REDUCER ---
 type StudentAction =
   | { type: 'complete-lesson'; courseId: string }
   | { type: 'set-focus-course'; courseId: string };
@@ -67,60 +69,63 @@ function studentReducer(state: StudentState, action: StudentAction): StudentStat
           if (course.id !== action.courseId) return course;
           const completed = Math.min(course.lessonsTotal, course.lessonsCompleted + 1);
           const progress = Math.round((completed / course.lessonsTotal) * 100);
-          return {
-            ...course,
-            lessonsCompleted: completed,
-            progress,
-          };
+          return { ...course, lessonsCompleted: completed, progress };
         }),
       };
     }
     case 'set-focus-course': {
-      return {
-        ...state,
-        focusCourseId: action.courseId,
-      };
+      return { ...state, focusCourseId: action.courseId };
     }
     default:
       return state;
   }
 }
 
-interface StudentContextValue {
-  state: StudentState;
-  actions: {
-    completeLesson(courseId: string): void;
-    setFocusCourse(courseId: string): void;
-  };
+// --- CONTEXTS (SPLIT PATTERN) ---
+interface StudentActions {
+  completeLesson(courseId: string): void;
+  setFocusCourse(courseId: string): void;
 }
 
-const StudentContext = createContext<StudentContextValue | undefined>(undefined);
+const StudentStateContext = createContext<StudentState | undefined>(undefined);
+const StudentActionsContext = createContext<StudentActions | undefined>(undefined);
 
+// --- PROVIDER ---
 export function StudentProvider({ children }: { children: ReactNode }) {
   const [state, dispatch] = useReducer(studentReducer, initialState);
 
-  const value = useMemo<StudentContextValue>(
+  const actions = useMemo<StudentActions>(
     () => ({
-      state,
-      actions: {
-        completeLesson(courseId) {
-          dispatch({ type: 'complete-lesson', courseId });
-        },
-        setFocusCourse(courseId) {
-          dispatch({ type: 'set-focus-course', courseId });
-        },
+      completeLesson(courseId) {
+        dispatch({ type: 'complete-lesson', courseId });
+      },
+      setFocusCourse(courseId) {
+        dispatch({ type: 'set-focus-course', courseId });
       },
     }),
-    [state],
+    [], // Actions are stable and don't depend on state
   );
 
-  return <StudentContext.Provider value={value}>{children}</StudentContext.Provider>;
+  return (
+    <StudentStateContext.Provider value={state}>
+      <StudentActionsContext.Provider value={actions}>{children}</StudentActionsContext.Provider>
+    </StudentStateContext.Provider>
+  );
 }
 
-export function useStudentStore() {
-  const context = useContext(StudentContext);
+// --- HOOKS ---
+export function useStudentState() {
+  const context = useContext(StudentStateContext);
   if (!context) {
-    throw new Error('useStudentStore must be used within StudentProvider');
+    throw new Error('useStudentState must be used within StudentProvider');
+  }
+  return context;
+}
+
+export function useStudentActions() {
+  const context = useContext(StudentActionsContext);
+  if (!context) {
+    throw new Error('useStudentActions must be used within StudentProvider');
   }
   return context;
 }

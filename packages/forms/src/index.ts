@@ -12,6 +12,3 @@ export * from './components/FormInput';
 export * from './components/FormTextarea';
 export * from './components/FormSelect';
 export * from './components/FormCheckbox';
-
-// Styles
-import './styles/forms.css';

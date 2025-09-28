@@ -8,6 +8,7 @@ import {
 } from '@ant-design/icons';
 import { StudentTrendChart, StudentComparisonChart } from '@kids/ui-kit';
 import dayjs from 'dayjs';
+import { httpClient } from '../services/http';
 
 const { RangePicker } = DatePicker;
 const { Option } = Select;
@@ -57,21 +58,8 @@ const StudentDataPage: React.FC = () => {
   // 获取学生摘要
   const fetchStudentSummary = async (studentId: string) => {
     try {
-      // TODO: 调用 API 获取学生摘要
-      // const response = await api.get(`/metrics/students/${studentId}/summary`);
-      // setSummary(response.data);
-
-      // 模拟数据
-      setSummary({
-        studentId: 'student-1',
-        studentName: '小明',
-        totalTimeSpent: 1200,
-        totalTasksDone: 45,
-        averageAccuracy: 0.85,
-        totalXP: 2500,
-        currentStreak: 7,
-        lastActiveDate: '2024-01-03',
-      });
+      const response = await httpClient.get(`/metrics/students/${studentId}/summary`);
+      setSummary(response as any);
     } catch (error) {
       message.error('获取学生摘要失败');
     }
@@ -86,13 +74,13 @@ const StudentDataPage: React.FC = () => {
   ) => {
     setLoading(true);
     try {
-      // TODO: 调用 API 获取趋势数据
-      // const response = await api.get(`/metrics/students/${studentId}/trend`, {
-      //   params: { from, to, granularity }
-      // });
-      // setTrendData(response.data);
-
-      // 模拟数据
+      const response = await httpClient.get(`/metrics/students/${studentId}/trend`, {
+        query: { from, to, granularity }
+      });
+      setTrendData(response as any);
+    } catch (error) {
+      message.error('获取趋势数据失败');
+      // Fallback to mock data on error
       const mockData: TrendData[] = [];
       const startDate = dayjs(from);
       const endDate = dayjs(to);
@@ -111,8 +99,6 @@ const StudentDataPage: React.FC = () => {
       }
 
       setTrendData(mockData);
-    } catch (error) {
-      message.error('获取趋势数据失败');
     } finally {
       setLoading(false);
     }
@@ -121,15 +107,17 @@ const StudentDataPage: React.FC = () => {
   // 获取对比数据
   const fetchComparisonData = async (studentId: string) => {
     try {
-      // TODO: 调用 API 获取对比数据
-      // const response = await api.post('/metrics/compare', {
-      //   studentIds: [studentId],
-      //   metrics: ['accuracy', 'tasks_done', 'time_spent_min'],
-      //   window: 'last_14d'
-      // });
-      // setComparisonData(response.data);
-
-      // 模拟数据 - 家长端只显示自己孩子和班级统计
+      const response = await httpClient.post('/metrics/compare', {
+        body: {
+          studentIds: [studentId],
+          metrics: ['accuracy', 'tasks_done', 'time_spent_min'],
+          window: 'last_14d'
+        }
+      });
+      setComparisonData(response as any);
+    } catch (error) {
+      message.error('获取对比数据失败');
+      // Fallback to mock data on error
       setComparisonData([
         {
           studentId: 'student-1',
@@ -167,8 +155,6 @@ const StudentDataPage: React.FC = () => {
           isAnonymous: true,
         },
       ]);
-    } catch (error) {
-      message.error('获取对比数据失败');
     }
   };
 

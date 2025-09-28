@@ -1,11 +1,9 @@
 import { Badge, Button, Card, Progress, tokens } from '@kids/ui-kit';
-import { useStudentStore } from '../store/studentStore.js';
+import { useStudentState, useStudentActions } from '../store/studentStore.js';
 
 export function HomePage() {
-  const {
-    state: { displayName, xp, streakDays, focusCourseId, courses },
-    actions,
-  } = useStudentStore();
+  const { displayName, xp, streakDays, focusCourseId, courses } = useStudentState();
+  const actions = useStudentActions();
 
   const focusCourse = courses.find((course) => course.id === focusCourseId) ?? courses[0];
   const upcomingCourse = courses

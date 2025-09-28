@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, Button, Badge } from '@kids/ui-kit';
-import { useFormValidation, FormField, FormSelect, FormInput } from '@kids/forms';
+import { useFormValidation, FormField, FormSelect } from '@kids/forms';
 import { httpClient } from '../services/http';
 import { z } from 'zod';
 
@@ -152,21 +152,18 @@ export function ShareCodePage() {
                   <div className="share-code-actions">
                     <Button
                       variant="ghost"
-                      size="sm"
                       onClick={() => handleCopyShareCode(shareCode.shareCode)}
                     >
                       复制分享码
                     </Button>
                     <Button
                       variant="ghost"
-                      size="sm"
                       onClick={() => handleCopyShareLink(shareCode.shareCode)}
                     >
                       复制分享链接
                     </Button>
                     <Button
                       variant="ghost"
-                      size="sm"
                       onClick={() => window.open(shareCode.qrCodeUrl, '_blank')}
                     >
                       查看二维码

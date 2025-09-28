@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { Card, Button, Table, Tag, Space, message, Modal, Input, Select, DatePicker } from 'antd';
+import { useState, useEffect } from 'react';
+import { Card, Button, Table, Tag, Space, message, Modal, Select, DatePicker } from 'antd';
 import {
   UserOutlined,
   TeamOutlined,
@@ -80,7 +80,7 @@ const AuthorizationCenterPage: React.FC = () => {
   const [pendingRequests, setPendingRequests] = useState<PendingRequest[]>([]);
   const [activeRelationships, setActiveRelationships] = useState<ActiveRelationship[]>([]);
   const [classRelationships, setClassRelationships] = useState<ClassRelationship[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [_loading] = useState(false);
   const [approveModalVisible, setApproveModalVisible] = useState(false);
   const [selectedRequest, setSelectedRequest] = useState<PendingRequest | null>(null);
   const [approvalData, setApprovalData] = useState({
@@ -228,7 +228,7 @@ const AuthorizationCenterPage: React.FC = () => {
   };
 
   // 拒绝请求
-  const handleRejectRequest = async (requestId: string) => {
+  const handleRejectRequest = async (_requestId: string) => {
     Modal.confirm({
       title: '确认拒绝',
       icon: <ExclamationCircleOutlined />,
@@ -249,7 +249,7 @@ const AuthorizationCenterPage: React.FC = () => {
   };
 
   // 撤销关系
-  const handleRevokeRelationship = async (relationshipId: string) => {
+  const handleRevokeRelationship = async (_relationshipId: string) => {
     Modal.confirm({
       title: '确认撤销',
       icon: <ExclamationCircleOutlined />,
@@ -270,7 +270,7 @@ const AuthorizationCenterPage: React.FC = () => {
   };
 
   // 退出班级
-  const handleLeaveClass = async (classId: string) => {
+  const handleLeaveClass = async (_classId: string) => {
     Modal.confirm({
       title: '确认退出',
       icon: <ExclamationCircleOutlined />,
@@ -348,7 +348,7 @@ const AuthorizationCenterPage: React.FC = () => {
     {
       title: '操作',
       key: 'actions',
-      render: (_, record: PendingRequest) => (
+      render: (_: any, record: PendingRequest) => (
         <Space>
           <Button
             type="primary"
@@ -428,7 +428,7 @@ const AuthorizationCenterPage: React.FC = () => {
     {
       title: '操作',
       key: 'actions',
-      render: (_, record: ActiveRelationship) => (
+      render: (_: any, record: ActiveRelationship) => (
         <Button danger size="small" onClick={() => handleRevokeRelationship(record.id)}>
           撤销
         </Button>
@@ -466,7 +466,7 @@ const AuthorizationCenterPage: React.FC = () => {
     {
       title: '操作',
       key: 'actions',
-      render: (_, record: ClassRelationship) => (
+      render: (_: any, record: ClassRelationship) => (
         <Button
           danger
           size="small"

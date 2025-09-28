@@ -1,0 +1,53 @@
+groups:
+  - name: executor.rules
+    rules:
+      # 执行器服务可用性
+      - alert: ExecutorDown
+        expr: up{job="executor"} == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Executor service is down"
+          description: "Executor service has been down for more than 1 minute."
+
+      # 执行失败率过高
+      - alert: HighExecutionFailureRate
+        expr: executor_failure_rate > 0.1
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High execution failure rate"
+          description: "Execution failure rate is {{ $value }} for more than 5 minutes."
+
+      # 执行队列积压
+      - alert: ExecutorQueueBacklog
+        expr: executor_queue_length > 50
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Executor queue backlog"
+          description: "Executor queue has {{ $value }} pending jobs for more than 2 minutes."
+
+      # 执行时间过长
+      - alert: LongExecutionTime
+        expr: executor_avg_execution_time_seconds > 10
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Long execution time"
+          description: "Average execution time is {{ $value }}s for more than 5 minutes."
+
+      # 内存使用过高
+      - alert: HighMemoryUsage
+        expr: executor_memory_usage_bytes > 200 * 1024 * 1024
+        for: 3m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High memory usage"
+          description: "Executor memory usage is {{ $value }} bytes for more than 3 minutes."
+

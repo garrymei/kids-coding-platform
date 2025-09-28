@@ -53,7 +53,7 @@ jobs:
           path: ${{ needs.setup.outputs.pnpm-store-path }}
           key: pnpm-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
       - run: pnpm install --frozen-lockfile
-      - run: pnpm lint
+      - run: pnpm -r lint
 
   policy-check:
     name: Policy Files Check
@@ -71,13 +71,13 @@ jobs:
           )
           for file in "${files[@]}"; do
             if [ ! -f "$file" ]; then
-              echo "‚ùå Missing required policy file: $file"
+              echo "‚ù?Missing required policy file: $file"
               exit 1
             else
-              echo "‚úÖ Found: $file"
+              echo "‚ú?Found: $file"
             fi
           done
-          echo "‚úÖ All required policy files exist"
+          echo "‚ú?All required policy files exist"
 
   build:
     needs:
@@ -99,4 +99,4 @@ jobs:
           path: ${{ needs.setup.outputs.pnpm-store-path }}
           key: pnpm-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
       - run: pnpm install --frozen-lockfile
-      - run: pnpm build
+      - run: pnpm -r build

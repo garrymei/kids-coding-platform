@@ -142,11 +142,7 @@ export class MetricsController {
   async getStudentSummary(@Request() req, @Param('id') studentId: string) {
     const requesterId = req.user.userId;
 
-    // 验证权限 - 暂时跳过权限检查
-    // const hasAccess = await this.metricsService['visibilityService'].checkAccess(requesterId, studentId);
-    // if (!hasAccess) {
-    //   throw new Error('您没有权限查看该学生的数据');
-    // }
+    const data = await this.metricsService.getStudentSummary(requesterId, studentId);
 
     // 获取学生信息
     const student = await this.metricsService['prisma'].user.findUnique({
@@ -161,43 +157,6 @@ export class MetricsController {
     if (!student) {
       throw new Error('学生不存在');
     }
-
-    // 获取最近30天的数据
-    const endDate = new Date();
-    const startDate = new Date();
-    startDate.setDate(endDate.getDate() - 30);
-
-    const summary = await this.metricsService['prisma'].$queryRaw<
-      Array<{
-        total_time_spent: number;
-        total_tasks_done: number;
-        average_accuracy: number;
-        total_xp: number;
-        current_streak: number;
-        last_active_date: Date;
-      }>
-    >`
-      SELECT 
-        COALESCE(SUM(time_spent_min), 0) as total_time_spent,
-        COALESCE(SUM(tasks_done), 0) as total_tasks_done,
-        COALESCE(AVG(accuracy), 0) as average_accuracy,
-        COALESCE(SUM(xp_gained), 0) as total_xp,
-        COALESCE(MAX(streak_days), 0) as current_streak,
-        MAX(date) as last_active_date
-      FROM metrics_snapshots 
-      WHERE student_id = ${studentId}
-        AND date >= ${startDate}
-        AND date <= ${endDate}
-    `;
-
-    const data = summary[0] || {
-      total_time_spent: 0,
-      total_tasks_done: 0,
-      average_accuracy: 0,
-      total_xp: 0,
-      current_streak: 0,
-      last_active_date: null,
-    };
 
     // 记录审计日志
     await this.metricsService['prisma'].auditLog.create({
@@ -215,13 +174,13 @@ export class MetricsController {
     return {
       studentId: student.id,
       studentName: student.displayName,
-      totalTimeSpent: data.total_time_spent,
-      totalTasksDone: data.total_tasks_done,
-      averageAccuracy: Math.round(data.average_accuracy * 100) / 100,
-      totalXP: data.total_xp,
-      currentStreak: data.current_streak,
+      totalTimeSpent: data.time_spent_min,
+      totalTasksDone: data.tasks_done,
+      averageAccuracy: Math.round(data.accuracy * 100) / 100,
+      totalXP: data.xp,
+      currentStreak: data.streak,
       lastActiveDate:
-        data.last_active_date?.toISOString().split('T')[0] || null,
+        data.date?.toISOString().split('T')[0] || null,
     };
   }
 
@@ -315,15 +274,15 @@ export class MetricsController {
       }>
     >`
       SELECT 
-        student_id,
-        AVG(accuracy) as accuracy,
-        SUM(tasks_done) as tasks_done,
-        SUM(time_spent_min) as time_spent_min
-      FROM metrics_snapshots 
-      WHERE student_id = ANY(${studentIds})
-        AND date >= ${startDate}
-        AND date <= ${endDate}
-      GROUP BY student_id
+        "studentId" as "student_id",
+        AVG("accuracy") as "accuracy",
+        SUM("tasksDone") as "tasks_done",
+        SUM("timeSpentMin") as "time_spent_min"
+      FROM "metrics_snapshots" 
+      WHERE "studentId" = ANY(${studentIds})
+        AND "date" >= ${startDate}
+        AND "date" <= ${endDate}
+      GROUP BY "studentId"
     `;
 
     // 计算班级统计

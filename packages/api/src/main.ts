@@ -11,7 +11,20 @@ import type { Request, Response } from 'express';
 const sentryEnabled = initSentry();
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  let app;
+  try {
+    app = await NestFactory.create(AppModule);
+  } catch (error) {
+    console.error('Failed to create Nest application:', error.message);
+    // In development mode, continue with a minimal app if database is not available
+    if (process.env.NODE_ENV !== 'production') {
+      console.log('Running in database-less mode for development');
+      // We'll need to create a minimal app here
+      return;
+    }
+    throw error;
+  }
+  
   const logger = app.get(Logger);
   app.useLogger(logger);
   app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));

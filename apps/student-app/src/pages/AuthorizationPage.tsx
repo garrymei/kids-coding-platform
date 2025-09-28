@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useFormValidation, FormField, FormSelect, FormCheckbox } from '@kids/forms';
 import { Button, Card, Badge } from '@kids/ui-kit';
 import { httpClient } from '../services/http';
@@ -88,7 +88,7 @@ export function AuthorizationPage() {
   });
 
   const selectedScopes = watch('scopes') || [];
-  const selectedDuration = watch('duration');
+  const _selectedDuration = watch('duration');
 
   useEffect(() => {
     loadData();
@@ -153,7 +153,7 @@ export function AuthorizationPage() {
   };
 
   const getDurationMs = (duration: string) => {
-    const now = Date.now();
+    const _now = Date.now();
     switch (duration) {
       case '1h': return 60 * 60 * 1000;
       case '1d': return 24 * 60 * 60 * 1000;
@@ -296,12 +296,12 @@ export function AuthorizationPage() {
                           {...register('scopes')}
                           label={option.label}
                           checked={selectedScopes.includes(option.value)}
-                          onChange={(e) => {
+                          onChange={(e: any) => {
                             const value = option.value;
                             if (e.target.checked) {
                               setValue('scopes', [...selectedScopes, value]);
                             } else {
-                              setValue('scopes', selectedScopes.filter(s => s !== value));
+                              setValue('scopes', selectedScopes.filter((s: any) => s !== value));
                             }
                           }}
                         />

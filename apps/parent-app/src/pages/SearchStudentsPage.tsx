@@ -95,7 +95,7 @@ export function SearchStudentsPage() {
     setShowFollowForm(true);
   };
 
-  const handleFollowSubmit = async (data: FollowRequestData) => {
+  const submitFollowRequest = async (data: FollowRequestData) => {
     try {
       await httpClient.post('/students/follow-request', data);
       setShowFollowForm(false);
@@ -237,7 +237,7 @@ export function SearchStudentsPage() {
             <p>学生: {selectedStudent.searchNickname}</p>
             {selectedStudent.schoolName && <p>学校: {selectedStudent.schoolName}</p>}
             
-            <form onSubmit={handleFollowSubmit}>
+            <form onSubmit={handleFollowSubmit(submitFollowRequest)}>
               <FormField
                 label="关注目的"
                 error={followErrors.purpose}

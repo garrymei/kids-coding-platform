@@ -1,3 +1,6 @@
+export { AppShell } from './components/AppShell';
+export type { AppShellProps, AppRoute } from './components/AppShell';
+
 export { Button } from './components/Button';
 export type { ButtonProps, ButtonVariant } from './components/Button';
 

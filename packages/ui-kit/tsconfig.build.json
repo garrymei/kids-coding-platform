@@ -1,12 +1,9 @@
 {
-  "extends": "./tsconfig.json",
+  "extends": "../../tsconfig.base.json",
   "compilerOptions": {
-    "outDir": "dist",
-    "declaration": true,
-    "declarationDir": "dist",
-    "emitDeclarationOnly": false,
-    "sourceMap": true
+    "outDir": "./dist",
+    "jsx": "react-jsx"
   },
   "include": ["src"],
-  "exclude": ["dist", "**/*.test.ts", "**/*.test.tsx"]
+  "exclude": ["node_modules", "dist"]
 }

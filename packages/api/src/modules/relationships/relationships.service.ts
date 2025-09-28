@@ -403,7 +403,7 @@ export class RelationshipsService {
     const grant = await this.prisma.accessGrant.findFirst({
       where: {
         granteeId,
-        resourceId: studentId,
+        studentId: studentId,
         scope: {
           has: scope,
         },
@@ -432,11 +432,11 @@ export class RelationshipsService {
           },
         },
       },
-      distinct: ['resourceId'],
+      distinct: ['studentId'],
     });
 
     // 获取学生信息
-    const studentIds = grants.map((grant) => grant.resourceId);
+    const studentIds = grants.map((grant) => grant.studentId);
     const students = await this.prisma.user.findMany({
       where: {
         id: { in: studentIds },
@@ -463,10 +463,7 @@ export class RelationshipsService {
     expiresAt?: Date,
   ) {
     const grants = scopes.map((scope) => ({
-      resourceType: scope.includes('progress')
-        ? 'STUDENT_PROGRESS'
-        : 'STUDENT_WORKS',
-      resourceId: studentId,
+      studentId,
       granteeId,
       scope: [scope],
       relationshipId,
