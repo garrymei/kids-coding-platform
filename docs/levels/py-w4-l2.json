@@ -1,0 +1,35 @@
+{
+  "id": "py-w4-l2",
+  "title": "点亮 5 盏灯（顺序）",
+  "world": "W4",
+  "lessonIndex": 2,
+  "lang": "python",
+  "type": "grid-led",
+  "difficulty": 2,
+  "goals": ["依次点亮 5 盏灯，顺序从 0 到 4"],
+  "starter": {
+    "blockly": "<xml></xml>",
+    "code": "for i in range(5):\n    # TODO: 依次点亮，示例：print(f'on{i}')\n    pass"
+  },
+  "assets": {"gridWidth": 5, "gridHeight": 1},
+  "grader": {
+    "mode": "event",
+    "events": {
+      "channel": "led",
+      "collectFromStdout": true,
+      "mapRule": "stdout line 'on{i}' => event 'on{i}'"
+    },
+    "checks": [
+      {"type": "eventSeq", "expect": ["on0","on1","on2","on3","on4"]}
+    ],
+    "constraints": {
+      "requireStructures": ["for"],
+      "maxTimeMs": 3000,
+      "maxMemMB": 64,
+      "forbiddenImports": ["os","sys","subprocess"]
+    }
+  },
+  "rewards": {"xp": 30, "coins": 10, "badges": ["循环达人"]},
+  "hints": ["使用 for 循环与 range(5)", "打印 on0..on4 即可通过"],
+  "examples": [{"input": "", "output": "on0\non1\non2\non3\non4\n", "explain": "事件序列"}]
+}

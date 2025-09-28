@@ -1,0 +1,35 @@
+{
+  "id": "py-w2-l3",
+  "title": "营养液配比",
+  "world": "W2",
+  "lessonIndex": 3,
+  "lang": "python",
+  "type": "io",
+  "difficulty": 2,
+  "goals": ["读取两数并计算比例", "四舍五入到 2 位小数"],
+  "starter": {
+    "blockly": "<xml></xml>",
+    "code": "a = float(input())\nb = float(input())\n# 输出 a/(a+b)，保留两位小数"
+  },
+  "assets": {},
+  "grader": {
+    "mode": "io",
+    "io": {
+      "cases": [
+        {"in": "30\n70\n", "out": "0.30\n"},
+        {"in": "1\n1\n", "out": "0.50\n"},
+        {"in": "3\n2\n", "out": "0.60\n"}
+      ],
+      "match": "tolerance",
+      "tolerance": 0.005
+    },
+    "constraints": {
+      "maxTimeMs": 3000,
+      "maxMemMB": 64,
+      "forbiddenImports": ["os","sys","subprocess","decimal"]
+    }
+  },
+  "rewards": {"xp": 20, "coins": 8, "badges": []},
+  "hints": ["使用 round(x, 2)", "避免整除：用 float"],
+  "examples": [{"input": "30\n70\n", "output": "0.30\n", "explain": "比例 = 30/(30+70)"}]
+}

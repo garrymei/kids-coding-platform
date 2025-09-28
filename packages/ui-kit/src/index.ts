@@ -1,3 +1,5 @@
+export { LineTimeseries } from './charts/LineTimeseries';
+
 export { AppShell } from './components/AppShell';
 export type { AppShellProps, AppRoute } from './components/AppShell';
 

@@ -1,10 +1,11 @@
 import { Module } from '@nestjs/common';
 import { AdminPermissionsController } from './controllers/admin-permissions.controller';
+import { AdminAuditController } from './controllers/admin-audit.controller';
 import { PrismaModule } from '../../prisma/prisma.module';
 
 @Module({
   imports: [PrismaModule],
-  controllers: [AdminPermissionsController],
+  controllers: [AdminPermissionsController, AdminAuditController],
   providers: [],
   exports: [],
 })

@@ -11,6 +11,27 @@ export interface AuditLogData {
   userAgent?: string;
 }
 
+// Audit event types as specified
+export type AuditEventType = 
+  | 'PARENT_LINK_DECISION'
+  | 'CLASS_MEMBER_DECISION'
+  | 'EXPORT_REPORT'
+  | 'LOGIN'
+  | 'PASSWORD_RESET'
+  | 'EXEC_BLOCK'; // Added for M10-B execution blocking
+
+export interface AuditEvent {
+  id: string;
+  ts: string;
+  cid: string;
+  actorId: string;
+  actorRole: 'student' | 'parent' | 'teacher' | 'admin';
+  action: AuditEventType;
+  target?: string;          // 资源ID，如 requestId 或 classMemberId
+  payload?: Record<string, any>; // 非敏感摘要
+  ip?: string;
+}
+
 @Injectable()
 export class AuditLoggerService {
   constructor(private readonly prisma: PrismaService) {}
@@ -25,9 +46,8 @@ export class AuditLoggerService {
           targetType: data.targetType,
           targetId: data.targetId,
           metadata: data.metadata || {},
-          // 这里需要添加ip和userAgent字段到AuditLog模型
-          // ip: data.ip,
-          // userAgent: data.userAgent,
+          ipAddress: data.ip,
+          userAgent: data.userAgent,
           ts: new Date(),
         },
       });
@@ -158,6 +178,124 @@ export class AuditLoggerService {
     });
   }
 
+  // 记录登录事件
+  async logLogin(
+    actorId: string,
+    ip?: string,
+    userAgent?: string,
+    metadata?: Record<string, any>
+  ): Promise<void> {
+    await this.log({
+      actorId,
+      action: 'LOGIN',
+      targetType: 'auth',
+      targetId: actorId,
+      ip,
+      userAgent,
+      metadata,
+    });
+  }
+
+  // 记录密码重置事件
+  async logPasswordReset(
+    actorId: string,
+    ip?: string,
+    userAgent?: string,
+    metadata?: Record<string, any>
+  ): Promise<void> {
+    await this.log({
+      actorId,
+      action: 'PASSWORD_RESET',
+      targetType: 'auth',
+      targetId: actorId,
+      ip,
+      userAgent,
+      metadata,
+    });
+  }
+
+  // 记录家长链接决策
+  async logParentLinkDecision(
+    actorId: string,
+    targetId: string,
+    decision: 'approve' | 'reject',
+    ip?: string,
+    metadata?: Record<string, any>
+  ): Promise<void> {
+    await this.log({
+      actorId,
+      action: 'PARENT_LINK_DECISION',
+      targetType: 'relationship',
+      targetId,
+      ip,
+      metadata: {
+        decision,
+        ...metadata,
+      },
+    });
+  }
+
+  // 记录班级成员决策
+  async logClassMemberDecision(
+    actorId: string,
+    classId: string,
+    studentId: string,
+    decision: 'add' | 'remove',
+    ip?: string,
+    metadata?: Record<string, any>
+  ): Promise<void> {
+    await this.log({
+      actorId,
+      action: 'CLASS_MEMBER_DECISION',
+      targetType: 'class',
+      targetId: classId,
+      ip,
+      metadata: {
+        studentId,
+        decision,
+        ...metadata,
+      },
+    });
+  }
+
+  // 记录报告导出
+  async logExportReport(
+    actorId: string,
+    reportType: string,
+    ip?: string,
+    metadata?: Record<string, any>
+  ): Promise<void> {
+    await this.log({
+      actorId,
+      action: 'EXPORT_REPORT',
+      targetType: 'report',
+      targetId: reportType,
+      ip,
+      metadata,
+    });
+  }
+
+  // 记录执行器封禁事件 (for M10-B)
+  async logExecBlock(
+    actorId: string,
+    targetId: string,
+    reason: string,
+    ip?: string,
+    metadata?: Record<string, any>
+  ): Promise<void> {
+    await this.log({
+      actorId,
+      action: 'EXEC_BLOCK',
+      targetType: 'execution',
+      targetId,
+      ip,
+      metadata: {
+        reason,
+        ...metadata,
+      },
+    });
+  }
+
   // 计算权限变更
   private calculatePermissionChanges(oldPermissions: string[], newPermissions: string[]): {
     added: string[];
@@ -171,40 +309,33 @@ export class AuditLoggerService {
     return { added, removed, unchanged };
   }
 
-  // 查询审计日志
-  async queryAuditLogs(filters: {
-    actorId?: string;
-    action?: string;
-    targetType?: string;
-    targetId?: string;
-    startDate?: Date;
-    endDate?: Date;
-    limit?: number;
-    offset?: number;
+  // 查询审计日志 (符合规范的分页查询接口)
+  async queryAuditLogsPaginated(filters: {
+    from?: string;
+    to?: string;
+    action?: AuditEventType;
+    page?: number;
+    pageSize?: number;
   }) {
     const where: any = {};
 
-    if (filters.actorId) {
-      where.actorId = filters.actorId;
-    }
     if (filters.action) {
       where.action = filters.action;
     }
-    if (filters.targetType) {
-      where.targetType = filters.targetType;
-    }
-    if (filters.targetId) {
-      where.targetId = filters.targetId;
-    }
-    if (filters.startDate || filters.endDate) {
+    
+    if (filters.from || filters.to) {
       where.ts = {};
-      if (filters.startDate) {
-        where.ts.gte = filters.startDate;
+      if (filters.from) {
+        where.ts.gte = new Date(filters.from);
       }
-      if (filters.endDate) {
-        where.ts.lte = filters.endDate;
+      if (filters.to) {
+        where.ts.lte = new Date(filters.to);
       }
     }
+
+    const page = filters.page || 1;
+    const pageSize = filters.pageSize || 50;
+    const skip = (page - 1) * pageSize;
 
     const [logs, totalCount] = await Promise.all([
       this.prisma.auditLog.findMany({
@@ -222,16 +353,30 @@ export class AuditLoggerService {
           },
         },
         orderBy: { ts: 'desc' },
-        take: filters.limit || 100,
-        skip: filters.offset || 0,
+        take: pageSize,
+        skip: skip,
       }),
       this.prisma.auditLog.count({ where }),
     ]);
 
+    // 转换为规范的 AuditEvent 格式
+    const auditEvents: AuditEvent[] = logs.map(log => ({
+      id: log.id,
+      ts: log.ts.toISOString(),
+      cid: '', // We don't have cid in the current model, would need migration
+      actorId: log.actorId,
+      actorRole: log.actor.role.name as 'student' | 'parent' | 'teacher' | 'admin',
+      action: log.action as AuditEventType,
+      target: log.targetId,
+      payload: log.metadata ? JSON.parse(JSON.stringify(log.metadata)) : undefined,
+      ip: log.ipAddress || undefined,
+    }));
+
     return {
-      logs,
-      totalCount,
-      hasMore: (filters.offset || 0) + (filters.limit || 100) < totalCount,
+      items: auditEvents,
+      page,
+      pageSize,
+      total: totalCount,
     };
   }
 

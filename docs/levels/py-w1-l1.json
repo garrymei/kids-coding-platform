@@ -1,0 +1,32 @@
+{
+  "id": "py-w1-l1",
+  "title": "你好，实验岛！",
+  "world": "W1",
+  "lessonIndex": 1,
+  "lang": "python",
+  "type": "io",
+  "difficulty": 1,
+  "goals": ["打印文本：Hello, Island!"],
+  "starter": {
+    "blockly": "<xml><!-- 初学占位，可空 --></xml>",
+    "code": "print('')  # TODO: 打印 Hello, Island!"
+  },
+  "assets": {},
+  "grader": {
+    "mode": "io",
+    "io": {
+      "cases": [
+        {"in": "", "out": "Hello, Island!\n"}
+      ],
+      "match": "exact"
+    },
+    "constraints": {
+      "maxTimeMs": 3000,
+      "maxMemMB": 64,
+      "forbiddenImports": ["os","sys","subprocess"]
+    }
+  },
+  "rewards": {"xp": 10, "coins": 5, "badges": ["启航者"]},
+  "hints": ["使用 print() 打印字符串", "注意大小写与感叹号"],
+  "examples": [{"input": "", "output": "Hello, Island!\n", "explain": "精确匹配"}]
+}

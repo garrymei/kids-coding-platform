@@ -19,7 +19,10 @@ import { TeachersModule } from './modules/teachers/teachers.module';
 import { AdminModule } from './modules/admin/admin.module';
 import { SearchModule } from './modules/search/search.module';
 import { MetricsModule } from './modules/metrics/metrics.module';
+import { ProgressModule } from './modules/progress/progress.module';
+import { CacheModule } from './modules/cache/cache.module';
 import { SecurityModule } from './modules/security/security.module';
+import { JudgeModule } from './modules/judge/judge.module';
 
 @Module({
   imports: [
@@ -37,7 +40,10 @@ import { SecurityModule } from './modules/security/security.module';
     AdminModule,
     SearchModule,
     MetricsModule,
+    ProgressModule,
+    CacheModule,
     SecurityModule,
+    JudgeModule,
     LoggerModule.forRoot({
       pinoHttp: {
         level: process.env.LOG_LEVEL ?? 'info',

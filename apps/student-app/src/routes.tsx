@@ -1,26 +1,93 @@
-import { lazy } from 'react';
-import type { AppRoute } from '@kids/ui-kit';
-import { HomePage } from './pages/HomePage';
-import { CoursesPage } from './pages/CoursesPage';
+import { createBrowserRouter } from 'react-router-dom';
+import { Suspense, lazy } from 'react';
+import { LoadingSpinner } from './components/LoadingStates';
 
-// 懒加载页面组件
-const LabPage = lazy(() => import('./pages/LabPage').then((m) => ({ default: m.LabPage })));
-const WorksPage = lazy(() => import('./pages/WorksPage').then((m) => ({ default: m.WorksPage })));
-const LeaderboardPage = lazy(() =>
-  import('./pages/LeaderboardPage').then((m) => ({ default: m.LeaderboardPage })),
+// 立即加载的核心页面
+import HomePage from './pages/Home/HomePage';
+import HubPage from './pages/Hub/HubPage';
+import PlayPage from './pages/Play/PlayPage';
+
+// 懒加载的页面组件
+const WorksPage = lazy(() => import('./pages/Works/WorksPage'));
+const LeaderboardPage = lazy(() => import('./pages/Leaderboard/LeaderboardPage'));
+const SettingsPage = lazy(() => import('./pages/SettingsPage').then(m => ({ default: m.SettingsPage })));
+const ConsentsPage = lazy(() => import('./pages/ConsentsPage').then(m => ({ default: m.ConsentsPage })));
+const MyClassesPage = lazy(() => import('./pages/MyClassesPage').then(m => ({ default: m.MyClassesPage })));
+const PackagePage = lazy(() => import('./pages/PackagePage'));
+
+// 懒加载包装器
+const LazyWorksPage = () => (
+  <Suspense fallback={<LoadingSpinner text="加载作品页面..." />}>
+    <WorksPage />
+  </Suspense>
 );
-const PlayPage = lazy(() => import('./pages/PlayPage').then((m) => ({ default: m.PlayPage })));
 
-export const routes: AppRoute[] = [
-  { path: 'home', element: <HomePage /> },
-  { path: 'courses', element: <CoursesPage /> },
-  { path: 'lab', element: <LabPage /> },
-  { path: 'works', element: <WorksPage /> },
-  { path: 'leaderboard', element: <LeaderboardPage /> },
-  { path: 'play/:levelId', element: <PlayPage /> },
-  // 课程地图路由
-  { path: 'hub/python', element: <CoursesPage /> },
-  { path: 'hub/python/led', element: <LabPage /> },
-];
+const LazyLeaderboardPage = () => (
+  <Suspense fallback={<LoadingSpinner text="加载排行榜..." />}>
+    <LeaderboardPage />
+  </Suspense>
+);
 
-export default routes;
+const LazySettingsPage = () => (
+  <Suspense fallback={<LoadingSpinner text="加载设置页面..." />}>
+    <SettingsPage />
+  </Suspense>
+);
+
+const LazyConsentsPage = () => (
+  <Suspense fallback={<LoadingSpinner text="加载授权页面..." />}>
+    <ConsentsPage />
+  </Suspense>
+);
+
+const LazyMyClassesPage = () => (
+  <Suspense fallback={<LoadingSpinner text="加载班级页面..." />}>
+    <MyClassesPage />
+  </Suspense>
+);
+
+const LazyPackagePage = () => (
+  <Suspense fallback={<LoadingSpinner text="加载课程包..." />}>
+    <PackagePage />
+  </Suspense>
+);
+
+export const router = createBrowserRouter([
+  {
+    path: '/',
+    element: <HomePage />,
+  },
+  {
+    // Example: /hub/python or /hub/python/led
+    path: '/hub/:lang/:game?',
+    element: <HubPage />,
+  },
+  {
+    path: '/packages/:pkgId',
+    element: <LazyPackagePage />,
+  },
+  {
+    path: '/works',
+    element: <LazyWorksPage />,
+  },
+  {
+    path: '/leaderboard',
+    element: <LazyLeaderboardPage />,
+  },
+  {
+    path: '/play/:levelId',
+    element: <PlayPage />,
+  },
+  {
+    path: '/settings',
+    element: <LazySettingsPage />,
+  },
+  {
+    path: '/consents',
+    element: <LazyConsentsPage />,
+  },
+  {
+    path: '/my-classes',
+    element: <LazyMyClassesPage />,
+  },
+]);

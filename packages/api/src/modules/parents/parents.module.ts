@@ -1,12 +1,9 @@
 import { Module } from '@nestjs/common';
-import { ParentPermissionsController } from './controllers/parent-permissions.controller';
-import { PrismaModule } from '../../prisma/prisma.module';
-import { VisibilityService } from '../auth/services/visibility.service';
+import { ParentsController } from './parents.controller';
+import { ParentsService } from './parents.service';
 
 @Module({
-  imports: [PrismaModule],
-  controllers: [ParentPermissionsController],
-  providers: [VisibilityService],
-  exports: [VisibilityService],
+  controllers: [ParentsController],
+  providers: [ParentsService],
 })
 export class ParentsModule {}

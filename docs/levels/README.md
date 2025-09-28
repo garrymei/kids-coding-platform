@@ -1,16 +1,15 @@
-# 关卡与游戏包（Language → Game → Levels）
+# 关卡数据（Demo Set）
 
-- 语言：目前 `python/`，后续可加 `javascript/`
-- 游戏类型 = 实验岛区域：
-  - `io`（灯塔区），`led`（能源站），`maze`（遗迹迷宫），`pixel`（像素画廊），`music`（音乐森林），`open`（创意工坊）
-- 难度：`beginner` → `intermediate` → `advanced` → `challenge`
+- 语言：Python (`lang: "python"`)
+- 类型：`io`（输入输出）、`grid-led`（灯泡/事件流）、`pixel-art`（像素矩阵）、`maze-bot`（迷宫/事件流）
+- 判题：
+  - `io`: 精确/容差/正则
+  - `event`: 收集事件并比对序列/终局
+  - `structure`: AST 结构要求（如必须使用 for/def）
 
-## 判题模式
+统一返回体（判题结果）应包含：
+```json
+{"ok":true,"stars":3,"score":3,"stdout":"","stderr":"","events":[],"violations":[],"timeMs":120,"rewards":{"xp":30,"coins":10,"badges":["循环达人"]}}
+```
 
-- `io`：输入/输出比对（exact/tolerance/regex）
-- `led/maze`：事件流（eventSeq / goal / maxSteps）
-- `pixel`：矩阵终局对比
-- `music`：音符序列（pitch+tick）对比
-- `open`：半自动规则+教师点评
-
-> 请用 `schemas/level.schema.json` 进行 JSON 校验；每个游戏包的元数据参照 `pack.schema.json`。
+这些 Demo 用于打通“取关卡→提交→执行→判题→奖励”的闭环。实际生产可把 starter.blockly 替换为真实 XML。

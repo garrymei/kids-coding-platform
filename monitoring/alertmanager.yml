@@ -12,7 +12,8 @@ route:
 receivers:
   - name: 'web.hook'
     webhook_configs:
-      - url: 'http://localhost:5001/'
+      - url: 'http://api:3000/alerts/webhook'
+        send_resolved: true
 
   - name: 'email'
     email_configs:
@@ -24,10 +25,20 @@ receivers:
           Description: {{ .Annotations.description }}
           {{ end }}
 
+  - name: 'slack'
+    slack_configs:
+      - api_url: 'YOUR_SLACK_WEBHOOK_URL'
+        channel: '#alerts'
+        title: 'Kids Coding Platform Alert'
+        text: |
+          {{ range .Alerts }}
+          *Alert:* {{ .Annotations.summary }}
+          *Description:* {{ .Annotations.description }}
+          {{ end }}
+
 inhibit_rules:
   - source_match:
       severity: 'critical'
     target_match:
       severity: 'warning'
-    equal: ['alertname', 'dev', 'instance']
-
+    equal: ['alertname', 'instance']

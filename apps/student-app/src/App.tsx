@@ -1,13 +1,20 @@
-import { Suspense } from 'react';
-import { AppShell } from '@kids/ui-kit';
-import { AppLayout } from './layouts/AppLayout';
-import { routes } from './routes';
-import './App.css';
+import { RouterProvider } from 'react-router-dom';
+import { router } from './routes';
+import { ErrorBoundary } from './components/ErrorBoundary';
 
-export default function App() {
+function App() {
   return (
-    <Suspense fallback={<div>Loading Page...</div>}>
-      <AppShell routes={routes} layout={AppLayout} defaultRedirect="/home" />
-    </Suspense>
+    <ErrorBoundary
+      onError={(error, errorInfo) => {
+        // 在开发环境下打印详细错误信息
+        if (process.env.NODE_ENV === 'development') {
+          console.error('Application Error:', error, errorInfo);
+        }
+      }}
+    >
+      <RouterProvider router={router} />
+    </ErrorBoundary>
   );
 }
+
+export default App;

@@ -1,0 +1,21 @@
+# 白名单库：只安装安全的、必要的库
+# 数学和科学计算
+numpy==1.24.3
+scipy==1.10.1
+
+# 数据处理
+pandas==2.0.3
+
+# 图像处理（用于像素艺术）
+Pillow==10.0.0
+
+# 日期时间处理
+python-dateutil==2.8.2
+
+# 注意：不包含以下危险库
+# - os, sys, subprocess (系统调用)
+# - socket, urllib, requests (网络访问)
+# - pickle, marshal (序列化)
+# - eval, exec (代码执行)
+# - ctypes, cffi (C 扩展)
+# - multiprocessing (多进程)

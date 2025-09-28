@@ -1,215 +1,102 @@
-import { Injectable, CanActivate, ExecutionContext, ForbiddenException } from '@nestjs/common';
+import { Injectable, CanActivate, ExecutionContext, ForbiddenException, Logger } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
-import { PERMISSIONS_KEY, Permission, DataScope, OperationType } from '../decorators/permissions.decorator';
-import { PrismaService } from '../../../prisma/prisma.service';
+import { PermissionsService } from '../services/permissions.service';
+import { PermissionType } from '../decorators/permissions.decorator';
+import { Role } from '../roles.enum';
 
 @Injectable()
 export class PermissionsGuard implements CanActivate {
+  private readonly logger = new Logger(PermissionsGuard.name);
+
   constructor(
-    private reflector: Reflector,
-    private prisma: PrismaService,
+    private readonly reflector: Reflector,
+    private readonly permissionsService: PermissionsService,
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
-    const requiredPermissions = this.reflector.getAllAndOverride<Permission[]>(
-      PERMISSIONS_KEY,
-      [context.getHandler(), context.getClass()],
-    );
-
-    if (!requiredPermissions) {
-      return true; // 没有权限要求，直接通过
-    }
-
     const request = context.switchToHttp().getRequest();
     const user = request.user;
 
     if (!user) {
-      throw new ForbiddenException('用户未认证');
+      throw new ForbiddenException('User not authenticated');
     }
 
-    // 获取用户角色和权限
-    const userWithRole = await this.prisma.user.findUnique({
-      where: { id: user.userId },
-      include: { role: true },
-    });
-
-    if (!userWithRole) {
-      throw new ForbiddenException('用户不存在');
+    // 检查角色权限
+    const requiredRoles = this.reflector.get<string[]>('roles', context.getHandler());
+    if (requiredRoles && requiredRoles.length > 0) {
+      const userRole = user.role || user.Role?.name;
+      if (!requiredRoles.includes(userRole)) {
+        this.logger.warn(`Access denied for user ${user.id}: role ${userRole} not in ${requiredRoles.join(', ')}`);
+        throw new ForbiddenException(`Access denied. Required roles: ${requiredRoles.join(', ')}`);
+      }
     }
 
-    // 检查权限
-    const hasPermission = await this.checkPermissions(
-      userWithRole,
-      requiredPermissions,
-      request,
-    );
-
-    if (!hasPermission) {
-      throw new ForbiddenException('权限不足');
+    // 检查特定权限
+    const requiredPermission = this.reflector.get<PermissionType>('permission', context.getHandler());
+    if (requiredPermission) {
+      const hasPermission = await this.checkPermission(context, user, requiredPermission);
+      if (!hasPermission) {
+        this.logger.warn(`Access denied for user ${user.id}: missing permission ${requiredPermission}`);
+        throw new ForbiddenException(`Access denied. Missing permission: ${requiredPermission}`);
+      }
     }
 
     return true;
   }
 
-  private async checkPermissions(
+  private async checkPermission(
+    context: ExecutionContext,
     user: any,
-    requiredPermissions: Permission[],
-    request: any,
+    permission: PermissionType,
   ): Promise<boolean> {
-    const userRole = user.role.name;
-    
-    // 根据角色检查权限
-    switch (userRole) {
-      case 'student':
-        return this.checkStudentPermissions(user, requiredPermissions, request);
-      case 'parent':
-        return this.checkParentPermissions(user, requiredPermissions, request);
-      case 'teacher':
-        return this.checkTeacherPermissions(user, requiredPermissions, request);
-      case 'admin':
-        return this.checkAdminPermissions(user, requiredPermissions, request);
+    const request = context.switchToHttp().getRequest();
+    const userId = user.id || user.userId;
+
+    switch (permission) {
+      case PermissionType.STUDENT_DATA_ACCESS: {
+        const studentId = request.params.id || request.params.studentId;
+        if (!studentId) {
+          this.logger.error('Student ID not found in request parameters');
+          return false;
+        }
+        return await this.permissionsService.canAccessStudentData(userId, studentId);
+      }
+
+      case PermissionType.CLASS_DATA_ACCESS: {
+        const classId = request.params.classId || request.body?.classId;
+        if (!classId) {
+          this.logger.error('Class ID not found in request');
+          return false;
+        }
+        return await this.permissionsService.canAccessClassData(userId, classId);
+      }
+
+      case PermissionType.EVENT_RECORDING: {
+        const studentId = request.body?.studentId || userId;
+        return await this.permissionsService.canRecordStudentEvents(userId, studentId);
+      }
+
+      case PermissionType.CLASS_MANAGEMENT: {
+        const classId = request.params.classId || request.body?.classId;
+        if (!classId) {
+          this.logger.error('Class ID not found in request');
+          return false;
+        }
+        return await this.permissionsService.canManageClass(userId, classId);
+      }
+
+      case PermissionType.CONSENT_MANAGEMENT: {
+        const consentId = request.params.requestId || request.params.consentId;
+        if (!consentId) {
+          this.logger.error('Consent ID not found in request parameters');
+          return false;
+        }
+        return await this.permissionsService.canManageConsent(userId, consentId);
+      }
+
       default:
+        this.logger.error(`Unknown permission type: ${permission}`);
         return false;
     }
-  }
-
-  private async checkStudentPermissions(
-    user: any,
-    requiredPermissions: Permission[],
-    request: any,
-  ): Promise<boolean> {
-    const studentPermissions = [
-      Permission.MANAGE_OWN_VISIBILITY,
-      Permission.APPROVE_RELATIONSHIPS,
-      Permission.REVOKE_RELATIONSHIPS,
-      Permission.VIEW_OWN_AUDIT,
-    ];
-
-    return requiredPermissions.every(permission => 
-      studentPermissions.includes(permission)
-    );
-  }
-
-  private async checkParentPermissions(
-    user: any,
-    requiredPermissions: Permission[],
-    request: any,
-  ): Promise<boolean> {
-    const parentPermissions = [
-      Permission.VIEW_AUTHORIZED_STUDENT_DATA,
-      Permission.REQUEST_STUDENT_ACCESS,
-    ];
-
-    // 检查是否有授权访问特定学生数据
-    if (requiredPermissions.includes(Permission.VIEW_AUTHORIZED_STUDENT_DATA)) {
-      const studentId = request.params.studentId || request.body.studentId;
-      if (studentId) {
-        const hasAccess = await this.checkParentStudentAccess(user.id, studentId);
-        if (!hasAccess) {
-          return false;
-        }
-      }
-    }
-
-    return requiredPermissions.every(permission => 
-      parentPermissions.includes(permission)
-    );
-  }
-
-  private async checkTeacherPermissions(
-    user: any,
-    requiredPermissions: Permission[],
-    request: any,
-  ): Promise<boolean> {
-    const teacherPermissions = [
-      Permission.VIEW_CLASS_STUDENT_DATA,
-      Permission.COMMENT_ON_WORKS,
-      Permission.ASSIGN_TASKS,
-      Permission.MANAGE_CLASS,
-    ];
-
-    // 检查班级关系权限
-    if (requiredPermissions.includes(Permission.VIEW_CLASS_STUDENT_DATA)) {
-      const studentId = request.params.studentId || request.body.studentId;
-      if (studentId) {
-        const hasClassAccess = await this.checkTeacherStudentClassAccess(user.id, studentId);
-        if (!hasClassAccess) {
-          return false;
-        }
-      }
-    }
-
-    return requiredPermissions.every(permission => 
-      teacherPermissions.includes(permission)
-    );
-  }
-
-  private async checkAdminPermissions(
-    user: any,
-    requiredPermissions: Permission[],
-    request: any,
-  ): Promise<boolean> {
-    const adminPermissions = [
-      Permission.SYSTEM_MAINTENANCE,
-      Permission.HANDLE_APPEALS,
-      Permission.VIEW_SYSTEM_AUDIT,
-      Permission.MANAGE_USERS,
-    ];
-
-    // 管理员不能创建关系或绕过授权
-    const forbiddenPermissions = [
-      Permission.APPROVE_RELATIONSHIPS,
-      Permission.REQUEST_STUDENT_ACCESS,
-      Permission.VIEW_AUTHORIZED_STUDENT_DATA,
-      Permission.VIEW_CLASS_STUDENT_DATA,
-    ];
-
-    if (requiredPermissions.some(permission => forbiddenPermissions.includes(permission))) {
-      return false;
-    }
-
-    return requiredPermissions.every(permission => 
-      adminPermissions.includes(permission)
-    );
-  }
-
-  private async checkParentStudentAccess(parentId: string, studentId: string): Promise<boolean> {
-    const relationship = await this.prisma.relationship.findFirst({
-      where: {
-        studentId,
-        partyId: parentId,
-        partyRole: 'PARENT',
-        status: 'ACTIVE',
-      },
-      include: {
-        accessGrants: {
-          where: {
-            status: 'ACTIVE',
-            OR: [
-              { expiresAt: null },
-              { expiresAt: { gt: new Date() } },
-            ],
-          },
-        },
-      },
-    });
-
-    return relationship && relationship.accessGrants.length > 0;
-  }
-
-  private async checkTeacherStudentClassAccess(teacherId: string, studentId: string): Promise<boolean> {
-    // 检查学生是否在教师的班级中
-    const enrollment = await this.prisma.classEnrollment.findFirst({
-      where: {
-        studentId,
-        status: 'ACTIVE',
-        class: {
-          ownerTeacherId: teacherId,
-          status: 'ACTIVE',
-        },
-      },
-    });
-
-    return !!enrollment;
   }
 }

@@ -32,6 +32,7 @@ import {
   StudentClassResponseDto,
   PendingEnrollmentResponseDto,
 } from '../dto/class-management.dto';
+import { AuditLoggerService } from '../../audit/services/audit-logger.service';
 
 @ApiTags('class-management')
 @Controller('classes')
@@ -40,6 +41,7 @@ import {
 export class ClassManagementController {
   constructor(
     private readonly classManagementService: ClassManagementService,
+    private readonly auditLogger: AuditLoggerService,
   ) {}
 
   @Post()
@@ -52,7 +54,21 @@ export class ClassManagementController {
   })
   async createClass(@Request() req, @Body() classData: CreateClassDto) {
     const teacherId = req.user.userId;
-    return this.classManagementService.createClass(teacherId, classData);
+    const result = await this.classManagementService.createClass(teacherId, classData);
+    
+    // 记录审计日志
+    await this.auditLogger.logSystemOperation(
+      teacherId,
+      'create_class',
+      'class',
+      result.id,
+      {
+        className: classData.name,
+        ip: req.ip,
+      },
+    );
+    
+    return result;
   }
 
   @Post('join')
@@ -61,7 +77,20 @@ export class ClassManagementController {
   @ApiResponse({ status: 201, description: '入班申请已提交' })
   async joinClass(@Request() req, @Body() joinData: JoinClassDto) {
     const studentId = req.user.userId;
-    return this.classManagementService.joinClass(studentId, joinData.code);
+    const result = await this.classManagementService.joinClass(studentId, joinData.code);
+    
+    // 记录审计日志
+    await this.auditLogger.logSystemOperation(
+      studentId,
+      'join_class_request',
+      'class',
+      result.class.id,
+      {
+        ip: req.ip,
+      },
+    );
+    
+    return result;
   }
 
   @Post('enrollments/:enrollmentId/approve')
@@ -74,11 +103,46 @@ export class ClassManagementController {
     @Body() decision: ApproveEnrollmentDto,
   ) {
     const teacherId = req.user.userId;
-    return this.classManagementService.approveEnrollment(
+    const result = await this.classManagementService.approveEnrollment(
       teacherId,
       enrollmentId,
       decision.action,
     );
+    
+    // For audit logging, we need to get the class ID from the enrollment
+    // Since the result doesn't directly contain classId, we'll use the enrollmentId
+    // and add more context in the metadata
+    
+    // 记录审计日志 - Class member decision
+    if (decision.action === 'approve') {
+      await this.auditLogger.logClassMemberDecision(
+        teacherId,
+        enrollmentId, // Using enrollmentId as the target since we don't have classId directly
+        result.student?.id || 'unknown',
+        'add',
+        req.ip,
+        {
+          enrollmentId,
+          relationshipId: result.relationshipId,
+          accessGrantId: result.accessGrantId,
+          action: 'approve',
+        },
+      );
+    } else {
+      await this.auditLogger.logClassMemberDecision(
+        teacherId,
+        enrollmentId, // Using enrollmentId as the target since we don't have classId directly
+        result.student?.id || 'unknown',
+        'remove',
+        req.ip,
+        {
+          enrollmentId,
+          action: 'reject',
+        },
+      );
+    }
+    
+    return result;
   }
 
   @Post(':classId/leave')
@@ -91,7 +155,21 @@ export class ClassManagementController {
     @Body() leaveData: LeaveClassDto,
   ) {
     const studentId = req.user.userId;
-    return this.classManagementService.leaveClass(studentId, classId);
+    const result = await this.classManagementService.leaveClass(studentId, classId);
+    
+    // 记录审计日志
+    await this.auditLogger.logSystemOperation(
+      studentId,
+      'leave_class',
+      'class',
+      classId,
+      {
+        reason: leaveData.reason,
+        ip: req.ip,
+      },
+    );
+    
+    return result;
   }
 
   @Get('my-classes')
@@ -149,11 +227,25 @@ export class ClassManagementController {
     @Body() updateData: UpdateClassDto,
   ) {
     const teacherId = req.user.userId;
-    return this.classManagementService.updateClass(
+    const result = await this.classManagementService.updateClass(
       teacherId,
       classId,
       updateData,
     );
+    
+    // 记录审计日志
+    await this.auditLogger.logSystemOperation(
+      teacherId,
+      'update_class',
+      'class',
+      classId,
+      {
+        updates: updateData,
+        ip: req.ip,
+      },
+    );
+    
+    return result;
   }
 
   @Get(':classId')

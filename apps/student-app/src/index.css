@@ -52,3 +52,58 @@ ul {
   margin: 0;
   padding-left: 18px;
 }
+
+/* Accessibility styles for color weak mode */
+.color-weak-mode {
+  /* Apply high contrast grayscale with textures */
+  filter: grayscale(100%) contrast(120%);
+}
+
+.color-weak-mode button,
+.color-weak-mode .card,
+.color-weak-mode input,
+.color-weak-mode select {
+  /* Add texture/border for better visibility */
+  border: 2px solid #666 !important;
+}
+
+/* Reduce motion styles */
+.reduce-motion * {
+  /* Disable animations and transitions */
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
+}
+
+.reduce-motion button,
+.reduce-motion .btn {
+  /* Use fade instead of complex animations */
+  transition: opacity 0.2s ease-in-out !important;
+}
+
+/* Ensure interactive elements meet minimum size requirements */
+button, .btn, input, select, textarea {
+  /* Minimum 44px touch target */
+  min-height: 44px;
+  min-width: 44px;
+}
+
+/* High contrast text for accessibility */
+.high-contrast-text {
+  color: #000000;
+  background-color: #ffffff;
+}
+
+/* Chart redundancy for color blind users */
+.chart-marker {
+  /* Add markers/differentiators for charts */
+  fill: url(#pattern) !important;
+  stroke: #000 !important;
+  stroke-width: 1px !important;
+}
+
+/* Focus indicators for keyboard navigation */
+:focus {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}

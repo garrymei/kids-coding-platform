@@ -5,8 +5,11 @@ import { Logger } from 'nestjs-pino';
 import { AppModule } from './app.module';
 import { BaseExceptionFilter, HttpAdapterHost } from '@nestjs/core';
 import { initSentry, Sentry } from './sentry';
-import { apiMetricsContentType, collectApiMetrics, observeRequestDuration } from './metrics';
+import { apiMetricsContentType, collectApiMetrics, observeRequestDuration, observeExecuteTime } from './metrics';
 import type { Request, Response } from 'express';
+import { LoggingMiddleware } from './middleware/logging.middleware';
+import { StructuredLoggerService } from './middleware/structured-logger.service';
+import { ErrorMiddleware } from './middleware/error.middleware';
 
 const sentryEnabled = initSentry();
 
@@ -26,8 +29,16 @@ async function bootstrap() {
   }
   
   const logger = app.get(Logger);
+  const structuredLogger = new StructuredLoggerService(logger);
+  
   app.useLogger(logger);
   app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));
+
+  // Add logging middleware (must be first)
+  app.use(new LoggingMiddleware(structuredLogger).use.bind(new LoggingMiddleware(structuredLogger)));
+
+  // Add error handling middleware (must be after logging)
+  app.useGlobalFilters(new ErrorMiddleware(structuredLogger));
 
   const httpAdapterHost = app.get(HttpAdapterHost);
   const httpServer = httpAdapterHost.httpAdapter.getInstance();

@@ -27,13 +27,17 @@ import {
   StudentComparisonData,
   ComparisonRequest,
 } from '../services/metrics.service';
+import { AuditLoggerService } from '../../audit/services/audit-logger.service';
 
 @ApiTags('metrics')
 @Controller('metrics')
 @UseGuards(JwtAuthGuard, PermissionsGuard)
 @ApiBearerAuth()
 export class MetricsController {
-  constructor(private readonly metricsService: MetricsService) {}
+  constructor(
+    private readonly metricsService: MetricsService,
+    private readonly auditLogger: AuditLoggerService,
+  ) {}
 
   @Get('students/:id/trend')
   @RequirePermissions(Permission.VIEW_STUDENT_DATA)
@@ -80,6 +84,21 @@ export class MetricsController {
     @Query('granularity') granularity: 'day' | 'week' = 'day',
   ): Promise<StudentTrendData[]> {
     const requesterId = req.user.userId;
+    
+    // 记录审计日志
+    await this.auditLogger.log({
+      actorId: requesterId,
+      action: 'view_student_trend',
+      targetType: 'student',
+      targetId: studentId,
+      metadata: {
+        from,
+        to,
+        granularity,
+      },
+      ip: req.ip,
+    });
+
     return this.metricsService.getStudentTrend(
       requesterId,
       studentId,
@@ -116,6 +135,21 @@ export class MetricsController {
     @Body() comparisonRequest: ComparisonRequest,
   ): Promise<StudentComparisonData[]> {
     const requesterId = req.user.userId;
+    
+    // 记录审计日志
+    await this.auditLogger.log({
+      actorId: requesterId,
+      action: 'compare_students',
+      targetType: 'student',
+      targetId: 'multiple',
+      metadata: {
+        studentIds: comparisonRequest.studentIds,
+        metrics: comparisonRequest.metrics,
+        window: comparisonRequest.window,
+      },
+      ip: req.ip,
+    });
+
     return this.metricsService.compareStudents(requesterId, comparisonRequest);
   }
 
@@ -142,6 +176,18 @@ export class MetricsController {
   async getStudentSummary(@Request() req, @Param('id') studentId: string) {
     const requesterId = req.user.userId;
 
+    // 记录审计日志
+    await this.auditLogger.log({
+      actorId: requesterId,
+      action: 'view_student_summary',
+      targetType: 'student',
+      targetId: studentId,
+      metadata: {
+        summaryType: '30_days',
+      },
+      ip: req.ip,
+    });
+
     const data = await this.metricsService.getStudentSummary(requesterId, studentId);
 
     // 获取学生信息
@@ -157,19 +203,6 @@ export class MetricsController {
     if (!student) {
       throw new Error('学生不存在');
     }
-
-    // 记录审计日志
-    await this.metricsService['prisma'].auditLog.create({
-      data: {
-        actorId: requesterId,
-        action: 'view_student_summary',
-        targetType: 'student',
-        targetId: studentId,
-        metadata: {
-          summaryType: '30_days',
-        },
-      },
-    });
 
     return {
       studentId: student.id,
@@ -216,6 +249,18 @@ export class MetricsController {
   })
   async getClassOverview(@Request() req, @Param('classId') classId: string) {
     const requesterId = req.user.userId;
+
+    // 记录审计日志
+    await this.auditLogger.log({
+      actorId: requesterId,
+      action: 'view_class_overview',
+      targetType: 'class',
+      targetId: classId,
+      metadata: {
+        timeWindow: '14_days',
+      },
+      ip: req.ip,
+    });
 
     // 验证教师是否拥有该班级
     const classInfo = await this.metricsService['prisma'].class.findFirst({
@@ -316,20 +361,6 @@ export class MetricsController {
           tasksDone: item.tasks_done,
         };
       });
-
-    // 记录审计日志
-    await this.metricsService['prisma'].auditLog.create({
-      data: {
-        actorId: requesterId,
-        action: 'view_class_overview',
-        targetType: 'class',
-        targetId: classId,
-        metadata: {
-          studentCount: studentIds.length,
-          timeWindow: '14_days',
-        },
-      },
-    });
 
     return {
       classId: classInfo.id,

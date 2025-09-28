@@ -2,206 +2,285 @@ generator client {
   provider = "prisma-client-js"
 }
 
- datasource db {
+datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
-enum RoleName {
-  student
-  parent
-  teacher
-  admin
+// --- Auth & Core Models ---
+
+model User {
+  id                                          String              @id @default(cuid()) @db.Uuid
+  email                                       String              @unique
+  displayName                                 String?
+  nickname                                    String?
+  school                                      String?
+  className                                   String?
+  discoverable                                Boolean             @default(false)
+  passwordHash                                String?
+  roleId                                      Int
+  status                                      String              @default("ACTIVE")
+  suspendedAt                                 DateTime?
+  needsAuditReview                            Boolean             @default(false)
+  auditReviewRequestedAt                      DateTime?
+  createdAt                                   DateTime            @default(now())
+  updatedAt                                   DateTime
+
+  // Relationships
+  Appeal_Appeal_reviewedByToUser              Appeal[]            @relation("Appeal_reviewedByToUser")
+  Appeal_Appeal_studentIdToUser               Appeal[]            @relation("Appeal_studentIdToUser")
+  Appeal_Appeal_targetUserIdToUser            Appeal[]            @relation("Appeal_targetUserIdToUser")
+  Session                                     Session[]
+  Role                                        Role                @relation(fields: [roleId], references: [id])
+  access_grants_access_grants_granteeIdToUser access_grants[]     @relation("access_grants_granteeIdToUser")
+  access_grants_access_grants_studentIdToUser access_grants[]     @relation("access_grants_studentIdToUser")
+  audit_logs                                  audit_logs[]
+  class_enrollments                           class_enrollments[]
+  classes                                     classes[]
+  consents_consents_requesterIdToUser         consents[]          @relation("consents_requesterIdToUser")
+  consents_consents_studentIdToUser           consents[]          @relation("consents_studentIdToUser")
+  metrics_snapshots                           metrics_snapshots[]
+  relationships_relationships_partyIdToUser   relationships[]     @relation("relationships_partyIdToUser")
+  relationships_relationships_studentIdToUser relationships[]     @relation("relationships_studentIdToUser")
+  
+  // New M6/M8 relationships for events and progress
+  learnEvents                                 LearnEvent[]
+  dailyStats                                  DailyStat[]
+  packageProgress                             PackageProgress[]
 }
 
 model Role {
-  id        Int       @id @default(autoincrement())
-  name      RoleName  @unique
-  users     User[]
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
+  id        Int      @id @default(autoincrement())
+  name      RoleName @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime
+  User      User[]
 }
 
-model User {
-  id                    String     @id @default(uuid()) @db.Uuid
-  email                 String     @unique
-  displayName           String?
-  nickname              String?    // 搜索昵称
-  school                String?    // 学校名称
-  className             String?    // 班级名称
-  discoverable          Boolean    @default(false) // 是否可被搜索
-  anonymousId           String?    // 匿名ID，用于搜索
-  passwordHash          String?
-  roleId                Int
-  role                  Role       @relation(fields: [roleId], references: [id])
-  sessions              Session[]
-  // 班级相关
-  ownedClasses          Class[]    @relation("ClassOwner")
-  classEnrollments      ClassEnrollment[] @relation("ClassEnrollments")
-  // 关系相关
-  studentRelationships  Relationship[] @relation("StudentRelationships")
-  partyRelationships    Relationship[] @relation("PartyRelationships")
-  // 授权相关
-  accessGrants          AccessGrant[] @relation("AccessGrants")
-  studentAccessGrants   AccessGrant[] @relation("StudentAccessGrants")
-  // 同意书相关
-  studentConsents       Consent[]  @relation("StudentConsents")
-  requesterConsents     Consent[]  @relation("RequesterConsents")
-  // 审计日志
-  auditLogs             AuditLog[] @relation("AuditLogs")
-  // 申诉相关
-  submittedAppeals      Appeal[]   @relation("SubmittedAppeals")
-  targetAppeals         Appeal[]   @relation("TargetAppeals")
-  reviewedAppeals       Appeal[]   @relation("ReviewedAppeals")
-  // 指标快照
-  metricsSnapshots      MetricsSnapshot[]
-  // 安全相关
-  status                String     @default("ACTIVE") // ACTIVE, SUSPENDED
-  suspendedAt           DateTime?
-  needsAuditReview      Boolean    @default(false)
-  auditReviewRequestedAt DateTime?
-  createdAt             DateTime   @default(now())
-  updatedAt             DateTime   @updatedAt
+// --- M7: Auth/Class Flow Models (using existing tables) ---
+
+// ParentLinkRequest -> consents table
+model consents {
+  id                              String        @id @db.Uuid
+  studentId                       String        @db.Uuid
+  requesterId                     String        @db.Uuid
+  purpose                         String
+  scope                           String[]
+  status                          ConsentStatus @default(PENDING)
+  expiresAt                       DateTime?
+  createdAt                       DateTime      @default(now())
+  updatedAt                       DateTime
+
+  User_consents_requesterIdToUser User          @relation("consents_requesterIdToUser", fields: [requesterId], references: [id], onDelete: Cascade)
+  User_consents_studentIdToUser   User          @relation("consents_studentIdToUser", fields: [studentId], references: [id], onDelete: Cascade)
+}
+
+// Class -> classes table
+model classes {
+  id                String              @id @db.Uuid
+  name              String
+  description       String?
+  ownerTeacherId    String              @db.Uuid
+  code              String              @unique
+  status            ClassStatus         @default(ACTIVE)
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime
+
+  class_enrollments class_enrollments[]
+  User              User                @relation(fields: [ownerTeacherId], references: [id])
+}
+
+// ClassMember -> class_enrollments table
+model class_enrollments {
+  id        String           @id @db.Uuid
+  classId   String           @db.Uuid
+  studentId String           @db.Uuid
+  status    EnrollmentStatus @default(PENDING)
+  createdAt DateTime         @default(now())
+  updatedAt DateTime
+
+  classes   classes          @relation(fields: [classId], references: [id], onDelete: Cascade)
+  User      User             @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@unique([classId, studentId])
+}
+
+// --- M6/M8: Metrics & Events (new tables) ---
+
+model LearnEvent {
+  id         String   @id @default(cuid()) @db.Uuid
+  studentId  String   @db.Uuid
+  levelId    String
+  passed     Boolean
+  timeMs     Int?
+  ts         DateTime @db.Timestamp(6)
+
+  student    User     @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@index([studentId, ts])
+  @@index([levelId, passed])
+}
+
+model DailyStat {
+  id             String   @id @default(cuid()) @db.Uuid
+  date           DateTime @db.Date // Stored as YYYY-MM-DD in UTC
+  studentId      String   @db.Uuid
+  studyMinutes   Int      @default(0)
+  attempts       Int      @default(0)
+  passes         Int      @default(0)
+  levelsCompleted Int     @default(0)
+
+  student        User     @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@unique([studentId, date])
+  @@index([date])
+  @@index([studentId])
+}
+
+model PackageProgress {
+  id         String  @id @default(cuid()) @db.Uuid
+  studentId  String  @db.Uuid
+  pkgId      String
+  completed  Int     @default(0)
+  total      Int
+  updatedAt  DateTime @updatedAt
+
+  student    User    @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@unique([studentId, pkgId])
+}
+
+// --- Existing Models (keeping for compatibility) ---
+
+model Appeal {
+  id                             String       @id @db.Uuid
+  studentId                      String       @db.Uuid
+  targetUserId                   String       @db.Uuid
+  appealType                     AppealType
+  description                    String
+  evidence                       Json?        @default("{}")
+  requestedAction                String
+  status                         AppealStatus @default(PENDING)
+  submittedAt                    DateTime     @default(now())
+  reviewedAt                     DateTime?
+  reviewedBy                     String?      @db.Uuid
+  reviewReason                   String?
+  reviewActions                  String[]     @default([])
+  closedAt                       DateTime?
+  closedBy                       String?      @db.Uuid
+  closeReason                    String?
+  createdAt                      DateTime     @default(now())
+  updatedAt                      DateTime
+
+  User_Appeal_reviewedByToUser   User?        @relation("Appeal_reviewedByToUser", fields: [reviewedBy], references: [id])
+  User_Appeal_studentIdToUser    User         @relation("Appeal_studentIdToUser", fields: [studentId], references: [id])
+  User_Appeal_targetUserIdToUser User         @relation("Appeal_targetUserIdToUser", fields: [targetUserId], references: [id])
+
+  @@index([appealType])
+  @@index([status])
+  @@index([studentId])
+  @@index([targetUserId])
 }
 
 model Session {
-  id        String   @id @default(uuid()) @db.Uuid
+  id        String   @id @db.Uuid
   userId    String   @db.Uuid
-  user      User     @relation(fields: [userId], references: [id])
   expiresAt DateTime
   createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  updatedAt DateTime
+  User      User     @relation(fields: [userId], references: [id])
 }
 
-// 班级表
-model Class {
-  id            String   @id @default(uuid()) @db.Uuid
-  name          String
-  description   String?
-  ownerTeacherId String   @db.Uuid
-  ownerTeacher  User     @relation("ClassOwner", fields: [ownerTeacherId], references: [id])
-  code          String   @unique // 邀请码
-  status        ClassStatus @default(ACTIVE)
-  enrollments   ClassEnrollment[]
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+model access_grants {
+  id                                 String         @id @db.Uuid
+  granteeId                          String         @db.Uuid
+  studentId                          String         @db.Uuid
+  scope                              String[]
+  status                             GrantStatus    @default(ACTIVE)
+  expiresAt                          DateTime?
+  relationshipId                     String?        @db.Uuid
+  createdAt                          DateTime       @default(now())
+  updatedAt                          DateTime
 
-  @@map("classes")
+  User_access_grants_granteeIdToUser User           @relation("access_grants_granteeIdToUser", fields: [granteeId], references: [id], onDelete: Cascade)
+  relationships                      relationships? @relation(fields: [relationshipId], references: [id], onDelete: Cascade)
+  User_access_grants_studentIdToUser User           @relation("access_grants_studentIdToUser", fields: [studentId], references: [id], onDelete: Cascade)
 }
 
-// 班级注册表
-model ClassEnrollment {
-  id        String   @id @default(uuid()) @db.Uuid
-  classId   String   @db.Uuid
-  studentId String   @db.Uuid
-  status    EnrollmentStatus @default(PENDING)
-  class     Class    @relation(fields: [classId], references: [id], onDelete: Cascade)
-  student   User     @relation("ClassEnrollments", fields: [studentId], references: [id], onDelete: Cascade)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@unique([classId, studentId])
-  @@map("class_enrollments")
-}
-
-// 关系表 - 学生与家长/老师的关系
-model Relationship {
-  id          String   @id @default(uuid()) @db.Uuid
-  studentId   String   @db.Uuid
-  partyId     String   @db.Uuid
-  partyRole   PartyRole
-  source      RelationshipSource
-  status      RelationshipStatus @default(PENDING)
-  student     User     @relation("StudentRelationships", fields: [studentId], references: [id], onDelete: Cascade)
-  party       User     @relation("PartyRelationships", fields: [partyId], references: [id], onDelete: Cascade)
-  accessGrants AccessGrant[]
-  createdAt   DateTime @default(now())
-  revokedAt   DateTime?
-  updatedAt   DateTime @updatedAt
-
-  @@unique([studentId, partyId])
-  @@map("relationships")
-}
-
-// 访问授权表
-model AccessGrant {
-  id           String      @id @default(uuid()) @db.Uuid
-  granteeId    String      @db.Uuid
-  studentId    String      @db.Uuid
-  scope        String[]    // 例如: ["progress:read", "works:read", "metrics:read"]
-  status       GrantStatus @default(ACTIVE)
-  expiresAt    DateTime?
-  grantedAt    DateTime?   // 授权时间
-  grantedBy    String?     @db.Uuid // 授权者
-  revokedAt    DateTime?   // 撤销时间
-  revokedBy    String?     @db.Uuid // 撤销者
-  reason       String?     // 授权或撤销原因
-  relationshipId String?   @db.Uuid
-  relationship   Relationship? @relation(fields: [relationshipId], references: [id], onDelete: Cascade)
-  grantee      User        @relation("AccessGrants", fields: [granteeId], references: [id], onDelete: Cascade)
-  student      User        @relation("StudentAccessGrants", fields: [studentId], references: [id], onDelete: Cascade)
-  createdAt    DateTime    @default(now())
-  updatedAt    DateTime    @updatedAt
-
-  @@map("access_grants")
-}
-
-// 同意书表
-model Consent {
-  id          String      @id @default(uuid()) @db.Uuid
-  studentId   String      @db.Uuid
-  requesterId String      @db.Uuid
-  purpose     String      // 例如: "parent-view", "teacher-progress"
-  scope       String[]    // 例如: ["progress:read", "works:read"]
-  status      ConsentStatus @default(PENDING)
-  reason      String?     // 申请理由或拒绝理由
-  expiresAt   DateTime?
-  student     User        @relation("StudentConsents", fields: [studentId], references: [id], onDelete: Cascade)
-  requester   User        @relation("RequesterConsents", fields: [requesterId], references: [id], onDelete: Cascade)
-  createdAt   DateTime    @default(now())
-  updatedAt   DateTime    @updatedAt
-
-  @@map("consents")
-}
-
-// 审计日志表
-model AuditLog {
-  id         String   @id @default(uuid()) @db.Uuid
+model audit_logs {
+  id         String   @id @db.Uuid
   actorId    String   @db.Uuid
-  action     String   // 例如: "view_progress", "grant_access", "revoke_access"
-  targetType String   // 例如: "student", "class", "relationship"
+  action     String
+  targetType String
   targetId   String   @db.Uuid
-  metadata   Json?    // 额外的元数据，记录"查看了谁的什么数据"等
-  ts         DateTime @default(now()) @map("ts") // 时间戳字段
-  ipAddress  String?  @map("ipAddress") // IP地址
-  userAgent  String?  @map("userAgent") // 用户代理
-  severity   String?  @map("severity") // 严重程度
-  actor      User     @relation("AuditLogs", fields: [actorId], references: [id], onDelete: Cascade)
-  createdAt  DateTime @default(now()) // 使用 createdAt 字段名
-  updatedAt  DateTime @updatedAt
-
-  @@map("audit_logs")
+  metadata   Json?
+  ts         DateTime @default(now())
+  User       User     @relation(fields: [actorId], references: [id], onDelete: Cascade)
 }
 
-// 指标快照表
-model MetricsSnapshot {
-  id              String   @id @default(uuid()) @db.Uuid
-  studentId       String   @db.Uuid
-  date            DateTime @db.Date
-  chapterId       String?  @db.Uuid
-  tasksDone       Int      @default(0)
-  accuracy        Float    @default(0.0)
-  timeSpentMin    Int      @default(0)
-  streakDays      Int      @default(0)
-  xpGained        Int      @default(0)
-  student         User     @relation(fields: [studentId], references: [id], onDelete: Cascade)
-  createdAt       DateTime @default(now())
+model metrics_snapshots {
+  id           String   @id @db.Uuid
+  studentId    String   @db.Uuid
+  date         DateTime @db.Date
+  chapterId    String?  @db.Uuid
+  tasksDone    Int      @default(0)
+  accuracy     Float    @default(0.0)
+  timeSpentMin Int      @default(0)
+  streakDays   Int      @default(0)
+  xpGained     Int      @default(0)
+  createdAt    DateTime @default(now())
+
+  User         User     @relation(fields: [studentId], references: [id], onDelete: Cascade)
 
   @@unique([studentId, date, chapterId])
-  @@map("metrics_snapshots")
+  @@index([date])
+  @@index([studentId, date])
 }
 
-// 枚举定义
+model relationships {
+  id                                 String             @id @db.Uuid
+  studentId                          String             @db.Uuid
+  partyId                            String             @db.Uuid
+  partyRole                          PartyRole
+  source                             RelationshipSource
+  status                             RelationshipStatus @default(PENDING)
+  createdAt                          DateTime           @default(now())
+  revokedAt                          DateTime?
+  updatedAt                          DateTime
+
+  access_grants                      access_grants[]
+  User_relationships_partyIdToUser   User               @relation("relationships_partyIdToUser", fields: [partyId], references: [id], onDelete: Cascade)
+  User_relationships_studentIdToUser User               @relation("relationships_studentIdToUser", fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@unique([studentId, partyId])
+}
+
+// --- Enums ---
+
+enum ConsentStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  EXPIRED
+  REVOKED
+}
+
+enum AppealStatus {
+  PENDING
+  UNDER_REVIEW
+  APPROVED
+  REJECTED
+  CLOSED
+}
+
+enum AppealType {
+  UNAUTHORIZED_ACCESS
+  EXCESSIVE_DATA_VIEW
+  PRIVACY_VIOLATION
+  PERMISSION_ABUSE
+  OTHER
+}
+
 enum ClassStatus {
   ACTIVE
   INACTIVE
@@ -214,6 +293,13 @@ enum EnrollmentStatus {
   REVOKED
 }
 
+enum GrantStatus {
+  ACTIVE
+  INACTIVE
+  EXPIRED
+  REVOKED
+}
+
 enum PartyRole {
   PARENT
   TEACHER
@@ -223,7 +309,6 @@ enum RelationshipSource {
   SHARE_CODE
   SEARCH
   CLASS_INVITE
-  MANUAL
 }
 
 enum RelationshipStatus {
@@ -233,62 +318,9 @@ enum RelationshipStatus {
   EXPIRED
 }
 
-enum GrantStatus {
-  ACTIVE
-  INACTIVE
-  EXPIRED
-  REVOKED
-}
-
-enum ConsentStatus {
-  PENDING
-  APPROVED
-  REJECTED
-  EXPIRED
-  REVOKED
-}
-
-enum AppealType {
-  UNAUTHORIZED_ACCESS
-  EXCESSIVE_DATA_VIEW
-  PRIVACY_VIOLATION
-  PERMISSION_ABUSE
-  OTHER
-}
-
-enum AppealStatus {
-  PENDING
-  UNDER_REVIEW
-  APPROVED
-  REJECTED
-  CLOSED
-}
-
-model Appeal {
-  id              String       @id @default(uuid()) @db.Uuid
-  studentId       String       @db.Uuid
-  student         User         @relation("SubmittedAppeals", fields: [studentId], references: [id])
-  targetUserId    String       @db.Uuid
-  targetUser      User         @relation("TargetAppeals", fields: [targetUserId], references: [id])
-  appealType      AppealType
-  description     String
-  evidence        Json?        @default("{}")
-  requestedAction String
-  status          AppealStatus @default(PENDING)
-  submittedAt     DateTime     @default(now())
-  reviewedAt      DateTime?
-  reviewedBy      String?      @db.Uuid
-  reviewer        User?        @relation("ReviewedAppeals", fields: [reviewedBy], references: [id])
-  reviewReason    String?
-  reviewActions   String[]     @default([])
-  closedAt        DateTime?
-  closedBy        String?      @db.Uuid
-  closeReason     String?
-  createdAt       DateTime     @default(now())
-  updatedAt       DateTime     @updatedAt
-
-  @@index([studentId])
-  @@index([targetUserId])
-  @@index([status])
-  @@index([appealType])
+enum RoleName {
+  student
+  parent
+  teacher
+  admin
 }

@@ -1,4 +1,5 @@
 import { createContext, useContext, useMemo, useReducer, type ReactNode } from 'react';
+import { progressStore } from './progress';
 
 // --- STATE AND TYPES ---
 export interface CourseSummary {
@@ -21,8 +22,8 @@ interface StudentState {
 
 const initialState: StudentState = {
   displayName: '小明',
-  streakDays: 5,
-  xp: 1280,
+  streakDays: 0, // Will be updated from progress store
+  xp: 0, // Will be updated from progress store
   avatarUrl: undefined,
   focusCourseId: 'intro-python',
   courses: [
@@ -56,15 +57,14 @@ const initialState: StudentState = {
 // --- REDUCER ---
 type StudentAction =
   | { type: 'complete-lesson'; courseId: string }
-  | { type: 'set-focus-course'; courseId: string };
+  | { type: 'set-focus-course'; courseId: string }
+  | { type: 'refresh-stats' }; // New action to refresh stats from progress store
 
 function studentReducer(state: StudentState, action: StudentAction): StudentState {
   switch (action.type) {
     case 'complete-lesson': {
       return {
         ...state,
-        xp: state.xp + 30,
-        streakDays: state.streakDays + 1,
         courses: state.courses.map((course) => {
           if (course.id !== action.courseId) return course;
           const completed = Math.min(course.lessonsTotal, course.lessonsCompleted + 1);
@@ -76,6 +76,15 @@ function studentReducer(state: StudentState, action: StudentAction): StudentStat
     case 'set-focus-course': {
       return { ...state, focusCourseId: action.courseId };
     }
+    case 'refresh-stats': {
+      // Get latest stats from progress store
+      const progress = progressStore.getProgress();
+      return {
+        ...state,
+        streakDays: progress.streakDays,
+        xp: progress.xp
+      };
+    }
     default:
       return state;
   }
@@ -85,6 +94,7 @@ function studentReducer(state: StudentState, action: StudentAction): StudentStat
 interface StudentActions {
   completeLesson(courseId: string): void;
   setFocusCourse(courseId: string): void;
+  refreshStats(): void; // New action
 }
 
 const StudentStateContext = createContext<StudentState | undefined>(undefined);
@@ -93,6 +103,13 @@ const StudentActionsContext = createContext<StudentActions | undefined>(undefine
 // --- PROVIDER ---
 export function StudentProvider({ children }: { children: ReactNode }) {
   const [state, dispatch] = useReducer(studentReducer, initialState);
+  
+  // Initialize with real progress data
+  if (typeof window !== 'undefined') {
+    const progress = progressStore.getProgress();
+    initialState.streakDays = progress.streakDays;
+    initialState.xp = progress.xp;
+  }
 
   const actions = useMemo<StudentActions>(
     () => ({
@@ -102,6 +119,9 @@ export function StudentProvider({ children }: { children: ReactNode }) {
       setFocusCourse(courseId) {
         dispatch({ type: 'set-focus-course', courseId });
       },
+      refreshStats() {
+        dispatch({ type: 'refresh-stats' });
+      }
     }),
     [], // Actions are stable and don't depend on state
   );

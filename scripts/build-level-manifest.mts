@@ -53,7 +53,7 @@ interface Level {
 }
 
 interface LevelManifest {
-  packs: Array<{
+  packs: Array<{ 
     lang: string;
     gameType: string;
     world: string;
@@ -63,7 +63,7 @@ interface LevelManifest {
     rewards: GamePack['rewards'];
     levelCount: number;
   }>;
-  levels: Array<{
+  levels: Array<{ 
     id: string;
     title: string;
     lang: string;
@@ -119,50 +119,56 @@ async function buildLevelManifest() {
       
       const packData: GamePack = JSON.parse(readFileSync(packPath, 'utf-8'));
       
-      // 扫描关卡文件
-      const levelFiles = await glob(`${gameDir.replace(/\\/g, '/')}levels/**/*.json`);
-      console.log(`    📄 关卡文件路径模式: ${gameDir.replace(/\\/g, '/')}levels/**/*.json`);
+      // 扫描关卡文件 - 修复路径构造
+      const cleanGameDir = gameDir.replace(/\\/g, '/').replace(/\/$/, ''); // 移除末尾斜杠
+      const levelPattern = `${cleanGameDir}/levels/**/*.json`;
+      console.log(`    📄 关卡文件路径模式: ${levelPattern}`);
+      
+      const levelFiles = await glob(levelPattern);
       console.log(`    📄 找到关卡文件数量: ${levelFiles.length}`);
       console.log(`    📄 找到关卡文件:`, levelFiles.map(file => basename(file)));
       
       const levels: Level[] = [];
-      
+
       for (const levelFile of levelFiles) {
         try {
           const levelData: Level = JSON.parse(readFileSync(levelFile, 'utf-8'));
           levels.push(levelData);
-          
-          // 复制关卡文件到 public 目录
-          const relativePath = levelFile.replace(levelsDir + '/', '');
-          const publicLevelPath = join(publicDir, relativePath);
+
+          // 复制关卡文件到 public 目录并生成正确的 manifest 路径
+          const normalizedPath = levelFile.replace(/\\/g, '/');
+          const manifestPath = normalizedPath.replace(`${levelsDir}/`, '');
+          const publicLevelPath = join(publicDir, manifestPath);
           const publicLevelDir = dirname(publicLevelPath);
-          
+
           if (!existsSync(publicLevelDir)) {
             mkdirSync(publicLevelDir, { recursive: true });
           }
-          
+
           copyFileSync(levelFile, publicLevelPath);
+
+          // 添加关卡的核心信息到 manifest
+          manifest.levels.push({
+            id: levelData.id,
+            title: levelData.title,
+            lang: levelData.lang,
+            gameType: levelData.gameType,
+            difficulty: levelData.difficulty,
+            goals: levelData.goals,
+            story: levelData.story,
+            rewards: levelData.rewards,
+            path: manifestPath, // 使用正确的相对路径
+          });
         } catch (error) {
           console.error(`    ⚠️  读取关卡文件失败 ${levelFile}:`, error.message);
         }
       }
-      
-      // 添加到 manifest
+
+      // 添加包信息到 manifest
       manifest.packs.push({
         ...packData,
-        levelCount: levels.length
+        levelCount: levels.length,
       });
-      
-      // 添加关卡到 manifest
-      for (const level of levels) {
-        // Extract just the filename without extension for the path
-        const fileName = basename(level.id, '.json');
-        const relativePath = `levels/${lang}/${gameType}/levels/${fileName}.json`;
-        manifest.levels.push({
-          ...level,
-          path: relativePath
-        });
-      }
     }
   }
   

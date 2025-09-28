@@ -1,0 +1,34 @@
+{
+  "id": "py-w3-l2",
+  "title": "灯塔信号：奇亮偶灭",
+  "world": "W3",
+  "lessonIndex": 2,
+  "lang": "python",
+  "type": "grid-led",
+  "difficulty": 2,
+  "goals": ["点亮所有奇数编号灯，熄灭偶数灯（从 0 开始编号）"],
+  "starter": {
+    "blockly": "<xml></xml>",
+    "code": "n = 8  # 一排 8 盏灯，索引 0~7\n# 输出最终状态到标准输出：如 10101010 表示亮灭交替\n# TODO: 生成字符串并 print()"
+  },
+  "assets": {"gridWidth": 8, "gridHeight": 1},
+  "grader": {
+    "mode": "io",
+    "io": {
+      "cases": [
+        {"in": "", "out": "10101010\n"}
+      ],
+      "match": "regex",
+      "pattern": "^[10]{8}$\n",
+      "postCheck": "== '10101010\n'"
+    },
+    "constraints": {
+      "maxTimeMs": 3000,
+      "maxMemMB": 64,
+      "forbiddenImports": ["os","sys","subprocess"]
+    }
+  },
+  "rewards": {"xp": 25, "coins": 10, "badges": ["条件新手"]},
+  "hints": ["用 i % 2 判奇偶", "把 1/0 拼接成字符串"],
+  "examples": [{"input": "", "output": "10101010\n", "explain": "奇亮偶灭"}]
+}

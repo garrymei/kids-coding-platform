@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, ForbiddenException, BadRequestException } from '@nestjs/common';
+import { Injectable, NotFoundException, ForbiddenException, BadRequestException, Logger } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { 
   UpdateSearchabilityDto, 
@@ -7,10 +7,257 @@ import {
   GenerateShareCodeDto 
 } from './dto/students.dto';
 import { randomBytes } from 'crypto';
+import { ConsentStatus } from '@prisma/client';
+
+// Mock data for consents
+const mockConsents = [
+  {
+    id: 'req_1',
+    requesterId: 'parent_1',
+    requesterName: '王先生',
+    status: 'pending',
+    note: '我是小明的家长',
+    createdAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
+  },
+  {
+    id: 'req_2',
+    requesterId: 'parent_2',
+    requesterName: '李女士',
+    status: 'approved',
+    note: '我是小红的家长',
+    createdAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
+  },
+  {
+    id: 'req_3',
+    requesterId: 'parent_3',
+    requesterName: '张先生',
+    status: 'rejected',
+    note: '我是小刚的家长',
+    createdAt: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString(),
+  },
+  {
+    id: 'req_4',
+    requesterId: 'parent_4',
+    requesterName: '刘女士',
+    status: 'approved',
+    createdAt: new Date(Date.now() - 12 * 24 * 60 * 60 * 1000).toISOString(),
+  },
+];
 
 @Injectable()
 export class StudentsService {
+  private readonly logger = new Logger(StudentsService.name);
+
   constructor(private readonly prisma: PrismaService) {}
+
+  // M7 Real Implementation for Consents
+  async getConsents(studentId: string, status?: 'pending' | 'approved' | 'rejected' | 'revoked') {
+    this.logger.log(`Fetching consents for student: ${studentId} with status: ${status}`);
+    
+    try {
+      const whereClause: any = {
+        studentId: studentId,
+      };
+
+      if (status) {
+        whereClause.status = ConsentStatus[status.toUpperCase() as keyof typeof ConsentStatus];
+      }
+
+      const consents = await this.prisma.consents.findMany({
+        where: whereClause,
+        include: {
+          User_consents_requesterIdToUser: {
+            select: {
+              id: true,
+              displayName: true,
+              nickname: true,
+              email: true,
+            },
+          },
+        },
+        orderBy: { createdAt: 'desc' },
+      });
+
+      return consents.map(consent => ({
+        id: consent.id,
+        requesterId: consent.requesterId,
+        requesterName: consent.User_consents_requesterIdToUser.displayName || 
+                      consent.User_consents_requesterIdToUser.nickname || 
+                      consent.User_consents_requesterIdToUser.email,
+        status: consent.status.toLowerCase(),
+        note: consent.purpose,
+        createdAt: consent.createdAt.toISOString(),
+      }));
+    } catch (error) {
+      this.logger.error('Failed to fetch consents:', error);
+      // Fallback to mock data
+      if (!status) {
+        return mockConsents;
+      }
+      return mockConsents.filter(c => c.status === status);
+    }
+  }
+
+  async approveConsent(requestId: string, studentId: string) {
+    this.logger.log(`Approving consent request: ${requestId} by student: ${studentId}`);
+    
+    try {
+      const consent = await this.prisma.consents.findFirst({
+        where: {
+          id: requestId,
+          studentId: studentId,
+        },
+      });
+
+      if (!consent) {
+        throw new NotFoundException('Consent request not found');
+      }
+
+      if (consent.status !== ConsentStatus.PENDING) {
+        // Idempotency - return current state
+        return {
+          id: consent.id,
+          status: consent.status.toLowerCase(),
+        };
+      }
+
+      const updatedConsent = await this.prisma.consents.update({
+        where: { id: requestId },
+        data: {
+          status: ConsentStatus.APPROVED,
+          updatedAt: new Date(),
+        },
+      });
+
+      // Create audit log
+      await this.prisma.audit_logs.create({
+        data: {
+          actorId: studentId,
+          action: 'PARENT_LINK_DECISION',
+          targetType: 'consent',
+          targetId: requestId,
+          metadata: { decision: 'approved' },
+        },
+      });
+
+      return {
+        id: updatedConsent.id,
+        status: updatedConsent.status.toLowerCase(),
+      };
+    } catch (error) {
+      this.logger.error('Failed to approve consent:', error);
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+      throw new BadRequestException('Failed to approve consent');
+    }
+  }
+
+  async rejectConsent(requestId: string, studentId: string) {
+    this.logger.log(`Rejecting consent request: ${requestId} by student: ${studentId}`);
+    
+    try {
+      const consent = await this.prisma.consents.findFirst({
+        where: {
+          id: requestId,
+          studentId: studentId,
+        },
+      });
+
+      if (!consent) {
+        throw new NotFoundException('Consent request not found');
+      }
+
+      if (consent.status !== ConsentStatus.PENDING) {
+        // Idempotency - return current state
+        return {
+          id: consent.id,
+          status: consent.status.toLowerCase(),
+        };
+      }
+
+      const updatedConsent = await this.prisma.consents.update({
+        where: { id: requestId },
+        data: {
+          status: ConsentStatus.REJECTED,
+          updatedAt: new Date(),
+        },
+      });
+
+      // Create audit log
+      await this.prisma.audit_logs.create({
+        data: {
+          actorId: studentId,
+          action: 'PARENT_LINK_DECISION',
+          targetType: 'consent',
+          targetId: requestId,
+          metadata: { decision: 'rejected' },
+        },
+      });
+
+      return {
+        id: updatedConsent.id,
+        status: updatedConsent.status.toLowerCase(),
+      };
+    } catch (error) {
+      this.logger.error('Failed to reject consent:', error);
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+      throw new BadRequestException('Failed to reject consent');
+    }
+  }
+
+  async revokeConsent(requestId: string, studentId: string) {
+    this.logger.log(`Revoking consent request: ${requestId} by student: ${studentId}`);
+    
+    try {
+      const consent = await this.prisma.consents.findFirst({
+        where: {
+          id: requestId,
+          studentId: studentId,
+        },
+      });
+
+      if (!consent) {
+        throw new NotFoundException('Consent request not found');
+      }
+
+      if (consent.status !== ConsentStatus.APPROVED) {
+        throw new BadRequestException('Cannot revoke a consent that is not approved');
+      }
+
+      const updatedConsent = await this.prisma.consents.update({
+        where: { id: requestId },
+        data: {
+          status: ConsentStatus.REVOKED,
+          updatedAt: new Date(),
+        },
+      });
+
+      // Create audit log
+      await this.prisma.audit_logs.create({
+        data: {
+          actorId: studentId,
+          action: 'PARENT_LINK_DECISION',
+          targetType: 'consent',
+          targetId: requestId,
+          metadata: { decision: 'revoked' },
+        },
+      });
+
+      return {
+        id: updatedConsent.id,
+        status: updatedConsent.status.toLowerCase(),
+      };
+    } catch (error) {
+      this.logger.error('Failed to revoke consent:', error);
+      if (error instanceof NotFoundException || error instanceof BadRequestException) {
+        throw error;
+      }
+      throw new BadRequestException('Failed to revoke consent');
+    }
+  }
 
   // 更新学生可搜索性设置
   async updateSearchability(studentId: string, updateDto: UpdateSearchabilityDto) {

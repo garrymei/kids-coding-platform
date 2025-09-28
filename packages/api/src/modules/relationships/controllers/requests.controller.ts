@@ -16,6 +16,7 @@ import { PermissionsGuard } from '../../auth/guards/permissions.guard';
 import { RequirePermissions, Permission } from '../../auth/decorators/permissions.decorator';
 import { RateLimitService } from '../../search/services/rate-limit.service';
 import { PrismaService } from '../../../prisma/prisma.service';
+import { AuditLoggerService } from '../../audit/services/audit-logger.service';
 
 @ApiTags('relationship-requests')
 @Controller('relationships')
@@ -25,6 +26,7 @@ export class RequestsController {
   constructor(
     private readonly rateLimitService: RateLimitService,
     private readonly prisma: PrismaService,
+    private readonly auditLogger: AuditLoggerService,
   ) {}
 
   @Post('requests')
@@ -118,22 +120,19 @@ export class RequestsController {
     });
 
     // 记录审计日志
-    await this.prisma.auditLog.create({
-      data: {
-        actorId: requesterId,
-        action: 'create_relationship_request',
-        targetType: 'consent',
-        targetId: consent.id,
-        metadata: {
-          studentId: targetStudent.id,
-          scope: requestData.scope,
-          reason: requestData.reason,
-          expiresAt: requestData.expiresAt,
-          shareCode: requestData.shareCode,
-          ip: requesterIp,
-        },
+    await this.auditLogger.logRequest(
+      requesterId,
+      'create',
+      consent.id,
+      {
+        studentId: targetStudent.id,
+        scope: requestData.scope,
+        reason: requestData.reason,
+        expiresAt: requestData.expiresAt,
+        shareCode: requestData.shareCode,
+        ip: requesterIp,
       },
-    });
+    );
 
     // 这里应该发送通知给学生
     // await this.notificationService.sendRequestNotification(targetStudent.id, consent.id);
@@ -249,21 +248,19 @@ export class RequestsController {
       },
     });
 
-    // 记录审计日志
-    await this.prisma.auditLog.create({
-      data: {
-        actorId: studentId,
-        action: 'approve_relationship_request',
-        targetType: 'consent',
-        targetId: consentId,
-        metadata: {
-          requesterId: consent.requesterId,
-          scopes: approvalData.scopes || consent.scope,
-          expiresAt: approvalData.expiresAt,
-          accessGrantId: accessGrant.id,
-        },
+    // 记录审计日志 - Parent link decision
+    await this.auditLogger.logParentLinkDecision(
+      studentId,
+      consent.requesterId,
+      'approve',
+      req.ip,
+      {
+        consentId,
+        scopes: approvalData.scopes || consent.scope,
+        expiresAt: approvalData.expiresAt,
+        accessGrantId: accessGrant.id,
       },
-    });
+    );
 
     return {
       message: '关注请求已批准',
@@ -321,19 +318,17 @@ export class RequestsController {
       });
     }
 
-    // 记录审计日志
-    await this.prisma.auditLog.create({
-      data: {
-        actorId: studentId,
-        action: 'reject_relationship_request',
-        targetType: 'consent',
-        targetId: consentId,
-        metadata: {
-          requesterId: consent.requesterId,
-          rejectionReason: rejectionData.reason,
-        },
+    // 记录审计日志 - Parent link decision
+    await this.auditLogger.logParentLinkDecision(
+      studentId,
+      consent.requesterId,
+      'reject',
+      req.ip,
+      {
+        consentId,
+        rejectionReason: rejectionData.reason,
       },
-    });
+    );
 
     return {
       message: '关注请求已拒绝',

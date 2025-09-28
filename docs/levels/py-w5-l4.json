@@ -1,0 +1,35 @@
+{
+  "id": "py-w5-l4",
+  "title": "像素笑脸（5×5）",
+  "world": "W5",
+  "lessonIndex": 4,
+  "lang": "python",
+  "type": "pixel-art",
+  "difficulty": 3,
+  "goals": ["在 5×5 画布绘制笑脸图案（1=填色，0=空）"],
+  "starter": {
+    "blockly": "<xml></xml>",
+    "code": "canvas = [[0]*5 for _ in range(5)]\n# TODO: 把需要填色的位置设为 1\n# 输出每行拼成字符串，如 '01110' 并逐行 print\n"
+  },
+  "assets": {"size": 5},
+  "grader": {
+    "mode": "io",
+    "io": {
+      "cases": [
+        {
+          "in": "",
+          "out": "01110\n01010\n00000\n10001\n01110\n"
+        }
+      ],
+      "match": "exact"
+    },
+    "constraints": {
+      "maxTimeMs": 5000,
+      "maxMemMB": 128,
+      "forbiddenImports": ["os","sys","subprocess","numpy"]
+    }
+  },
+  "rewards": {"xp": 35, "coins": 12, "badges": ["嵌套循环"]},
+  "hints": ["二维列表索引：canvas[y][x]", "用两层 for 或直接赋值关键点"],
+  "examples": [{"input": "", "output": "01110\n01010\n00000\n10001\n01110\n", "explain": "目标矩阵"}]
+}

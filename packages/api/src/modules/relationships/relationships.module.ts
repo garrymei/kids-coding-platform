@@ -5,9 +5,10 @@ import { AccessGrantsController } from './controllers/access-grants.controller';
 import { RelationshipsService } from './relationships.service';
 import { PrismaModule } from '../../prisma/prisma.module';
 import { RateLimitService } from '../search/services/rate-limit.service';
+import { AuditModule } from '../audit/audit.module';
 
 @Module({
-  imports: [PrismaModule],
+  imports: [PrismaModule, AuditModule],
   controllers: [RelationshipsController, RequestsController, AccessGrantsController],
   providers: [RelationshipsService, RateLimitService],
   exports: [RelationshipsService, RateLimitService],

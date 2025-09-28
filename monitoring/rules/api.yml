@@ -1,53 +1,62 @@
 groups:
   - name: api.rules
     rules:
-      # API服务可用性
-      - alert: APIDown
-        expr: up{job="api"} == 0
+      # HTTP错误率告警
+      - alert: HighErrorRate
+        expr: rate(http_requests_total{status_code=~"5.."}[5m]) > 0.1
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High error rate detected"
+          description: "Error rate is {{ $value }} errors per second"
+
+      # 响应时间告警
+      - alert: HighResponseTime
+        expr: histogram_quantile(0.95, rate(http_request_duration_ms_bucket[5m])) > 2000
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High response time detected"
+          description: "95th percentile response time is {{ $value }}ms"
+
+      # 代码执行超时率告警
+      - alert: HighCodeExecutionTimeoutRate
+        expr: rate(code_executions_total{status="timeout"}[10m]) > 0.05
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High code execution timeout rate"
+          description: "Code execution timeout rate is {{ $value }} per second"
+
+      # 数据库连接失败告警
+      - alert: DatabaseDown
+        expr: database_status == 0
         for: 1m
         labels:
           severity: critical
         annotations:
-          summary: "API service is down"
-          description: "API service has been down for more than 1 minute."
+          summary: "Database is down"
+          description: "Database connection status is down"
 
-      # 高错误率
-      - alert: HighAPIErrorRate
-        expr: rate(http_requests_total{status_code=~"5.."}[5m]) > 0.1
+      # 内存使用率告警
+      - alert: HighMemoryUsage
+        expr: memory_usage_bytes{type="heapUsed"} / memory_usage_bytes{type="heapTotal"} > 0.8
         for: 5m
         labels:
           severity: warning
         annotations:
-          summary: "High API error rate"
-          description: "API error rate is {{ $value }} for more than 5 minutes."
+          summary: "High memory usage"
+          description: "Memory usage is {{ $value | humanizePercentage }}"
 
-      # 响应时间过长
-      - alert: HighAPIResponseTime
-        expr: histogram_quantile(0.95, rate(http_request_duration_seconds_bucket[5m])) > 2
-        for: 5m
-        labels:
-          severity: warning
-        annotations:
-          summary: "High API response time"
-          description: "95th percentile response time is {{ $value }}s for more than 5 minutes."
-
-      # 请求量异常
-      - alert: HighAPIRequestRate
-        expr: rate(http_requests_total[5m]) > 100
-        for: 5m
-        labels:
-          severity: warning
-        annotations:
-          summary: "High API request rate"
-          description: "API request rate is {{ $value }} for more than 5 minutes."
-
-      # 数据库连接问题
-      - alert: DatabaseConnectionIssue
-        expr: up{job="api"} == 0
+      # 速率限制触发告警
+      - alert: HighRateLimitBlocks
+        expr: rate(rate_limit_block_total[5m]) > 10
         for: 2m
         labels:
-          severity: critical
+          severity: warning
         annotations:
-          summary: "Database connection issue"
-          description: "API service cannot connect to database for more than 2 minutes."
-
+          summary: "High rate limit blocks"
+          description: "Rate limit blocks are {{ $value }} per second"

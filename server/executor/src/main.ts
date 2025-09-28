@@ -9,6 +9,7 @@ import { createChildLogger, logger } from './logger';
 import { initSentry, Sentry } from './sentry';
 import { collectMetrics, metricsContentType, recordExecutionFailure } from './metrics';
 import { validatePythonSource } from './pythonStaticValidator';
+import { blacklistDetectionMiddleware, rateLimitMiddleware, timeoutDetectionMiddleware } from './ratelimit';
 
 type RequestWithContext = Request & {
   traceId?: string;
@@ -94,6 +95,15 @@ export async function bootstrap(): Promise<Express> {
     });
     next();
   });
+
+  // Add blacklist detection middleware (before rate limiting)
+  app.use('/execute', blacklistDetectionMiddleware);
+  
+  // Add rate limiting middleware
+  app.use('/execute', rateLimitMiddleware);
+
+  // Add timeout detection middleware
+  app.use('/execute', timeoutDetectionMiddleware);
 
   app.post('/execute', async (req: RequestWithContext, res: Response, next: NextFunction) => {
     try {

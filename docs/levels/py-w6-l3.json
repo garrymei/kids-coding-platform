@@ -1,0 +1,39 @@
+{
+  "id": "py-w6-l3",
+  "title": "资源统计员",
+  "world": "W6",
+  "lessonIndex": 3,
+  "lang": "python",
+  "type": "io",
+  "difficulty": 2,
+  "goals": ["读取一行逗号分隔资源名，统计出现次数并按字母序输出"],
+  "starter": {
+    "blockly": "<xml></xml>",
+    "code": "line = input().strip()\nitems = [x.strip() for x in line.split(',') ]\n# TODO: 计数字典，并按键名称（字母）排序打印：name count"
+  },
+  "assets": {},
+  "grader": {
+    "mode": "io",
+    "io": {
+      "cases": [
+        {
+          "in": "wood, ore, fish, wood, fish\n",
+          "out": "fish 2\nore 1\nwood 2\n"
+        },
+        {
+          "in": "berry, berry, wood\n",
+          "out": "berry 2\nwood 1\n"
+        }
+      ],
+      "match": "exact"
+    },
+    "constraints": {
+      "maxTimeMs": 3000,
+      "maxMemMB": 64,
+      "forbiddenImports": ["os","sys","subprocess","collections"]
+    }
+  },
+  "rewards": {"xp": 30, "coins": 10, "badges": []},
+  "hints": ["dict 计数：d[x]=d.get(x,0)+1", "遍历排序：for k in sorted(d)"],
+  "examples": [{"input": "berry, berry, wood\n", "output": "berry 2\nwood 1\n", "explain": "按键排序输出"}]
+}

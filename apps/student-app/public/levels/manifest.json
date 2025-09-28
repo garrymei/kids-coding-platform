@@ -7,14 +7,18 @@
       "name": "壁画修复组",
       "summary": "用代码填色修复文明壁画。",
       "unlock": {
-        "requires": ["python/maze"],
+        "requires": [
+          "python/maze"
+        ],
         "minLevel": 4
       },
       "rewards": {
-        "badges": ["壁画修复师"],
+        "badges": [
+          "壁画修复师"
+        ],
         "firstClearBonusXP": 50
       },
-      "levelCount": 0
+      "levelCount": 2
     },
     {
       "lang": "python",
@@ -23,11 +27,15 @@
       "name": "自由创作间",
       "summary": "将所学融会贯通，创作你的实验岛作品。",
       "unlock": {
-        "requires": ["python/music"],
+        "requires": [
+          "python/music"
+        ],
         "minLevel": 6
       },
       "rewards": {
-        "badges": ["创意新星"],
+        "badges": [
+          "创意新星"
+        ],
         "firstClearBonusXP": 80
       },
       "levelCount": 0
@@ -39,14 +47,18 @@
       "name": "旋律唤醒队",
       "summary": "用音符序列唤醒沉睡的岛灵。",
       "unlock": {
-        "requires": ["python/pixel"],
+        "requires": [
+          "python/pixel"
+        ],
         "minLevel": 5
       },
       "rewards": {
-        "badges": ["旋律使者"],
+        "badges": [
+          "旋律使者"
+        ],
         "firstClearBonusXP": 60
       },
-      "levelCount": 0
+      "levelCount": 2
     },
     {
       "lang": "python",
@@ -55,14 +67,18 @@
       "name": "遗迹探索队",
       "summary": "控制机器人探索通道，寻找能量核心。",
       "unlock": {
-        "requires": ["python/led"],
+        "requires": [
+          "python/led"
+        ],
         "minLevel": 3
       },
       "rewards": {
-        "badges": ["迷宫探险家"],
+        "badges": [
+          "迷宫探险家"
+        ],
         "firstClearBonusXP": 70
       },
-      "levelCount": 0
+      "levelCount": 3
     },
     {
       "lang": "python",
@@ -71,14 +87,18 @@
       "name": "LED 能源恢复中心",
       "summary": "电路失灵，通过程序控制灯阵恢复供电。",
       "unlock": {
-        "requires": ["python/io"],
+        "requires": [
+          "python/io"
+        ],
         "minLevel": 2
       },
       "rewards": {
-        "badges": ["能源修复者"],
+        "badges": [
+          "能源修复者"
+        ],
         "firstClearBonusXP": 60
       },
-      "levelCount": 0
+      "levelCount": 3
     },
     {
       "lang": "python",
@@ -91,11 +111,283 @@
         "minLevel": 1
       },
       "rewards": {
-        "badges": ["灯塔信使"],
+        "badges": [
+          "灯塔信使"
+        ],
         "firstClearBonusXP": 50
       },
-      "levelCount": 0
+      "levelCount": 5
     }
   ],
-  "levels": []
+  "levels": [
+    {
+      "id": "py-pixel-001",
+      "title": "5×5 笑脸",
+      "lang": "python",
+      "gameType": "pixel",
+      "difficulty": 2,
+      "goals": [
+        "输出5行，每行由0/1组成，构成笑脸"
+      ],
+      "story": "从最简单的笑脸开始修复。",
+      "rewards": {
+        "xp": 35,
+        "coins": 12,
+        "badges": [
+          "嵌套循环"
+        ]
+      },
+      "path": "python/pixel/levels/beginner/pixel-001.json"
+    },
+    {
+      "id": "py-pixel-011",
+      "title": "几何拼图",
+      "lang": "python",
+      "gameType": "pixel",
+      "difficulty": 3,
+      "goals": [
+        "构造指定矩阵并输出"
+      ],
+      "story": "修复简单几何拼接图案。",
+      "rewards": {
+        "xp": 32,
+        "coins": 12,
+        "badges": []
+      },
+      "path": "python/pixel/levels/intermediate/pixel-011.json"
+    },
+    {
+      "id": "py-music-011",
+      "title": "节拍练习",
+      "lang": "python",
+      "gameType": "music",
+      "difficulty": 2,
+      "goals": [
+        "形成等间隔四拍"
+      ],
+      "story": "按 0、1、2、3 Tick 播放 C D E F。",
+      "rewards": {
+        "xp": 22,
+        "coins": 8,
+        "badges": []
+      },
+      "path": "python/music/levels/intermediate/music-011.json"
+    },
+    {
+      "id": "py-music-001",
+      "title": "第一声",
+      "lang": "python",
+      "gameType": "music",
+      "difficulty": 1,
+      "goals": [
+        "在 tick=0 播放 C 音符，时值=1"
+      ],
+      "story": "奏出森林的第一声。",
+      "rewards": {
+        "xp": 12,
+        "coins": 5,
+        "badges": []
+      },
+      "path": "python/music/levels/beginner/music-001.json"
+    },
+    {
+      "id": "py-maze-011",
+      "title": "右转再前",
+      "lang": "python",
+      "gameType": "maze",
+      "difficulty": 2,
+      "goals": [
+        "抵达终点，步数≤10 获 3 星"
+      ],
+      "story": "路径有转角，观察再行动。",
+      "rewards": {
+        "xp": 30,
+        "coins": 10,
+        "badges": [
+          "函数小能手"
+        ]
+      },
+      "path": "python/maze/levels/intermediate/maze-011.json"
+    },
+    {
+      "id": "py-maze-001",
+      "title": "直线前进",
+      "lang": "python",
+      "gameType": "maze",
+      "difficulty": 1,
+      "goals": [
+        "到达终点"
+      ],
+      "story": "遗迹入口通畅，直达第一检查点。",
+      "rewards": {
+        "xp": 20,
+        "coins": 8,
+        "badges": []
+      },
+      "path": "python/maze/levels/beginner/maze-001.json"
+    },
+    {
+      "id": "py-maze-021",
+      "title": "右手法则",
+      "lang": "python",
+      "gameType": "maze",
+      "difficulty": 3,
+      "goals": [
+        "实现函数封装并到达终点"
+      ],
+      "story": "复杂通道，尝试右手法则探索。",
+      "rewards": {
+        "xp": 40,
+        "coins": 12,
+        "badges": [
+          "算法入门"
+        ]
+      },
+      "path": "python/maze/levels/advanced/maze-021.json"
+    },
+    {
+      "id": "py-led-011",
+      "title": "依次点亮 5 盏灯",
+      "lang": "python",
+      "gameType": "led",
+      "difficulty": 2,
+      "goals": [
+        "on0→on1→on2→on3→on4"
+      ],
+      "story": "恢复一段电路：从 0 到 4 依次点亮。",
+      "rewards": {
+        "xp": 30,
+        "coins": 10,
+        "badges": [
+          "循环达人"
+        ]
+      },
+      "path": "python/led/levels/intermediate/led-011.json"
+    },
+    {
+      "id": "py-led-021",
+      "title": "交替灯阵",
+      "lang": "python",
+      "gameType": "led",
+      "difficulty": 3,
+      "goals": [
+        "终局输出 10101010"
+      ],
+      "story": "按奇亮偶灭点亮 8 盏灯。",
+      "rewards": {
+        "xp": 26,
+        "coins": 10,
+        "badges": []
+      },
+      "path": "python/led/levels/advanced/led-021.json"
+    },
+    {
+      "id": "py-led-001",
+      "title": "点亮第一盏灯",
+      "lang": "python",
+      "gameType": "led",
+      "difficulty": 1,
+      "goals": [
+        "输出事件 on0"
+      ],
+      "story": "能源站测试：点亮 0 号灯。",
+      "rewards": {
+        "xp": 12,
+        "coins": 5,
+        "badges": []
+      },
+      "path": "python/led/levels/beginner/led-001.json"
+    },
+    {
+      "id": "py-io-011",
+      "title": "营养液配比",
+      "lang": "python",
+      "gameType": "io",
+      "difficulty": 2,
+      "goals": [
+        "读取两数，输出 a/(a+b) 保留两位小数"
+      ],
+      "story": "岛上植物需要精准营养，计算配比以恢复生机。",
+      "rewards": {
+        "xp": 20,
+        "coins": 8,
+        "badges": []
+      },
+      "path": "python/io/levels/intermediate/io-011.json"
+    },
+    {
+      "id": "py-io-002",
+      "title": "回声频道",
+      "lang": "python",
+      "gameType": "io",
+      "difficulty": 1,
+      "goals": [
+        "读取一行输入并原样输出"
+      ],
+      "story": "灯塔回声频道被动监听，请把输入原样回传。",
+      "rewards": {
+        "xp": 12,
+        "coins": 5,
+        "badges": []
+      },
+      "path": "python/io/levels/beginner/io-002.json"
+    },
+    {
+      "id": "py-io-001",
+      "title": "你好，实验岛！",
+      "lang": "python",
+      "gameType": "io",
+      "difficulty": 1,
+      "goals": [
+        "打印 Hello, Island!"
+      ],
+      "story": "灯塔需要一条测试讯息，确认你已到达。",
+      "rewards": {
+        "xp": 10,
+        "coins": 5,
+        "badges": [
+          "启航者"
+        ]
+      },
+      "path": "python/io/levels/beginner/io-001.json"
+    },
+    {
+      "id": "py-io-021",
+      "title": "日志筛选官",
+      "lang": "python",
+      "gameType": "io",
+      "difficulty": 3,
+      "goals": [
+        "读取多行，输出含关键字的行"
+      ],
+      "story": "筛选灯塔日志中的告警行（包含 [WARN] 或 [ERROR]）。",
+      "rewards": {
+        "xp": 28,
+        "coins": 10,
+        "badges": [
+          "灯塔信使"
+        ]
+      },
+      "path": "python/io/levels/advanced/io-021.json"
+    },
+    {
+      "id": "py-io-031",
+      "title": "电报码解码",
+      "lang": "python",
+      "gameType": "io",
+      "difficulty": 4,
+      "goals": [
+        "解析如 C1-D2 → C D D"
+      ],
+      "story": "信号被编码为 A3-B1… 还原为字母序列。",
+      "rewards": {
+        "xp": 35,
+        "coins": 12,
+        "badges": [
+          "字符串能手"
+        ]
+      },
+      "path": "python/io/levels/challenge/io-031.json"
+    }
+  ]
 }

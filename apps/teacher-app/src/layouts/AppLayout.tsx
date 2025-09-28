@@ -3,6 +3,7 @@ import { Badge, Button } from '@kids/ui-kit';
 
 const navItems = [
   { to: '/classes', label: '班级概览' },
+  { to: '/overview', label: '数据概览' },
   { to: '/assignments', label: '作业批改' },
 ];
 

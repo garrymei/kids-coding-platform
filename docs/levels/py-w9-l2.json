@@ -1,0 +1,35 @@
+{
+  "id": "py-w9-l2",
+  "title": "电报码解码",
+  "world": "W9",
+  "lessonIndex": 2,
+  "lang": "python",
+  "type": "io",
+  "difficulty": 3,
+  "goals": ["把形如 'C1-D2-E1' 的电报码解码为 'C D E'（数字代表重复次数）"],
+  "starter": {
+    "blockly": "<xml></xml>",
+    "code": "code = input().strip()\n# TODO: 以 '-' 分割，再按字母+数字解析，重复字母并用空格连接输出"
+  },
+  "assets": {},
+  "grader": {
+    "mode": "io",
+    "io": {
+      "cases": [
+        {"in": "C1-D2-E1\n", "out": "C D D E\n"},
+        {"in": "A3\n", "out": "A A A\n"},
+        {"in": "X2-Y1\n", "out": "X X Y\n"}
+      ],
+      "match": "regex",
+      "pattern": "^([A-Z][0-9]+)(-[A-Z][0-9]+)*\n$"
+    },
+    "constraints": {
+      "maxTimeMs": 4000,
+      "maxMemMB": 64,
+      "forbiddenImports": ["os","sys","subprocess","re"]
+    }
+  },
+  "rewards": {"xp": 35, "coins": 12, "badges": ["字符串能手"]},
+  "hints": ["split('-') 分段", "s[0] 字母，s[1:] 次数：int(s[1:])", "用 ' '.join(...) 拼接"],
+  "examples": [{"input": "A3\n", "output": "A A A\n", "explain": "数字表示重复次数"}]
+}

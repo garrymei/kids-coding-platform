@@ -1,0 +1,39 @@
+.heatmap-matrix table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: sans-serif;
+}
+
+.heatmap-matrix th, .heatmap-matrix td {
+  border: 1px solid #ddd;
+  padding: 8px;
+  text-align: center;
+}
+
+.heatmap-matrix th {
+  background-color: #f2f2f2;
+  text-transform: capitalize;
+}
+
+.heatmap-cell {
+  width: 100%;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: bold;
+  position: relative;
+  border-radius: 4px;
+}
+
+.cell-value {
+  position: absolute;
+  top: 2px;
+  right: 4px;
+  font-size: 0.75em;
+  color: rgba(0, 0, 0, 0.6);
+  background-color: rgba(255, 255, 255, 0.5);
+  padding: 1px 3px;
+  border-radius: 2px;
+}

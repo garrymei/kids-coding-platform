@@ -1,4 +1,4 @@
-ï»¿import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import * as Blockly from 'blockly';
 // Dynamic imports for language generators
 // import 'blockly/python';
@@ -18,7 +18,7 @@ const statusTone: Record<RunStatus, 'info' | 'warning' | 'success' | 'danger'> =
 
 const statusLabel: Record<RunStatus, string> = {
   idle: 'Ready',
-  running: 'Runningâ€¦',
+  running: 'Running¡­',
   success: 'Completed',
   error: 'Error',
 };
@@ -27,6 +27,7 @@ export function LabPage() {
   const [workspace, setWorkspace] = useState<Blockly.WorkspaceSvg | null>(null);
   const [pythonCode, setPythonCode] = useState('');
   const [libsLoaded, setLibsLoaded] = useState(false);
+  const [showHints, setShowHints] = useState(true);
 
   // Load language generation libraries dynamically
   useEffect(() => {
@@ -97,15 +98,48 @@ export function LabPage() {
     setPythonCode('');
   }, [reset, workspace]);
 
+  const handleSaveWork = useCallback(() => {
+    if (workspace && pythonCode) {
+      try {
+        // Save to localStorage
+        const works = JSON.parse(localStorage.getItem('student_works') || '[]');
+        const newWork = {
+          id: `work-${Date.now()}`,
+          title: `ÊµÑé×÷Æ· ${new Date().toLocaleString()}`,
+          levelId: 'lab-experiment',
+          levelTitle: 'ÊµÑéÊÒ´´×÷',
+          code: pythonCode,
+          createdAt: new Date().toISOString(),
+          likes: 0,
+          isPublic: false
+        };
+        works.push(newWork);
+        localStorage.setItem('student_works', JSON.stringify(works));
+        alert('×÷Æ·ÒÑ±£´æµ½×÷Æ·¼¯£¡');
+      } catch (error) {
+        // console.error('Failed to save work:', error);
+        alert('±£´æÊ§°Ü£¬ÇëÖØÊÔ');
+      }
+    }
+  }, [workspace, pythonCode]);
+
   return (
     <div className="lab-grid">
       <section className="lab-grid__workspace">
         <div className="lab-grid__toolbar">
-          <h2>Lab</h2>
+          <h2>ÊµÑé¹¤·»</h2>
           <Badge tone={statusTone[status]} text={statusLabel[status]} />
-          <Button onClick={handleExecute} disabled={!libsLoaded}>
-            Run Code
-          </Button>
+          <div style={{ display: 'flex', gap: '10px' }}>
+            <Button onClick={handleExecute} disabled={!libsLoaded}>
+              ? ÔËĞĞ´úÂë
+            </Button>
+            <Button variant="secondary" onClick={handleClearWorkspace}>
+              Çå¿Õ
+            </Button>
+            <Button variant="secondary" onClick={handleSaveWork} disabled={!pythonCode}>
+              ±£´æ×÷Æ·
+            </Button>
+          </div>
         </div>
         <div className="lab-grid__canvas">
           <BlocklyWorkspace onWorkspaceChange={handleWorkspaceChange} height={520} />
@@ -113,35 +147,54 @@ export function LabPage() {
       </section>
 
       <section className="lab-grid__side">
-        <Card heading="Task Hint">
-          <p>Use a loop to light up bulbs #1 to #5, then click â€œRun Codeâ€.</p>
-          <ul className="reminder-list">
-            <li>Keep variable names short and readable (e.g. <code>index</code>).</li>
-            <li>Try adding a <code>wait</code> block inside the loop to visualise timing.</li>
-          </ul>
+        <Card heading="ÈÎÎñÌáÊ¾">
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <p>Ê¹ÓÃ»ıÄ¾¿é´´½¨ÄãµÄ³ÌĞò</p>
+            <Button 
+              variant="ghost" 
+              onClick={() => setShowHints(!showHints)}
+              style={{ fontSize: '12px' }}
+            >
+              {showHints ? 'Òş²Ø' : 'ÏÔÊ¾'}ÌáÊ¾
+            </Button>
+          </div>
+          
+          {showHints && (
+            <ul className="reminder-list">
+              <li>Ê¹ÓÃÑ­»·À´µãÁÁµÆÅİ #1 µ½ #5</li>
+              <li>±£³Ö±äÁ¿Ãû¼ò¶ÌÇÒÒ×¶Á (ÀıÈç <code>index</code>)</li>
+              <li>³¢ÊÔÔÚÑ­»·ÄÚÌí¼Ó <code>µÈ´ı</code> »ıÄ¾À´¿ÉÊÓ»¯Ê±¼ä</li>
+              <li>Ê¹ÓÃ <code>´òÓ¡</code> »ıÄ¾À´Êä³öµ÷ÊÔĞÅÏ¢</li>
+            </ul>
+          )}
         </Card>
 
-        <Card heading="Generated Python">
+        <Card heading="Éú³ÉµÄPython´úÂë">
           <pre className="code-preview">
-            {pythonCode || '# Blocks will automatically turn into Python here'}
+            {pythonCode || '# »ıÄ¾¿é½«×Ô¶¯×ª»»ÎªPython´úÂë'}
           </pre>
         </Card>
 
-        <Card heading="Console">
-          <div className="console-panel">{consoleText}</div>
+        <Card heading="¿ØÖÆÌ¨Êä³ö">
+          <div className="console-panel" style={{ maxHeight: '200px', overflowY: 'auto' }}>
+            {consoleText || 'ÔËĞĞ´úÂëºó½«ÔÚ´ËÏÔÊ¾Êä³ö½á¹û'}
+          </div>
         </Card>
 
         {rewardMessage ? (
-          <Card heading="Reward">
+          <Card heading="?? ½±ÀøĞÅÏ¢">
             <p>{rewardMessage}</p>
           </Card>
         ) : null}
 
-        <div className="lab-grid__actions">
-          <Button variant="secondary" onClick={handleClearWorkspace}>
-            Clear Workspace
-          </Button>
-        </div>
+        <Card heading="?? ÊµÑé½¨Òé">
+          <ul className="reminder-list">
+            <li>³¢ÊÔ²»Í¬µÄÑ­»·½á¹¹ (for, while)</li>
+            <li>ÊµÑéÌõ¼şÓï¾ä (if/else)</li>
+            <li>´´½¨º¯ÊıÀ´×éÖ¯´úÂë</li>
+            <li>±£´æÓĞÈ¤µÄ×÷Æ·µ½×÷Æ·¼¯</li>
+          </ul>
+        </Card>
       </section>
     </div>
   );

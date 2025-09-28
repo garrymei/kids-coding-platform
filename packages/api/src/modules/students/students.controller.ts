@@ -27,6 +27,7 @@ import {
   CreateFollowRequestDto,
   GenerateShareCodeDto,
 } from './dto/students.dto';
+import { GetConsentsDto } from './dto/get-consents.dto';
 
 @ApiTags('students')
 @Controller('students')
@@ -34,6 +35,38 @@ import {
 @ApiBearerAuth()
 export class StudentsController {
   constructor(private readonly studentsService: StudentsService) {}
+
+  @Get('consents')
+  @Roles(Role.Student)
+  @ApiOperation({ summary: '学生查看收到的授权申请' })
+  getConsents(@Query() getConsentsDto: GetConsentsDto, @Request() req) {
+    const studentId = req.user.id;
+    return this.studentsService.getConsents(studentId, getConsentsDto.status);
+  }
+
+  @Post('consents/:requestId/approve')
+  @Roles(Role.Student)
+  @ApiOperation({ summary: '学生同意授权申请' })
+  approveConsent(@Param('requestId') requestId: string, @Request() req) {
+    const studentId = req.user.id;
+    return this.studentsService.approveConsent(requestId, studentId);
+  }
+
+  @Post('consents/:requestId/reject')
+  @Roles(Role.Student)
+  @ApiOperation({ summary: '学生拒绝授权申请' })
+  rejectConsent(@Param('requestId') requestId: string, @Request() req) {
+    const studentId = req.user.id;
+    return this.studentsService.rejectConsent(requestId, studentId);
+  }
+
+  @Post('consents/:requestId/revoke')
+  @Roles(Role.Student)
+  @ApiOperation({ summary: '学生撤销已同意的授权' })
+  revokeConsent(@Param('requestId') requestId: string, @Request() req) {
+    const studentId = req.user.id;
+    return this.studentsService.revokeConsent(requestId, studentId);
+  }
 
   @Put('search-settings')
   @Roles(Role.Student)

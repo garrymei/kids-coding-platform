@@ -12,32 +12,36 @@ alerting:
           - alertmanager:9093
 
 scrape_configs:
-  # API服务监控
-  - job_name: 'api'
+  # API服务指标
+  - job_name: 'kids-coding-api'
     static_configs:
-      - targets: ['host.docker.internal:3000']
+      - targets: ['api:3000']
     metrics_path: '/metrics'
     scrape_interval: 10s
     scrape_timeout: 5s
 
-  # 执行器监控
-  - job_name: 'executor'
+  # 健康检查
+  - job_name: 'kids-coding-health'
     static_configs:
-      - targets: ['host.docker.internal:4060']
-    metrics_path: '/metrics'
-    scrape_interval: 10s
+      - targets: ['api:3000']
+    metrics_path: '/health'
+    scrape_interval: 30s
     scrape_timeout: 5s
 
-  # WebSocket服务监控
-  - job_name: 'websocket'
+  # 系统指标
+  - job_name: 'node-exporter'
     static_configs:
-      - targets: ['host.docker.internal:4070']
-    metrics_path: '/metrics'
-    scrape_interval: 10s
-    scrape_timeout: 5s
+      - targets: ['node-exporter:9100']
+    scrape_interval: 15s
 
-  # Prometheus自身监控
-  - job_name: 'prometheus'
+  # 数据库指标
+  - job_name: 'postgres-exporter'
     static_configs:
-      - targets: ['localhost:9090']
+      - targets: ['postgres-exporter:9187']
+    scrape_interval: 15s
 
+  # Redis指标
+  - job_name: 'redis-exporter'
+    static_configs:
+      - targets: ['redis-exporter:9121']
+    scrape_interval: 15s

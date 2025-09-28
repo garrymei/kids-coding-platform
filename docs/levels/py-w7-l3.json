@@ -1,0 +1,43 @@
+{
+  "id": "py-w7-l3",
+  "title": "迷宫的右手法则",
+  "world": "W7",
+  "lessonIndex": 3,
+  "lang": "python",
+  "type": "maze-bot",
+  "difficulty": 3,
+  "goals": ["用函数封装走迷宫策略，抵达终点，步数不超过阈值获得 3 星"],
+  "starter": {
+    "blockly": "<xml></xml>",
+    "code": "def step():\n    pass\n\n# 可用 API: move(), turn_left(), scan() -> {'front':0/1,'left':0/1,'right':0/1}\n# TODO: 实现右手法则，并调用\n"
+  },
+  "assets": {
+    "maze": [
+      "########",
+      "#S....E#",
+      "########"
+    ],
+    "maxSteps3Star": 8
+  },
+  "grader": {
+    "mode": "event",
+    "events": {
+      "channel": "maze",
+      "collectFromAPI": true,
+      "expectedGoal": "reach_end"
+    },
+    "checks": [
+      {"type": "goal", "name": "reach_end", "must": true},
+      {"type": "maxSteps", "value": 8}
+    ],
+    "constraints": {
+      "requireStructures": ["def"],
+      "maxTimeMs": 5000,
+      "maxMemMB": 128,
+      "forbiddenImports": ["os","sys","subprocess","time"]
+    }
+  },
+  "rewards": {"xp": 40, "coins": 12, "badges": ["函数小能手"]},
+  "hints": ["scan() 查看三面墙；优先靠右前进", "把常用动作封装成函数"],
+  "examples": [{"input": "", "output": "", "explain": "事件型无标准输出，达成终点即可"}]
+}

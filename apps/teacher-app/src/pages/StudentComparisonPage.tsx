@@ -3,6 +3,7 @@ import { Card, Row, Col, Select, Button, message, Table, Tag, Space, Modal } fro
 import { BarChartOutlined, LineChartOutlined, UserOutlined } from '@ant-design/icons';
 import { StudentTrendChart, StudentComparisonChart } from '@kids/ui-kit';
 import { httpClient } from '../services/http';
+import dayjs from 'dayjs';
 
 const { Option } = Select;
 

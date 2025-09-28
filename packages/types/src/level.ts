@@ -25,11 +25,28 @@ export interface Level {
   difficulty: number;
   goals: string[];
   story?: string;
+  starter?: {
+    blockly?: string;
+    code?: string;
+  };
+  grader: {
+    mode: string;
+    io?: {
+      cases: Array<{ in: string; out: string }>;
+      match: string;
+    };
+    constraints?: {
+      maxTimeMs?: number;
+      maxMemMB?: number;
+      forbiddenImports?: string[];
+    };
+  };
   rewards: {
     xp: number;
     coins: number;
     badges: string[];
   };
+  hints?: string[];
   path: string;
 }
 

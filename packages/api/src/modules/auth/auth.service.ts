@@ -3,6 +3,7 @@ import { JwtService } from '@nestjs/jwt';
 import { PrismaService } from '../../prisma/prisma.service';
 import { Role } from './roles.enum';
 import * as argon2 from 'argon2';
+import { AuditLoggerService } from '../audit/services/audit-logger.service';
 
 interface JwtPayload {
   sub: string;
@@ -25,6 +26,7 @@ export class AuthService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly jwtService: JwtService,
+    private readonly auditLogger: AuditLoggerService,
   ) {}
 
   private async validateUser(email: string, password: string) {
@@ -98,6 +100,13 @@ export class AuthService {
     };
 
     const accessToken = await this.jwtService.signAsync(payload);
+
+    // Log the login event
+    await this.auditLogger.logLogin(user.id, undefined, undefined, {
+      email: user.email,
+      role: user.role.name,
+      loginMethod: 'email/password',
+    });
 
     return {
       accessToken,
