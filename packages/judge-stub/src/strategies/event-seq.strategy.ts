@@ -91,20 +91,21 @@ export class EventSeqStrategy implements JudgeStrategy {
     }
   }
 
-  private normalizeExpectedEvents(expected: any): string[] {
+  private normalizeExpectedEvents(expected: unknown): string[] {
     if (Array.isArray(expected)) {
       return expected.map(e => String(e));
     }
     
     if (expected && typeof expected === 'object') {
-      if (Array.isArray(expected.events)) {
-        return expected.events.map((e: any) => String(e));
+      const obj = expected as Record<string, unknown>;
+      if (Array.isArray(obj.events)) {
+        return obj.events.map((e: unknown) => String(e));
       }
-      if (Array.isArray(expected.expect)) {
-        return expected.expect.map((e: any) => String(e));
+      if (Array.isArray(obj.expect)) {
+        return obj.expect.map((e: unknown) => String(e));
       }
-      if (Array.isArray(expected.sequence)) {
-        return expected.sequence.map((e: any) => String(e));
+      if (Array.isArray(obj.sequence)) {
+        return obj.sequence.map((e: unknown) => String(e));
       }
     }
 

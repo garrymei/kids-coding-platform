@@ -63,7 +63,7 @@ export class ExecuteService {
 
     const events = this.events.collect(outcome.stdout);
 
-    let judgeResult: { ok: boolean; details?: any } | undefined;
+    let judgeResult: { ok: boolean; details?: unknown } | undefined;
     if (!outcome.error && dto.judge) {
       judgeResult = await this.evaluateJudge(dto.judge, outcome.stdout, events);
     }
@@ -286,7 +286,7 @@ export class ExecuteService {
     judge: ExecuteJudgeDto,
     stdout: string,
     events: ExecutionEvent[],
-  ): Promise<{ ok: boolean; details?: any }> {
+  ): Promise<{ ok: boolean; details?: unknown }> {
     try {
       return await this.judgeService.evaluateStrategy({
         strategy: judge.strategy,

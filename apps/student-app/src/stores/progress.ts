@@ -77,7 +77,7 @@ const mockApi = {
     }
     return {};
   },
-  post: async (url: string, payload: any) => {
+  post: async (url: string, payload: unknown) => {
     console.log(`[Mock API] POST ${url}`, payload);
     // Simulate a delay for async operation
     await new Promise(resolve => setTimeout(resolve, 500));
