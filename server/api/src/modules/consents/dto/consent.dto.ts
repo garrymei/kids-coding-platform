@@ -2,7 +2,7 @@ import { IsString, IsOptional, IsIn, IsObject } from 'class-validator';
 
 export class ConsentActionDto {
   @IsString()
-  requestId: string;
+  requestId!: string;
 
   @IsOptional()
   @IsString()
@@ -10,22 +10,22 @@ export class ConsentActionDto {
 }
 
 export class ConsentResponseDto {
-  id: string;
-  status: 'pending' | 'approved' | 'rejected' | 'revoked';
-  decidedAt: string;
+  id!: string;
+  status!: 'pending' | 'approved' | 'rejected' | 'revoked';
+  decidedAt!: string;
   reason?: string;
-  studentId: string;
-  parentId: string;
-  createdAt: string;
-  updatedAt: string;
+  studentId!: string;
+  parentId!: string;
+  createdAt!: string;
+  updatedAt!: string;
 }
 
 export class ConsentRequestDto {
   @IsString()
-  studentId: string;
+  studentId!: string;
 
   @IsString()
-  parentId: string;
+  parentId!: string;
 
   @IsOptional()
   @IsString()

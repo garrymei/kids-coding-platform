@@ -5,8 +5,8 @@ import { judgeEventSeq } from './strategies/event-seq.strategy';
 import { judgeLEDStrategy } from './strategies/led.strategy';
 import { EventBridgeService } from '../execute/event-bridge.service';
 import { ExecutionEvent, extractArtifacts } from '../execute/eventParser';
-import { StrategyFactory } from '../../../../packages/judge-stub/src/strategies/strategy-factory';
-import { JudgeInput, JudgeResult as NewJudgeResult } from '../../../../packages/judge-stub/src/strategies/judge-strategy.interface';
+import { StrategyFactory } from '@kids/judge-stub/strategies/strategy-factory';
+import { JudgeInput, JudgeResult as NewJudgeResult } from '@kids/judge-stub/strategies/judge-strategy.interface';
 
 type JudgeStrategy = 'stdout' | 'pixel' | 'music' | 'maze';
 

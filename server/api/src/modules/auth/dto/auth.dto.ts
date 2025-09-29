@@ -4,35 +4,35 @@ export class LoginDto {
   @IsString()
   @MinLength(3)
   @MaxLength(50)
-  username: string;
+  username!: string;
 
   @IsString()
   @MinLength(6)
   @MaxLength(100)
-  password: string;
+  password!: string;
 }
 
 export class RegisterDto {
   @IsString()
   @MinLength(3)
   @MaxLength(50)
-  username: string;
+  username!: string;
 
   @IsEmail()
-  email: string;
+  email!: string;
 
   @IsString()
   @MinLength(6)
   @MaxLength(100)
-  password: string;
+  password!: string;
 
   @IsString()
   @MinLength(2)
   @MaxLength(50)
-  name: string;
+  name!: string;
 
   @IsIn(['student', 'parent', 'teacher'])
-  role: 'student' | 'parent' | 'teacher';
+  role!: 'student' | 'parent' | 'teacher';
 
   @IsOptional()
   @IsString()
@@ -42,32 +42,32 @@ export class RegisterDto {
 
 export class RefreshTokenDto {
   @IsString()
-  refreshToken: string;
+  refreshToken!: string;
 }
 
 export class ChangePasswordDto {
   @IsString()
   @MinLength(6)
   @MaxLength(100)
-  currentPassword: string;
+  currentPassword!: string;
 
   @IsString()
   @MinLength(6)
   @MaxLength(100)
-  newPassword: string;
+  newPassword!: string;
 }
 
 export class ResetPasswordDto {
   @IsEmail()
-  email: string;
+  email!: string;
 }
 
 export class VerifyResetTokenDto {
   @IsString()
-  token: string;
+  token!: string;
 
   @IsString()
   @MinLength(6)
   @MaxLength(100)
-  newPassword: string;
+  newPassword!: string;
 }

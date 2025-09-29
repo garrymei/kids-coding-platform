@@ -230,6 +230,23 @@ export class LoggerService {
     );
   }
 
+  // 便捷方法
+  info(msg: string, meta?: Record<string, any>): void {
+    this.log('info', msg, meta);
+  }
+
+  warn(msg: string, meta?: Record<string, any>): void {
+    this.log('warn', msg, meta);
+  }
+
+  error(msg: string, meta?: Record<string, any>): void {
+    this.log('error', msg, meta);
+  }
+
+  debug(msg: string, meta?: Record<string, any>): void {
+    this.log('debug', msg, meta);
+  }
+
   /**
    * 记录设置变更审计
    */

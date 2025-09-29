@@ -7,7 +7,7 @@ import { RunAndJudgeRequestDto, RunAndJudgeResponseDto } from './dto/run-and-jud
 import { EventBridgeService } from './event-bridge.service';
 import { JudgeService } from '../judge/judge.service';
 import { ExecutionEvent, extractArtifacts } from './eventParser';
-import { dockerRunner } from '../../../../executor/dockerRunner';
+import { dockerRunner } from '../../../executor/dockerRunner';
 
 const MAX_OUTPUT_BYTES = 64 * 1024;
 const MAX_TIMEOUT_MS = 3000;
