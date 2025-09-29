@@ -41,7 +41,9 @@ export function CoursesPage() {
         
         setPackProgress(newPackProgress);
       } catch (_error) {
-        // console.error('Failed to load game packs:', _error);
+        if (import.meta.env.DEV) {
+          console.error('Failed to load game packs:', _error);
+        }
       } finally {
         setLoading(false);
       }

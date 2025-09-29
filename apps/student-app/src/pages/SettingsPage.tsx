@@ -13,16 +13,17 @@ export function SettingsPage() {
     };
 
     // 监听自定义事件
-    const handleCustomEvent = (event: CustomEvent) => {
-      setSettings(event.detail);
+    const handleCustomEvent = (event: Event) => {
+      const customEvent = event as CustomEvent;
+      setSettings(customEvent.detail);
     };
 
-    window.addEventListener('settingsChanged', handleCustomEvent as EventListener);
+    window.addEventListener('settingsChanged', handleCustomEvent);
     
     // 定期检查设置变化（简单实现）
     const interval = setInterval(handleSettingsChange, 1000);
     return () => {
-      window.removeEventListener('settingsChanged', handleCustomEvent as EventListener);
+      window.removeEventListener('settingsChanged', handleCustomEvent);
       clearInterval(interval);
     };
   }, []);
@@ -35,7 +36,7 @@ export function SettingsPage() {
 
   const handleSave = () => {
     // Remove updatedAt from the settings to save
-    const { updatedAt, ...settingsToSave } = settings;
+    const { updatedAt: _updatedAt, ...settingsToSave } = settings;
     settingsStore.updateSettings(settingsToSave);
     setHasChanges(false);
     

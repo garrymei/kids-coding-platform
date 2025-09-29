@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { useStudentState, useStudentActions } from '../store/studentStore.js';
 import { recommendationService } from '../services/recommend';
 import type { Level } from '../services/level.repo';
-import { LoadingSpinner, CardSkeleton, EmptyState, ErrorState } from '../components/LoadingStates';
+import { CardSkeleton, ErrorState } from '../components/LoadingStates';
 import { api, handleApiError } from '../services/api-client';
 
 export function HomePage() {
@@ -28,7 +28,7 @@ export function HomePage() {
       setError(null);
       
       // 使用新的API客户端获取首页进度数据
-      const homeProgress = await api.get(`/progress/students/stu_1/home`);
+      await api.get(`/progress/students/stu_1/home`);
       
       // 同时获取推荐课程
       const [recommendation, summary] = await Promise.all([
@@ -45,7 +45,9 @@ export function HomePage() {
     } catch (error) {
       const errorMessage = handleApiError(error);
       setError(errorMessage);
-      console.error('Failed to load home data:', error);
+      if (import.meta.env.DEV) {
+        console.error('Failed to load home data:', error);
+      }
     } finally {
       setLoading(false);
     }
