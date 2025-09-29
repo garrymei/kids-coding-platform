@@ -1,93 +1,82 @@
 import { createBrowserRouter } from 'react-router-dom';
 import { Suspense, lazy } from 'react';
+import { AppLayout } from './layouts/AppLayout';
 import { LoadingSpinner } from './components/LoadingStates';
 
-// Á´ãÂç≥Âä†ËΩΩÁöÑÊ†∏ÂøÉÈ°µÈù¢
+// Eagerly loaded core screens
 import HomePage from './pages/Home/HomePage';
 import HubPage from './pages/Hub/HubPage';
 import PlayPage from './pages/Play/PlayPage';
 
-// ÊáíÂä†ËΩΩÁöÑÈ°µÈù¢ÁªÑ‰ª∂
+// Lazy screens
+const CoursesPage = lazy(() => import('./pages/CoursesPage').then((m) => ({ default: m.CoursesPage })));
 const WorksPage = lazy(() => import('./pages/Works/WorksPage'));
 const LeaderboardPage = lazy(() => import('./pages/Leaderboard/LeaderboardPage'));
-const SettingsPage = lazy(() => import('./pages/SettingsPage').then(m => ({ default: m.SettingsPage })));
-const ConsentsPage = lazy(() => import('./pages/ConsentsPage').then(m => ({ default: m.ConsentsPage })));
-const MyClassesPage = lazy(() => import('./pages/MyClassesPage').then(m => ({ default: m.MyClassesPage })));
+const SettingsPage = lazy(() => import('./pages/SettingsPage').then((m) => ({ default: m.SettingsPage })));
+const ConsentsPage = lazy(() => import('./pages/ConsentsPage').then((m) => ({ default: m.ConsentsPage })));
+const MyClassesPage = lazy(() => import('./pages/MyClassesPage').then((m) => ({ default: m.MyClassesPage })));
 const PackagePage = lazy(() => import('./pages/PackagePage'));
+const MapPage = lazy(() => import('./pages/MapPage').then((m) => ({ default: m.MapPage })));
 
-// ÊáíÂä†ËΩΩÂåÖË£ÖÂô®
-const LazyWorksPage = () => (
-  <Suspense fallback={<LoadingSpinner text="Âä†ËΩΩ‰ΩúÂìÅÈ°µÈù¢..." />}>
-    <WorksPage />
-  </Suspense>
-);
-
-const LazyLeaderboardPage = () => (
-  <Suspense fallback={<LoadingSpinner text="Âä†ËΩΩÊéíË°åÊ¶ú..." />}>
-    <LeaderboardPage />
-  </Suspense>
-);
-
-const LazySettingsPage = () => (
-  <Suspense fallback={<LoadingSpinner text="Âä†ËΩΩËÆæÁΩÆÈ°µÈù¢..." />}>
-    <SettingsPage />
-  </Suspense>
-);
-
-const LazyConsentsPage = () => (
-  <Suspense fallback={<LoadingSpinner text="Âä†ËΩΩÊéàÊùÉÈ°µÈù¢..." />}>
-    <ConsentsPage />
-  </Suspense>
-);
-
-const LazyMyClassesPage = () => (
-  <Suspense fallback={<LoadingSpinner text="Âä†ËΩΩÁè≠Á∫ßÈ°µÈù¢..." />}>
-    <MyClassesPage />
-  </Suspense>
-);
-
-const LazyPackagePage = () => (
-  <Suspense fallback={<LoadingSpinner text="Âä†ËΩΩËØæÁ®ãÂåÖ..." />}>
-    <PackagePage />
+const withSuspense = (element: JSX.Element, text: string) => (
+  <Suspense fallback={<LoadingSpinner text={text} />}>
+    {element}
   </Suspense>
 );
 
 export const router = createBrowserRouter([
   {
     path: '/',
-    element: <HomePage />,
+    element: <AppLayout />,
+    children: [
+      {
+        index: true,
+        element: <HomePage />,
+      },
+      {
+        path: 'courses',
+        element: withSuspense(<CoursesPage />, 'º”‘ÿøŒ≥Ã“≥√Ê...'),
+      },
+      {
+        path: 'map',
+        element: withSuspense(<MapPage />, 'º”‘ÿøŒ≥ÃµÿÕº...'),
+      },
+      {
+        path: 'works',
+        element: withSuspense(<WorksPage />, 'º”‘ÿ◊˜∆∑“≥√Ê...'),
+      },
+      {
+        path: 'leaderboard',
+        element: withSuspense(<LeaderboardPage />, 'º”‘ÿ≈≈––∞Ò...'),
+      },
+      {
+        path: 'rank',
+        element: withSuspense(<LeaderboardPage />, 'º”‘ÿ≈≈––∞Ò...'),
+      },
+      {
+        path: 'play/:levelId',
+        element: <PlayPage />,
+      },
+      {
+        path: 'settings',
+        element: withSuspense(<SettingsPage />, 'º”‘ÿ…Ë÷√“≥√Ê...'),
+      },
+      {
+        path: 'consents',
+        element: withSuspense(<ConsentsPage />, 'º”‘ÿ ⁄»®“≥√Ê...'),
+      },
+      {
+        path: 'my-classes',
+        element: withSuspense(<MyClassesPage />, 'º”‘ÿ∞‡º∂“≥√Ê...'),
+      },
+      {
+        path: 'packages/:pkgId',
+        element: withSuspense(<PackagePage />, 'º”‘ÿøŒ≥Ã∞¸...'),
+      },
+    ],
   },
   {
-    // Example: /hub/python or /hub/python/led
     path: '/hub/:lang/:game?',
     element: <HubPage />,
-  },
-  {
-    path: '/packages/:pkgId',
-    element: <LazyPackagePage />,
-  },
-  {
-    path: '/works',
-    element: <LazyWorksPage />,
-  },
-  {
-    path: '/leaderboard',
-    element: <LazyLeaderboardPage />,
-  },
-  {
-    path: '/play/:levelId',
-    element: <PlayPage />,
-  },
-  {
-    path: '/settings',
-    element: <LazySettingsPage />,
-  },
-  {
-    path: '/consents',
-    element: <LazyConsentsPage />,
-  },
-  {
-    path: '/my-classes',
-    element: <LazyMyClassesPage />,
   },
 ]);

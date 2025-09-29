@@ -64,7 +64,7 @@ export function validateRequiredStructures(code: string, requiredStructures: str
   const results = checkStructures(code, requiredStructures);
 
   // Check that all required structures are present
-  return requiredStructures.every(structure => {
+  return requiredStructures.every((structure) => {
     // Map common aliases
     const aliasMap: Record<string, string> = {
       loop: 'for', // Check for either for or while
@@ -90,7 +90,7 @@ export function validateRequiredStructures(code: string, requiredStructures: str
 export function getMissingStructuresMessage(code: string, requiredStructures: string[] = []): string {
   const results = checkStructures(code, requiredStructures);
 
-  const missing = requiredStructures.filter(structure => {
+  const missing = requiredStructures.filter((structure) => {
     // Special handling for loop (either for or while is acceptable)
     if (structure === 'loop') {
       return !results.for && !results.while;
@@ -103,7 +103,7 @@ export function getMissingStructuresMessage(code: string, requiredStructures: st
     return '';
   }
 
-  const missingNames = missing.map(structure => STRUCTURE_NAME_MAP[structure] || structure);
+  const missingNames = missing.map((structure) => STRUCTURE_NAME_MAP[structure] || structure);
 
   return `缺少必需的结构：${missingNames.join(', ')}`;
 }
@@ -124,7 +124,7 @@ export function validateStructure(
 ): StructureValidationResult {
   const details = checkStructures(code, requiredStructures);
 
-  const missing = requiredStructures.filter(structure => {
+  const missing = requiredStructures.filter((structure) => {
     if (structure === 'loop') {
       return !details.for && !details.while;
     }
@@ -133,7 +133,7 @@ export function validateStructure(
   });
 
   const valid = missing.length === 0;
-  const message = valid ? '' : `缺少必需的结构：${missing.map(s => STRUCTURE_NAME_MAP[s] || s).join(', ')}`;
+  const message = valid ? '' : `缺少必需的结构：${missing.map((s) => STRUCTURE_NAME_MAP[s] || s).join(', ')}`;
 
   return {
     valid,

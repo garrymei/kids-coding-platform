@@ -1,44 +1,15 @@
-import { NavLink, Outlet } from 'react-router-dom';
-import { Badge, Button } from '@kids/ui-kit';
-
-const navItems = [
-  { to: '/home', label: 'é¦–é¡µ' },
-  { to: '/courses', label: 'è¯¾ç¨‹' },
-  { to: '/lab', label: 'å®éªŒå®¤' },
-];
+import { Outlet } from 'react-router-dom';
+import { AppHeader } from './AppHeader';
 
 export function AppLayout() {
   return (
-    <div className="app-shell">
-      <header className="app-shell__nav">
-        <div className="app-shell__brand">
-          <div className="app-shell__logo" aria-hidden>âš¡ï¸</div>
-          <div>
-            <div className="app-shell__brand-title">Kids Coding</div>
-            <Badge text="Beta" tone="info" />
-          </div>
-        </div>
-        <nav className="app-shell__nav-links">
-          {navItems.map((item) => (
-            <NavLink
-              key={item.to}
-              to={item.to}
-              className={({ isActive }) =>
-                ['app-shell__nav-link', isActive ? 'app-shell__nav-link--active' : '']
-                  .filter(Boolean)
-                  .join(' ')
-              }
-            >
-              {item.label}
-            </NavLink>
-          ))}
-        </nav>
-        <div className="app-shell__cta">
-          <Button rounded>ä»Šæ—¥ä»»åŠ¡</Button>
-        </div>
-      </header>
-      <main className="app-shell__main">
-        <div className="app-shell__content">
+    <div className="page-shell">
+      <a className="skip-link" href="#main-content">
+        Ìøµ½Ö÷ÄÚÈİ
+      </a>
+      <AppHeader />
+      <main id="main-content" style={{ paddingTop: 16, minHeight: '100vh' }}>
+        <div className="page-container">
           <Outlet />
         </div>
       </main>
