@@ -16,6 +16,10 @@ export default defineConfig({
         fileURLToPath(new URL('.', import.meta.url)),
         '../../packages/ui-kit/src',
       ),
+      '@kids/judge-stub': path.resolve(
+        fileURLToPath(new URL('.', import.meta.url)),
+        '../../packages/judge-stub/src',
+      ),
       '@kids/forms': path.resolve(
         fileURLToPath(new URL('.', import.meta.url)),
         '../../packages/forms/src',
@@ -27,7 +31,7 @@ export default defineConfig({
     },
   },
   optimizeDeps: {
-    include: ['@kids/config', '@kids/ui-kit', '@kids/forms', '@kids/blockly-extensions'],
+    include: ['@kids/config', '@kids/ui-kit', '@kids/forms', '@kids/blockly-extensions', '@kids/judge-stub'],
   },
   build: {
     rollupOptions: {

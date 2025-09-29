@@ -1,6 +1,7 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { performance } from 'node:perf_hooks';
 import { Script, createContext } from 'node:vm';
+import { Buffer } from 'node:buffer';
 import { ExecuteJudgeDto, ExecuteRequestDto, ExecuteResponse, ExecutionError } from './dto/execute-request.dto';
 import { RunAndJudgeRequestDto, RunAndJudgeResponseDto } from './dto/run-and-judge-request.dto';
 import { EventBridgeService } from './event-bridge.service';
@@ -16,7 +17,7 @@ const PYTHON_MEMORY_LIMIT = 256 * 1024 * 1024;
 const PYTHON_EXECUTOR_URL = new URL('../../../../executor/dist/pythonExecutor.js', import.meta.url);
 
 // Docker 执行器配置
-const USE_DOCKER = process.env.USE_DOCKER === 'true' || process.env.NODE_ENV === 'production';
+const USE_DOCKER = (process.env.USE_DOCKER === 'true' || process.env.NODE_ENV === 'production') as boolean;
 
 type InternalExecutionOutcome = {
   stdout: string;

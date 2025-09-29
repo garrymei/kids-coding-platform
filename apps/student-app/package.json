@@ -15,6 +15,7 @@
     "@ant-design/icons": "^5.6.0",
     "@kids/blockly-extensions": "workspace:*",
     "@kids/forms": "workspace:*",
+    "@kids/judge-stub": "workspace:*",
     "@kids/types": "workspace:*",
     "@kids/ui-kit": "workspace:*",
     "@sentry/react": "^8.33.1",
