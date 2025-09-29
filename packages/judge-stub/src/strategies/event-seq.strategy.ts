@@ -35,7 +35,7 @@ export class EventSeqStrategy implements JudgeStrategy {
           expectedCount: expectedEvents.length,
           actualCount: actualEvents.length,
           matched: comparison.matched,
-          diffIndex: comparison.diffIndex,
+          diffIndex: comparison.diffIndex || -1,
         },
       };
     } catch (error) {

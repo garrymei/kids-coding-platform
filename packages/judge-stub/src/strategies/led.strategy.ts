@@ -82,7 +82,7 @@ export class LEDStrategy implements JudgeStrategy {
     return events;
   }
 
-  private judgeEventSequence(expected: any, actualEvents: Array<{ type: 'on' | 'off'; index: number; timestamp: number }>, args: any): JudgeResult {
+  private judgeEventSequence(expected: any, actualEvents: Array<{ type: 'on' | 'off'; index: number; timestamp: number }>, _args: any): JudgeResult {
     const expectedEvents = this.normalizeExpectedEvents(expected);
     const actualEventStrings = actualEvents.map(e => `${e.type}${e.index}`);
 
@@ -123,9 +123,7 @@ export class LEDStrategy implements JudgeStrategy {
         gridWidth,
       },
       metrics: {
-        expectedState,
-        actualState,
-        gridWidth,
+        gridWidth: gridWidth,
         eventCount: actualEvents.length,
       },
     };

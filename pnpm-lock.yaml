@@ -502,6 +502,12 @@ importers:
 
   packages/judge-stub:
     devDependencies:
+      '@types/jest':
+        specifier: ^29.5.14
+        version: 29.5.14
+      jest:
+        specifier: ^29.7.0
+        version: 29.7.0(@types/node@20.19.17)(ts-node@10.9.2(@types/node@20.19.17)(typescript@5.9.2))
       typescript:
         specifier: ^5.9.2
         version: 5.9.2
