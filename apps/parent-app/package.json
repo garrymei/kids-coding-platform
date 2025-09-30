@@ -15,6 +15,7 @@
     "@ant-design/icons": "^5.6.0",
     "@kids/forms": "workspace:*",
     "@kids/ui-kit": "workspace:*",
+    "@kids/utils": "workspace:*",
     "@types/recharts": "^2.0.1",
     "antd": "^5.23.1",
     "dayjs": "^1.11.13",

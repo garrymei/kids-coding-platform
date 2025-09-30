@@ -1,4 +1,4 @@
-import { useState } from 'react';
+ï»¿import { useState } from 'react';
 import type { ReactNode } from 'react';
 import type { Level } from '@kids/types';
 import { runAndJudge, type RunAndJudgeResult } from '../lib/runAndJudge';
@@ -23,7 +23,7 @@ export function RunPanel({ level, code, onCodeChange, onResult, gameRunner }: Ru
 
   const handleRun = async () => {
     if (!code.trim()) {
-      setError('ÇëÊäÈë´úÂëºóÔÙÔËĞĞ');
+      setError('è¯·è¾“å…¥ä»£ç å†è¿è¡Œ');
       setResult(null);
       return;
     }
@@ -36,7 +36,7 @@ export function RunPanel({ level, code, onCodeChange, onResult, gameRunner }: Ru
       setResult(data);
       onResult?.(data);
     } catch (err) {
-      const message = err instanceof Error ? err.message : 'ÔËĞĞÊ§°Ü£¬ÇëÉÔºóÔÙÊÔ';
+      const message = err instanceof Error ? err.message : 'æ‰§è¡Œå¤±è´¥ï¼Œè¯·ç¨åé‡è¯•';
       setError(message);
       setResult(null);
     } finally {
@@ -44,15 +44,18 @@ export function RunPanel({ level, code, onCodeChange, onResult, gameRunner }: Ru
     }
   };
 
+  const monospace =
+    "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace";
+
   return (
     <div className="grid grid-2">
-      <section className="card" aria-label="´úÂë±à¼­Æ÷">
+      <section className="card" aria-label="ä»£ç ç¼–è¾‘å™¨">
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-          <strong>´úÂë±à¼­Æ÷</strong>
+          <strong>ä»£ç ç¼–è¾‘å™¨</strong>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             {gameRunner?.toolbar}
             <button type="button" className="btn btn-primary" onClick={handleRun} disabled={loading}>
-              {loading ? 'ÔËĞĞÖĞ¡­' : '? ÔËĞĞ´úÂë'}
+              {loading ? 'è¿è¡Œä¸­â€¦' : 'â–¶ è¿è¡Œä»£ç '}
             </button>
           </div>
         </div>
@@ -62,7 +65,7 @@ export function RunPanel({ level, code, onCodeChange, onResult, gameRunner }: Ru
           rows={14}
           style={{
             width: '100%',
-            fontFamily: 'ui-monospace, SFMono-Regular, SFMono, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace',
+            fontFamily: monospace,
             fontSize: 14,
             border: '1px solid var(--border)',
             borderRadius: 12,
@@ -70,12 +73,12 @@ export function RunPanel({ level, code, onCodeChange, onResult, gameRunner }: Ru
             resize: 'vertical',
             minHeight: 220,
           }}
-          placeholder="ÔÚÕâÀï±àĞ´ÄãµÄ´úÂë¡­"
+          placeholder="åœ¨è¿™é‡Œç¼–å†™ä½ çš„ä»£ç â€¦"
         />
       </section>
 
       <section className="card" aria-live="polite" aria-busy={loading}>
-        <strong style={{ display: 'block', marginBottom: 12 }}>ÔËĞĞ½á¹û</strong>
+        <strong style={{ display: 'block', marginBottom: 12 }}>è¿è¡Œç»“æœ</strong>
 
         {error && (
           <div className="alert alert-error" role="alert" style={{ marginBottom: 12 }}>
@@ -85,13 +88,13 @@ export function RunPanel({ level, code, onCodeChange, onResult, gameRunner }: Ru
 
         {result?.structure && !result.structure.valid && (
           <div className="alert alert-warn" role="alert" style={{ marginBottom: 12 }}>
-            {result.structure.message || 'È±ÉÙ±ØĞèµÄ½á¹¹£¬Çë¼ì²éÈÎÎñÒªÇó'}
+            {result.structure.message || 'ç¼ºå°‘å¿…éœ€çš„ç»“æ„ï¼Œè¯·æ£€æŸ¥ä»»åŠ¡è¦æ±‚'}
           </div>
         )}
 
         {result?.judge && (
           <div
-            className={lert }
+            className={`alert ${result.judge.passed ? 'alert-success' : 'alert-warn'}`}
             role="status"
             style={{ marginBottom: 12 }}
           >
@@ -104,7 +107,7 @@ export function RunPanel({ level, code, onCodeChange, onResult, gameRunner }: Ru
                   background: 'rgba(15, 23, 42, 0.04)',
                   padding: 12,
                   borderRadius: 10,
-                  fontFamily: 'ui-monospace, SFMono-Regular, SFMono, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace',
+                  fontFamily: monospace,
                 }}
               >
                 {result.judge.details}
@@ -123,7 +126,7 @@ export function RunPanel({ level, code, onCodeChange, onResult, gameRunner }: Ru
                 background: 'rgba(239, 68, 68, 0.08)',
                 padding: 10,
                 borderRadius: 10,
-                fontFamily: 'ui-monospace, SFMono-Regular, SFMono, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace',
+                fontFamily: monospace,
               }}
             >
               {result.exec.stderr}
@@ -141,7 +144,7 @@ export function RunPanel({ level, code, onCodeChange, onResult, gameRunner }: Ru
                 background: 'rgba(15, 23, 42, 0.04)',
                 padding: 10,
                 borderRadius: 10,
-                fontFamily: 'ui-monospace, SFMono-Regular, SFMono, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace',
+                fontFamily: monospace,
               }}
             >
               {result.exec.stdout}
@@ -150,11 +153,10 @@ export function RunPanel({ level, code, onCodeChange, onResult, gameRunner }: Ru
         )}
 
         <div style={{ marginTop: 16 }}>
-          {gameRunner?.render?.(result) || (
-            <p className="text-muted">ÔËĞĞºó¿ÉÔÚÕâÀï²é¿´¿ÉÊÓ»¯½á¹û</p>
-          )}
+          {gameRunner?.render?.(result) || <p className="text-muted">è¿è¡Œåå¯åœ¨è¿™é‡ŒæŸ¥çœ‹å¯è§†åŒ–ç»“æœã€‚</p>}
         </div>
       </section>
     </div>
   );
 }
+

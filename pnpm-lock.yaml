@@ -77,6 +77,9 @@ importers:
       '@kids/ui-kit':
         specifier: workspace:*
         version: link:../../packages/ui-kit
+      '@kids/utils':
+        specifier: workspace:*
+        version: link:../../packages/utils
       '@types/recharts':
         specifier: ^2.0.1
         version: 2.0.1(@types/react@19.1.13)(react-dom@19.1.1(react@19.1.1))(react-is@18.3.1)(react@19.1.1)(redux@5.0.1)
@@ -159,6 +162,9 @@ importers:
       '@kids/forms':
         specifier: workspace:*
         version: link:../../packages/forms
+      '@kids/judge-stub':
+        specifier: workspace:*
+        version: link:../../packages/judge-stub
       '@kids/types':
         specifier: workspace:*
         version: link:../../packages/types
@@ -247,6 +253,9 @@ importers:
       '@kids/ui-kit':
         specifier: workspace:*
         version: link:../../packages/ui-kit
+      '@kids/utils':
+        specifier: workspace:*
+        version: link:../../packages/utils
       '@types/recharts':
         specifier: ^2.0.1
         version: 2.0.1(@types/react@19.1.13)(react-dom@19.1.1(react@19.1.1))(react-is@18.3.1)(react@19.1.1)(redux@5.0.1)
@@ -520,6 +529,9 @@ importers:
 
   packages/ui-kit:
     dependencies:
+      '@kids/utils':
+        specifier: workspace:*
+        version: link:../utils
       react:
         specifier: '>=18'
         version: 19.1.1
@@ -535,6 +547,10 @@ importers:
         version: 5.9.2
 
   packages/utils:
+    dependencies:
+      ky:
+        specifier: ^1.7.2
+        version: 1.10.0
     devDependencies:
       '@types/node':
         specifier: ^20.19.17

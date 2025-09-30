@@ -1,5 +1,5 @@
+import React, { Suspense, lazy } from 'react';
 import { createBrowserRouter } from 'react-router-dom';
-import { Suspense, lazy } from 'react';
 import { AppLayout } from './layouts/AppLayout';
 import { LoadingSpinner } from './components/LoadingStates';
 
@@ -18,7 +18,7 @@ const MyClassesPage = lazy(() => import('./pages/MyClassesPage').then((m) => ({ 
 const PackagePage = lazy(() => import('./pages/PackagePage'));
 const MapPage = lazy(() => import('./pages/MapPage').then((m) => ({ default: m.MapPage })));
 
-const withSuspense = (element: JSX.Element, text: string) => (
+const withSuspense = (element: React.JSX.Element, text: string) => (
   <Suspense fallback={<LoadingSpinner text={text} />}>
     {element}
   </Suspense>
@@ -35,23 +35,23 @@ export const router = createBrowserRouter([
       },
       {
         path: 'courses',
-        element: withSuspense(<CoursesPage />, '加载课程页面...'),
+        element: withSuspense(<CoursesPage />, 'Loading Courses...'),
       },
       {
         path: 'map',
-        element: withSuspense(<MapPage />, '加载课程地图...'),
+        element: withSuspense(<MapPage />, 'Loading Map...'),
       },
       {
         path: 'works',
-        element: withSuspense(<WorksPage />, '加载作品页面...'),
+        element: withSuspense(<WorksPage />, 'Loading Works...'),
       },
       {
         path: 'leaderboard',
-        element: withSuspense(<LeaderboardPage />, '加载排行榜...'),
+        element: withSuspense(<LeaderboardPage />, 'Loading Leaderboard...'),
       },
       {
         path: 'rank',
-        element: withSuspense(<LeaderboardPage />, '加载排行榜...'),
+        element: withSuspense(<LeaderboardPage />, 'Loading Leaderboard...'),
       },
       {
         path: 'play/:levelId',
@@ -59,19 +59,19 @@ export const router = createBrowserRouter([
       },
       {
         path: 'settings',
-        element: withSuspense(<SettingsPage />, '加载设置页面...'),
+        element: withSuspense(<SettingsPage />, 'Loading Settings...'),
       },
       {
         path: 'consents',
-        element: withSuspense(<ConsentsPage />, '加载授权页面...'),
+        element: withSuspense(<ConsentsPage />, 'Loading Consents...'),
       },
       {
         path: 'my-classes',
-        element: withSuspense(<MyClassesPage />, '加载班级页面...'),
+        element: withSuspense(<MyClassesPage />, 'Loading Classes...'),
       },
       {
         path: 'packages/:pkgId',
-        element: withSuspense(<PackagePage />, '加载课程包...'),
+        element: withSuspense(<PackagePage />, 'Loading Package...'),
       },
     ],
   },

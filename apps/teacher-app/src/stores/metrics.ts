@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { getStudentTrend, postClassCompare, Dim, Period } from '@kids/utils/api/metrics';
+import { getStudentTrend, postClassCompare, Dim, Period } from '@kids/utils';
 
 interface TrendDataPoint {
   t: Date;

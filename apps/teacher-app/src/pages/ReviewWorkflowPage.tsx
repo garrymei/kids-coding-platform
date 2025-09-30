@@ -243,14 +243,12 @@ export function ReviewWorkflowPage() {
               <div className="work-actions">
                 <Button
                   variant="primary"
-                  size="sm"
                   onClick={() => handleReviewWork(work)}
                 >
                   点评
                 </Button>
                 <Button
                   variant="ghost"
-                  size="sm"
                 >
                   查看详情
                 </Button>

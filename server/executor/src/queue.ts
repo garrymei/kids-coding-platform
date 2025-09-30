@@ -24,7 +24,7 @@ export interface ExecutionResultPayload {
 }
 
 export class TaskQueue {
-  private readonly redis: Redis;
+  private redis: Redis | null;
 
   private readonly queueKey: string;
 
@@ -32,20 +32,38 @@ export class TaskQueue {
 
   private readonly pending = new Map<string, ExecutionResultPayload>();
 
+  private readonly localQueue: ExecutionJob[] = [];
+
   constructor({ redisUrl, queueKey }: { redisUrl: string; queueKey: string }) {
-    this.redis = new Redis(redisUrl, {
-      maxRetriesPerRequest: null,
-      lazyConnect: true,
-    });
     this.queueKey = queueKey;
+    
+    // Try to create Redis connection, but don't fail if it's not available
+    try {
+      this.redis = new Redis(redisUrl, {
+        maxRetriesPerRequest: null,
+        lazyConnect: true,
+      });
+    } catch (error) {
+      logger.warn({ err: error }, '[queue] redis connection failed, using local queue');
+      this.redis = null;
+    }
   }
 
   async connect() {
-    this.redis.on('error', (err) => {
-      logger.error({ err }, '[queue] redis connection error');
-    });
-    await this.redis.connect();
-    logger.info('[queue] redis connected');
+    if (this.redis) {
+      this.redis.on('error', (err) => {
+        logger.error({ err }, '[queue] redis connection error');
+      });
+      try {
+        await this.redis.connect();
+        logger.info('[queue] redis connected');
+      } catch (error) {
+        logger.warn({ err: error }, '[queue] redis connection failed, using local queue');
+        this.redis = null;
+      }
+    } else {
+      logger.info('[queue] using local queue (no redis)');
+    }
   }
 
   async enqueue(
@@ -56,7 +74,13 @@ export class TaskQueue {
       jobId: randomUUID(),
       createdAt: Date.now(),
     };
-    await this.redis.lpush(this.queueKey, JSON.stringify(job));
+    
+    if (this.redis) {
+      await this.redis.lpush(this.queueKey, JSON.stringify(job));
+    } else {
+      // Use local queue
+      this.localQueue.push(job);
+    }
     return job;
   }
 
@@ -88,15 +112,25 @@ export class TaskQueue {
   }
 
   async take(): Promise<ExecutionJob> {
-    const response = await this.redis.brpop(this.queueKey, 0);
-    if (!response) {
-      throw new Error('Failed to pop job from queue');
+    if (this.redis) {
+      const response = await this.redis.brpop(this.queueKey, 0);
+      if (!response) {
+        throw new Error('Failed to pop job from queue');
+      }
+      const [, body] = response;
+      return JSON.parse(body) as ExecutionJob;
+    } else {
+      // Use local queue
+      if (this.localQueue.length === 0) {
+        throw new Error('No jobs in local queue');
+      }
+      return this.localQueue.shift()!;
     }
-    const [, body] = response;
-    return JSON.parse(body) as ExecutionJob;
   }
 
   async disconnect() {
-    await this.redis.quit();
+    if (this.redis) {
+      await this.redis.quit();
+    }
   }
 }

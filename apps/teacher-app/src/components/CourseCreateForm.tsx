@@ -69,7 +69,7 @@ export function CourseCreateForm({ onSubmit, isLoading = false }: CourseCreateFo
         required
       >
         <FormInput
-          {...register('title')}
+          register={register('title')}
           type="text"
           placeholder="请输入课程标题"
           disabled={isSubmitting || isLoading}
@@ -83,7 +83,7 @@ export function CourseCreateForm({ onSubmit, isLoading = false }: CourseCreateFo
         helpText="简要介绍课程内容和学习目标"
       >
         <FormTextarea
-          {...register('description')}
+          register={register('description')}
           placeholder="请输入课程描述..."
           rows={4}
           disabled={isSubmitting || isLoading}
@@ -96,7 +96,7 @@ export function CourseCreateForm({ onSubmit, isLoading = false }: CourseCreateFo
         required
       >
         <FormSelect
-          {...register('difficulty')}
+          register={register('difficulty')}
           options={difficultyOptions}
           placeholder="请选择难度等级"
           disabled={isSubmitting || isLoading}
@@ -132,7 +132,7 @@ export function CourseCreateForm({ onSubmit, isLoading = false }: CourseCreateFo
         helpText="整个课程的预计学习时长"
       >
         <FormInput
-          {...register('estimatedDuration', { valueAsNumber: true })}
+          register={register('estimatedDuration', { valueAsNumber: true })}
           type="number"
           min="1"
           max="480"
@@ -146,7 +146,7 @@ export function CourseCreateForm({ onSubmit, isLoading = false }: CourseCreateFo
         error={errors.isPublic}
       >
         <FormCheckbox
-          {...register('isPublic')}
+          register={register('isPublic')}
           label="公开课程（其他教师和学生可以查看）"
           disabled={isSubmitting || isLoading}
         />

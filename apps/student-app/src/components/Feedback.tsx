@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react';
+ï»¿import type { ReactNode } from 'react';
 
 interface ErrorViewProps {
   title?: string;
@@ -9,18 +9,16 @@ interface ErrorViewProps {
 }
 
 export function ErrorView({
-  title = '¼ÓÔØÊ§°Ü',
-  message = '·¢ÉúÁËÒâÍâ´íÎó£¬ÇëÉÔºóÖØÊÔ¡£',
-  actionLabel = 'ÖØÊÔ',
+  title = 'åŠ è½½å¤±è´¥',
+  message = 'å‘ç”Ÿäº†æ„å¤–é”™è¯¯ï¼Œè¯·ç¨åé‡è¯•ã€‚',
+  actionLabel = 'é‡è¯•',
   onAction,
   extra,
 }: ErrorViewProps) {
   return (
     <div className="card" role="alert" style={{ textAlign: 'center' }}>
       <h3 style={{ marginBottom: 8 }}>{title}</h3>
-      <p className="text-muted" style={{ marginBottom: 16 }}>
-        {message}
-      </p>
+      <p className="text-muted" style={{ marginBottom: 16 }}>{message}</p>
       {onAction && (
         <button type="button" className="btn btn-primary" onClick={onAction}>
           {actionLabel}
@@ -38,8 +36,8 @@ interface EmptyViewProps {
 }
 
 export function EmptyView({
-  title = 'ÔİÎŞÊı¾İ',
-  description = 'ÊÔ×Åµ÷ÕûÉ¸Ñ¡Ìõ¼ş»òÉÔºóÖØÊÔ¡£',
+  title = 'æš‚æ— å†…å®¹',
+  description = 'è¯•ç€è°ƒæ•´ç­›é€‰æ¡ä»¶æˆ–ç¨åå†æ¥ã€‚',
   action,
 }: EmptyViewProps) {
   return (
@@ -58,12 +56,7 @@ interface PageSkeletonProps {
 export function PageSkeleton({ rows = 5 }: PageSkeletonProps) {
   return (
     <div className="card" aria-busy="true" aria-live="polite">
-      <div
-        style={{
-          display: 'grid',
-          gap: 12,
-        }}
-      >
+      <div style={{ display: 'grid', gap: 12 }}>
         {Array.from({ length: rows }).map((_, index) => (
           <div
             key={index}
@@ -77,11 +70,11 @@ export function PageSkeleton({ rows = 5 }: PageSkeletonProps) {
         ))}
       </div>
       <style>
-        {@keyframes pulse {
+        {`@keyframes pulse {
           0% { opacity: 0.6; }
           50% { opacity: 1; }
           100% { opacity: 0.6; }
-        }}
+        }`}
       </style>
     </div>
   );

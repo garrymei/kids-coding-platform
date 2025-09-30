@@ -3,7 +3,7 @@ import { List, Button, Spin, Space, Avatar } from 'antd';
 import { useParams } from 'react-router-dom';
 import { useClassStore } from '../stores/class';
 
-export default function ApprovalsPage() {
+export function ApprovalsPage() {
   const { classId } = useParams<{ classId: string }>();
   const { approvals, loading, error, fetchApprovals, approveApproval, rejectApproval } = useClassStore();
 

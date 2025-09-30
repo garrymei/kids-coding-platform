@@ -277,10 +277,10 @@ export function TeachingDashboard() {
               </div>
 
               <div className="student-actions">
-                <Button variant="ghost" size="sm">
+                <Button variant="ghost">
                   查看详情
                 </Button>
-                <Button variant="ghost" size="sm">
+                <Button variant="ghost">
                   点评作品
                 </Button>
               </div>

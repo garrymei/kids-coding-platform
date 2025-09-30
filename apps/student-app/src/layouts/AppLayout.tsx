@@ -5,7 +5,7 @@ export function AppLayout() {
   return (
     <div className="page-shell">
       <a className="skip-link" href="#main-content">
-        Ìøµ½Ö÷ÄÚÈÝ
+        ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
       </a>
       <AppHeader />
       <main id="main-content" style={{ paddingTop: 16, minHeight: '100vh' }}>

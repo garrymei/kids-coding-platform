@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useMetricsStore } from '../../stores/metrics';
 import { LineTimeseries } from '@kids/ui-kit';
-import { Dim, Period } from '@kids/utils/api/metrics';
+import { Dim, Period } from '@kids/utils';
 import { Select, Card, Skeleton } from 'antd';
 import { useParams, useLocation } from 'react-router-dom';
 

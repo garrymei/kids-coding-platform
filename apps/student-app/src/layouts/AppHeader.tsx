@@ -2,11 +2,12 @@ import { useState } from 'react';
 import { NavLink } from 'react-router-dom';
 
 const NAV_LINKS = [
-  { to: '/', label: 'Ê×Ò³' },
-  { to: '/courses', label: '¿Î³Ì' },
-  { to: '/map', label: '¿Î³ÌµØÍ¼' },
-  { to: '/works', label: '×÷Æ·' },
-  { to: '/leaderboard', label: 'ÅÅĞĞ°ñ' },
+  { to: '/', label: 'é¦–é¡µ' },
+  { to: '/hub/python', label: 'è¯¾ç¨‹åœ°å›¾' },
+  { to: '/works', label: 'ä½œå“é›†' },
+  { to: '/leaderboard', label: 'æ’è¡Œæ¦œ' },
+  { to: '/my-classes', label: 'æˆ‘çš„ç­çº§' },
+  { to: '/consents', label: 'æˆæƒç®¡ç†' },
 ];
 
 export function AppHeader() {
@@ -28,7 +29,7 @@ export function AppHeader() {
           <span>Kids Coding</span>
         </div>
 
-        <nav className="app-header__nav" aria-label="Ö÷µ¼º½">
+        <nav className="app-header__nav" aria-label="ä¸»å¯¼èˆª">
           {NAV_LINKS.map((link) => (
             <NavLink key={link.to} to={link.to} className={linkClass}>
               {link.label}
@@ -38,20 +39,20 @@ export function AppHeader() {
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
           <a className="btn btn-ghost" href="/tasks">
-            ½ñÈÕÈÎÎñ
+            ä»Šæ—¥ä»»åŠ¡
           </a>
           <button
             type="button"
             onClick={toggleMobile}
             className="app-header__mobile-toggle"
-            aria-label="ÇĞ»»µ¼º½"
+            aria-label="åˆ‡æ¢å¯¼èˆª"
             aria-expanded={mobileOpen}
           >
-            <span aria-hidden>?</span>
+            <span aria-hidden>â˜°</span>
           </button>
           <img
             src="/avatar.png"
-            alt="µ±Ç°ÓÃ»§Í·Ïñ"
+            alt="å½“å‰ç”¨æˆ·å¤´åƒ"
             width={36}
             height={36}
             style={{ borderRadius: 12 }}
@@ -60,8 +61,8 @@ export function AppHeader() {
       </div>
 
       <nav
-        className={pp-header__mobile-panel .trim()}
-        aria-label="ÒÆ¶¯Ö÷µ¼º½"
+        className={`app-header__mobile-panel ${mobileOpen ? 'is-open' : ''}`.trim()}
+        aria-label="ç§»åŠ¨ç‰ˆå¯¼èˆª"
       >
         {NAV_LINKS.map((link) => (
           <NavLink key={link.to} to={link.to} className={linkClass} onClick={closeMobile}>

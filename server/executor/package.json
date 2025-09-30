@@ -9,6 +9,7 @@
     "dev": "pnpm start:dev",
     "build": "tsc -p tsconfig.build.json",
     "lint": "eslint \"src/**/*.ts\"",
+    "typecheck": "tsc --noEmit",
     "start": "node dist/main.js",
     "start:dev": "ts-node --project tsconfig.json src/main.ts"
   },

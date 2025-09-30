@@ -101,7 +101,7 @@ export class ErrorBoundary extends Component<Props, State> {
                 我们已经记录了这个问题，正在努力修复中。
               </p>
               
-              {process.env.NODE_ENV === 'development' && this.state.error && (
+              {import.meta.env.MODE === 'development' && this.state.error && (
                 <details style={{ 
                   textAlign: 'left',
                   backgroundColor: '#ffffff',

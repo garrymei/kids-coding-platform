@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useMetricsStore } from '../../stores/metrics';
 import { HeatmapMatrix } from '../../components/charts/HeatmapMatrix';
-import { Dim, Period } from '@kids/utils/api/metrics';
+import { Dim, Period } from '@kids/utils';
 import { Select, Card, Skeleton, Button } from 'antd';
 import { useNavigate } from 'react-router-dom';
 

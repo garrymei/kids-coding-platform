@@ -9,7 +9,7 @@ const mockClasses = [
   { id: 'class_2', name: 'Python兴趣小组', code: 'AB12CD' },
 ];
 
-export default function ClassesPage() {
+export function ClassesPage() {
   const { createClass, loading } = useClassStore();
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [form] = Form.useForm();

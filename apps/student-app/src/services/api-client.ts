@@ -109,11 +109,12 @@ apiClient.extend({
               }
               break;
               
-            case 429:
+            case 429: {
               // 请求过多 - 显示重试提示
               const retryAfter = errorResponse.retryAfter || 60;
               showToast(`请求过于频繁，请 ${retryAfter} 秒后重试`, 'warning');
               break;
+            }
               
             case 503:
               // 服务不可用 - 显示维护提示

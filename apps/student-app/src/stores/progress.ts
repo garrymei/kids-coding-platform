@@ -1,5 +1,4 @@
 import { create } from 'zustand';
-import ky from 'ky';
 
 // --- Mocks and Types based on the new spec ---
 
@@ -28,6 +27,7 @@ interface ProgressState {
   loading: boolean;
   snapshot?: HomeSnapshot;
   pkgCache: Record<string, PackageDetails>;
+  completedLevels: Set<string>; // Correctly track all completed levels
 }
 
 interface ProgressActions {
@@ -52,8 +52,8 @@ const mockApi = {
         streakDays: 5,
         today: { studyMinutes: 32, attempts: 4, passes: 2 },
         packages: [
-          { pkgId: 'python-basics', title: 'Python 基础', completed: 8, total: 12, percent: 0.667 },
-          { pkgId: 'maze', title: '迷宫算法', completed: 2, total: 6, percent: 0.333 },
+          { pkgId: 'python-basics', title: 'Python 基础', completed: 2, total: 4, percent: 0.5 },
+          { pkgId: 'maze', title: '迷宫算法', completed: 0, total: 6, percent: 0.0 },
         ],
         nextLesson: { levelId: 'loops-2', pkgId: 'python-basics', title: '循环练习2' },
         recent: [{ levelId: 'loops-1', passed: true, ts: new Date().toISOString() }],
@@ -71,15 +71,14 @@ const mockApi = {
           { levelId: 'func-1', status: 'locked' },
         ],
         completed: 2,
-        total: 12,
-        percent: 0.167,
+        total: 4,
+        percent: 0.5,
       };
     }
     return {};
   },
   post: async (url: string, payload: unknown) => {
     console.log(`[Mock API] POST ${url}`, payload);
-    // Simulate a delay for async operation
     await new Promise(resolve => setTimeout(resolve, 500));
     return { accepted: 1 };
   },
@@ -92,16 +91,22 @@ export const useProgressStore = create<ProgressState & ProgressActions>((set, ge
   loading: false,
   snapshot: undefined,
   pkgCache: {},
+  completedLevels: new Set(),
 
   fetchHome: async (studentId: string) => {
     set({ loading: true });
     const data = await mockApi.get(`/progress/students/${studentId}/home`);
-    set({ snapshot: data as HomeSnapshot, loading: false });
+    // Initialize completedLevels from a reliable source if available, or derive it.
+    // For this mock, we'll fetch the main package and derive from it.
+    const pkgData = await mockApi.get(`/progress/students/${studentId}/packages/python-basics`);
+    const initialCompleted = new Set(
+      (pkgData as any).levels.filter((l: any) => l.status === 'done').map((l: any) => l.levelId)
+    );
+    set({ snapshot: data as HomeSnapshot, completedLevels: initialCompleted, loading: false });
   },
 
   fetchPackage: async (studentId: string, pkgId: string) => {
     const cache = get().pkgCache[pkgId];
-    // Use cache if it's fresh (e.g., less than 30s old)
     if (cache && Date.now() - cache.ts < 30000) {
       return;
     }
@@ -116,25 +121,26 @@ export const useProgressStore = create<ProgressState & ProgressActions>((set, ge
 
   applyAttempt: ({ levelId, passed }) => {
     const studentId = 'stu_1'; // Mock studentId
-    const { snapshot, pkgCache } = get();
+    const { snapshot, pkgCache, completedLevels } = get();
     if (!snapshot) return;
 
-    // 1. Optimistically update the homepage snapshot
     const newSnapshot = { ...snapshot };
     newSnapshot.today = { ...snapshot.today, attempts: snapshot.today.attempts + 1 };
 
+    const isFirstPass = passed && !completedLevels.has(levelId);
+
     if (passed) {
-      const isFirstPass = !Object.values(pkgCache)
-        .flatMap(p => p.levels)
-        .some(l => l.levelId === levelId && l.status === 'done');
-      
       newSnapshot.today.passes += 1;
       newSnapshot.xp += isFirstPass ? XPRules.passLevel : XPRules.retryPass;
     }
     newSnapshot.recent = [{ levelId, passed, ts: new Date().toISOString() }, ...snapshot.recent].slice(0, 5);
 
-    // 2. Optimistically update the package cache
     const newPkgCache = { ...pkgCache };
+    const newCompletedLevels = new Set(completedLevels);
+    if (isFirstPass) {
+      newCompletedLevels.add(levelId);
+    }
+
     Object.entries(newPkgCache).forEach(([pkgId, pkg]) => {
       const levelIndex = pkg.levels.findIndex(l => l.levelId === levelId);
       if (levelIndex !== -1) {
@@ -144,12 +150,10 @@ export const useProgressStore = create<ProgressState & ProgressActions>((set, ge
         if (pkg.levels[levelIndex].status !== nextStatus) {
             pkg.levels[levelIndex] = { ...pkg.levels[levelIndex], status: nextStatus };
             
-            // Recalculate completion
             const completedCount = pkg.levels.filter(l => l.status === 'done').length;
             pkg.completed = completedCount;
             pkg.percent = pkg.total > 0 ? completedCount / pkg.total : 0;
 
-            // Update package progress in snapshot as well
             const pkgInSnapshot = newSnapshot.packages.find(p => p.pkgId === pkgId);
             if(pkgInSnapshot) {
                 pkgInSnapshot.completed = completedCount;
@@ -159,10 +163,8 @@ export const useProgressStore = create<ProgressState & ProgressActions>((set, ge
       }
     });
 
-    // 3. Set the new state
-    set({ snapshot: newSnapshot, pkgCache: newPkgCache });
+    set({ snapshot: newSnapshot, pkgCache: newPkgCache, completedLevels: newCompletedLevels });
 
-    // 4. Asynchronously report the event to the backend
     mockApi.post('/progress/events', {
       body: [{
         type: 'LEVEL_ATTEMPT',

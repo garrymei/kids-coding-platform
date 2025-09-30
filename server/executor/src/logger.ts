@@ -11,9 +11,6 @@ const options: LoggerOptions = {
     service: 'kids-executor',
     environment: process.env.NODE_ENV ?? 'development',
   },
-  formatters: {
-    level: (label) => ({ level: label }),
-  },
 };
 
 const targets: TransportTargetOptions[] = [];

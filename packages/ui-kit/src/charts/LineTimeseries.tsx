@@ -10,7 +10,7 @@ import {
   ResponsiveContainer,
   ReferenceLine,
 } from 'recharts';
-import { Dim } from '@kids/utils/api/metrics';
+import { Dim } from '@kids/utils';
 
 interface LineTimeseriesProps {
   data: any[];
@@ -21,10 +21,10 @@ interface LineTimeseriesProps {
 }
 
 const DIMENSION_CONFIG = {
-  study_minutes: { label: 'Study Minutes', unit: 'min', color: '#8884d8' },
-  levels_completed: { label: 'Levels Completed', unit: '', color: '#82ca9d' },
-  retry_count: { label: 'Retry Count', unit: '', color: '#ffc658' },
-  accuracy: { label: 'Accuracy', unit: '%', domain: [0, 1] },
+  study_minutes: { label: 'Study Minutes', unit: 'min', color: '#8884d8', domain: [0, 120] },
+  levels_completed: { label: 'Levels Completed', unit: '', color: '#82ca9d', domain: [0, 50] },
+  retry_count: { label: 'Retry Count', unit: '', color: '#ffc658', domain: [0, 10] },
+  accuracy: { label: 'Accuracy', unit: '%', color: '#ff7300', domain: [0, 1] },
 };
 
 const CustomTooltip = ({ active, payload, label }: any) => {
