@@ -266,7 +266,7 @@ export class MetricsController {
     const classInfo = await this.metricsService['prisma'].class.findFirst({
       where: {
         id: classId,
-        ownerTeacherId: requesterId,
+        teacherId: requesterId,
         status: 'ACTIVE',
       },
       include: {

@@ -32,8 +32,7 @@ export class DataMaskingService {
     targetStudentId: string,
   ): Promise<MaskingConfig> {
     const requester = await this.prisma.user.findUnique({
-      where: { id: requesterId },
-      include: { role: true },
+      where: { id: requesterId }
     });
 
     if (!requester) {
@@ -49,8 +48,7 @@ export class DataMaskingService {
         showAvatar: true,
         showEmail: true,
         showPhone: true,
-        anonymizeId: false,
-      };
+        anonymizeId: false};
     }
 
     // 检查是否有授权关系
@@ -58,25 +56,20 @@ export class DataMaskingService {
       where: {
         studentId: targetStudentId,
         partyId: requesterId,
-        status: 'ACTIVE',
-      },
-    });
+        status: 'ACTIVE'}});
 
     // 检查是否是同班级的教师
     const classRelationship = await this.prisma.classEnrollment.findFirst({
       where: {
         studentId: targetStudentId,
         class: {
-          ownerTeacherId: requesterId,
-          status: 'ACTIVE',
-        },
-        status: 'ACTIVE',
-      },
-    });
+          teacherId: requesterId,
+          status: 'ACTIVE'},
+        status: 'ACTIVE'}});
 
     if (relationship || classRelationship) {
       // 有授权关系，根据角色显示不同信息
-      if (requester.role.name === 'parent') {
+      if (requester.role === 'parent') {
         return {
           showFullName: true,
           showSchool: true,
@@ -84,9 +77,8 @@ export class DataMaskingService {
           showAvatar: true,
           showEmail: false,
           showPhone: false,
-          anonymizeId: false,
-        };
-      } else if (requester.role.name === 'teacher') {
+          anonymizeId: false};
+      } else if (requester.role === 'teacher') {
         return {
           showFullName: true,
           showSchool: true,
@@ -94,8 +86,7 @@ export class DataMaskingService {
           showAvatar: true,
           showEmail: false,
           showPhone: false,
-          anonymizeId: false,
-        };
+          anonymizeId: false};
       }
     }
 
@@ -112,8 +103,7 @@ export class DataMaskingService {
       showAvatar: false,
       showEmail: false,
       showPhone: false,
-      anonymizeId: true,
-    };
+      anonymizeId: true};
   }
 
   // 脱敏学生搜索结果
@@ -151,8 +141,7 @@ export class DataMaskingService {
       avatar: config.showAvatar ? student.avatar : null,
       anonymousId: student.anonymousId,
       discoverable: student.discoverable,
-      masked: !config.showFullName,
-    };
+      masked: !config.showFullName};
   }
 
   // 脱敏姓名
@@ -290,9 +279,7 @@ export class DataMaskingService {
       where: { id: studentId },
       select: {
         discoverable: true,
-        anonymousId: true,
-      },
-    });
+        anonymousId: true}});
 
     if (!student) {
       return false;
@@ -323,9 +310,7 @@ export class DataMaskingService {
         discoverable: true,
         anonymousId: true,
         school: true,
-        className: true,
-      },
-    });
+        className: true}});
 
     if (!student) {
       throw new Error('学生不存在');
@@ -346,8 +331,7 @@ export class DataMaskingService {
     return {
       discoverable: student.discoverable,
       searchBy,
-      anonymousId: student.anonymousId,
-    };
+      anonymousId: student.anonymousId};
   }
 
   // 更新学生搜索可见性设置
@@ -361,9 +345,7 @@ export class DataMaskingService {
     await this.prisma.user.update({
       where: { id: studentId },
       data: {
-        discoverable: settings.discoverable,
-      },
-    });
+        discoverable: settings.discoverable}});
 
     // 记录设置变更
     await this.prisma.auditLog.create({
@@ -375,9 +357,6 @@ export class DataMaskingService {
         metadata: {
           discoverable: settings.discoverable,
           searchBy: settings.searchBy,
-          timestamp: new Date().toISOString(),
-        },
-      },
-    });
+          timestamp: new Date().toISOString()}}});
   }
 }

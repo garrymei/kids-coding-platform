@@ -32,9 +32,7 @@ export class AuthService {
   private async validateUser(email: string, password: string) {
     try {
       const user = await this.prisma.user.findUnique({
-        where: { email },
-        include: { role: true },
-      });
+        where: { email }});
       if (!user || !user.passwordHash) {
         throw new UnauthorizedException('Invalid credentials');
       }
@@ -55,21 +53,21 @@ export class AuthService {
             email: 'parent@example.com',
             passwordHash: '$argon2i$v=19$m=4096,t=3,p=1$c2FsdHlfc2FsdHlfc2FsdHk$K4S0qXgD5zYJ2C9b7b9Z1a2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0', // password: password
             displayName: 'Parent User',
-            role: { name: Role.Parent }
+            role: Role.Parent
           },
           'teacher@example.com': {
             id: '2',
             email: 'teacher@example.com',
             passwordHash: '$argon2i$v=19$m=4096,t=3,p=1$c2FsdHlfc2FsdHlfc2FsdHk$K4S0qXgD5zYJ2C9b7b9Z1a2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0', // password: password
             displayName: 'Teacher User',
-            role: { name: Role.Teacher }
+            role: Role.Teacher
           },
           'admin@example.com': {
             id: '3',
             email: 'admin@example.com',
             passwordHash: '$argon2i$v=19$m=4096,t=3,p=1$c2FsdHlfc2FsdHlfc2FsdHk$K4S0qXgD5zYJ2C9b7b9Z1a2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0', // password: password
             displayName: 'Admin User',
-            role: { name: Role.Admin }
+            role: Role.Admin
           }
         };
 
@@ -96,17 +94,15 @@ export class AuthService {
     const payload: JwtPayload = {
       sub: user.id,
       email: user.email,
-      role: user.role.name as Role,
-    };
+      role: user.role as Role};
 
     const accessToken = await this.jwtService.signAsync(payload);
 
     // Log the login event
     await this.auditLogger.logLogin(user.id, undefined, undefined, {
       email: user.email,
-      role: user.role.name,
-      loginMethod: 'email/password',
-    });
+      role: user.role,
+      loginMethod: 'email/password'});
 
     return {
       accessToken,
@@ -114,8 +110,6 @@ export class AuthService {
         id: user.id,
         email: user.email,
         displayName: user.displayName ?? null,
-        role: user.role.name as Role,
-      },
-    };
+        role: user.role as Role}};
   }
 }

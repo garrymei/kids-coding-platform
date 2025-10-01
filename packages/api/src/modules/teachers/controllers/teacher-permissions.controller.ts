@@ -35,7 +35,7 @@ export class TeacherPermissionsController {
 
     const classes = await this.prisma.class.findMany({
       where: {
-        ownerTeacherId: teacherId,
+        teacherId: teacherId,
         status: 'ACTIVE',
       },
       include: {
@@ -80,7 +80,7 @@ export class TeacherPermissionsController {
     const classInfo = await this.prisma.class.findFirst({
       where: {
         id: classId,
-        ownerTeacherId: teacherId,
+        teacherId: teacherId,
         status: 'ACTIVE',
       },
     });
@@ -165,7 +165,7 @@ export class TeacherPermissionsController {
         studentId,
         status: 'ACTIVE',
         class: {
-          ownerTeacherId: teacherId,
+          teacherId: teacherId,
           status: 'ACTIVE',
         },
       },
@@ -233,7 +233,7 @@ export class TeacherPermissionsController {
         studentId,
         status: 'ACTIVE',
         class: {
-          ownerTeacherId: teacherId,
+          teacherId: teacherId,
           status: 'ACTIVE',
         },
       },
@@ -332,7 +332,7 @@ export class TeacherPermissionsController {
     const classInfo = await this.prisma.class.findFirst({
       where: {
         id: classId,
-        ownerTeacherId: teacherId,
+        teacherId: teacherId,
         status: 'ACTIVE',
       },
     });
@@ -385,7 +385,7 @@ export class TeacherPermissionsController {
     const classInfo = await this.prisma.class.findFirst({
       where: {
         id: classId,
-        ownerTeacherId: teacherId,
+        teacherId: teacherId,
         status: 'ACTIVE',
       },
     });

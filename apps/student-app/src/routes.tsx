@@ -1,6 +1,6 @@
 ﻿import React, { Suspense, lazy } from "react";
 import { createBrowserRouter } from "react-router-dom";
-import { AppLayout } from "./layouts/AppLayout";
+import AppLayout from "./layouts/AppLayout";
 import { LoadingSpinner } from "./components/LoadingStates";
 
 // Eagerly loaded core screens

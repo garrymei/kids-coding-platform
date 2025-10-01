@@ -58,15 +58,13 @@ export class ExpirationManagementService {
     if (expirationDate <= now) {
       return {
         valid: false,
-        error: '到期时间不能早于当前时间',
-      };
+        error: '到期时间不能早于当前时间'};
     }
 
     if (expirationDate > maxDate) {
       return {
         valid: false,
-        error: `到期时间不能超过${this.expirationConfig.maxExpirationDays}天`,
-      };
+        error: `到期时间不能超过${this.expirationConfig.maxExpirationDays}天`};
     }
 
     return { valid: true };
@@ -83,16 +81,13 @@ export class ExpirationManagementService {
       where: { id: grantId },
       include: {
         grantee: {
-          include: { role: true },
-        },
-      },
-    });
+        }}});
 
     if (!grant) {
       throw new Error('权限授权不存在');
     }
 
-    const role = grant.grantee.role.name as 'parent' | 'teacher';
+    const role = grant.grantee.role as 'parent' | 'teacher';
     const validation = this.validateExpirationDate(expirationDate, role);
 
     if (!validation.valid) {
@@ -104,9 +99,7 @@ export class ExpirationManagementService {
       where: { id: grantId },
       data: {
         expiresAt: expirationDate,
-        updatedAt: new Date(),
-      },
-    });
+        updatedAt: new Date()}});
 
     // 记录审计日志
     await this.prisma.auditLog.create({
@@ -120,10 +113,7 @@ export class ExpirationManagementService {
           granteeId: grant.granteeId,
           expirationDate: expirationDate.toISOString(),
           reason,
-          timestamp: new Date().toISOString(),
-        },
-      },
-    });
+          timestamp: new Date().toISOString()}}});
 
     this.logger.log(
       `权限授权 ${grantId} 到期时间已设置为 ${expirationDate.toISOString()}`,
@@ -141,10 +131,7 @@ export class ExpirationManagementService {
       where: { id: grantId },
       include: {
         grantee: {
-          include: { role: true },
-        },
-      },
-    });
+        }}});
 
     if (!grant) {
       throw new Error('权限授权不存在');
@@ -154,7 +141,7 @@ export class ExpirationManagementService {
       throw new Error('只能续期活跃的权限授权');
     }
 
-    const role = grant.grantee.role.name as 'parent' | 'teacher';
+    const role = grant.grantee.role as 'parent' | 'teacher';
     const currentExpiration = grant.expiresAt || new Date();
     const newExpiration = new Date(currentExpiration);
     newExpiration.setDate(newExpiration.getDate() + renewalDays);
@@ -169,9 +156,7 @@ export class ExpirationManagementService {
       where: { id: grantId },
       data: {
         expiresAt: newExpiration,
-        updatedAt: new Date(),
-      },
-    });
+        updatedAt: new Date()}});
 
     // 记录审计日志
     await this.prisma.auditLog.create({
@@ -187,10 +172,7 @@ export class ExpirationManagementService {
           newExpirationDate: newExpiration.toISOString(),
           renewalDays,
           reason,
-          timestamp: new Date().toISOString(),
-        },
-      },
-    });
+          timestamp: new Date().toISOString()}}});
 
     this.logger.log(
       `权限授权 ${grantId} 已续期 ${renewalDays} 天，新到期时间: ${newExpiration.toISOString()}`,
@@ -207,27 +189,17 @@ export class ExpirationManagementService {
         status: 'ACTIVE',
         expiresAt: {
           lte: expirationDate,
-          gte: new Date(),
-        },
-      },
+          gte: new Date()}},
       include: {
         student: {
           select: {
             displayName: true,
-            email: true,
-          },
-        },
+            email: true}},
         grantee: {
           select: {
             displayName: true,
             email: true,
-            role: {
-              select: { name: true },
-            },
-          },
-        },
-      },
-    });
+            role: true}}}});
 
     return expiringGrants;
   }
@@ -238,27 +210,17 @@ export class ExpirationManagementService {
       where: {
         status: 'ACTIVE',
         expiresAt: {
-          lt: new Date(),
-        },
-      },
+          lt: new Date()}},
       include: {
         student: {
           select: {
             displayName: true,
-            email: true,
-          },
-        },
+            email: true}},
         grantee: {
           select: {
             displayName: true,
             email: true,
-            role: {
-              select: { name: true },
-            },
-          },
-        },
-      },
-    });
+            role: true}}}});
 
     return expiredGrants;
   }
@@ -278,9 +240,7 @@ export class ExpirationManagementService {
           data: {
             status: 'EXPIRED',
             revokedAt: new Date(),
-            revokedBy: 'system',
-          },
-        });
+            revokedBy: 'system'}});
 
         // 记录审计日志
         await this.prisma.auditLog.create({
@@ -294,10 +254,7 @@ export class ExpirationManagementService {
               granteeId: grant.granteeId,
               scopes: grant.scope,
               expiredAt: grant.expiresAt?.toISOString(),
-              timestamp: new Date().toISOString(),
-            },
-          },
-        });
+              timestamp: new Date().toISOString()}}});
 
         this.logger.log(`权限授权 ${grant.id} 已自动过期`);
       } catch (error) {
@@ -332,10 +289,7 @@ export class ExpirationManagementService {
               granteeId: grant.granteeId,
               expirationDate: grant.expiresAt?.toISOString(),
               warningDays: this.expirationConfig.warningDaysBeforeExpiration,
-              timestamp: new Date().toISOString(),
-            },
-          },
-        });
+              timestamp: new Date().toISOString()}}});
 
         this.logger.log(`已发送权限到期提醒: ${grant.id}`);
       } catch (error) {
@@ -368,37 +322,26 @@ export class ExpirationManagementService {
       neverExpire,
     ] = await Promise.all([
       this.prisma.accessGrant.count({
-        where: { status: 'ACTIVE' },
-      }),
+        where: { status: 'ACTIVE' }}),
       this.prisma.accessGrant.count({
         where: {
           status: 'ACTIVE',
           expiresAt: {
             lte: in7Days,
-            gte: now,
-          },
-        },
-      }),
+            gte: now}}}),
       this.prisma.accessGrant.count({
         where: {
           status: 'ACTIVE',
           expiresAt: {
             lte: in30Days,
-            gte: now,
-          },
-        },
-      }),
+            gte: now}}}),
       this.prisma.accessGrant.count({
         where: {
-          status: 'EXPIRED',
-        },
-      }),
+          status: 'EXPIRED'}}),
       this.prisma.accessGrant.count({
         where: {
           status: 'ACTIVE',
-          expiresAt: null,
-        },
-      }),
+          expiresAt: null}}),
     ]);
 
     return {
@@ -406,8 +349,7 @@ export class ExpirationManagementService {
       expiringIn7Days,
       expiringIn30Days,
       expired,
-      neverExpire,
-    };
+      neverExpire};
   }
 
   // 批量续期权限
@@ -437,11 +379,8 @@ export class ExpirationManagementService {
             'set_permission_expiration',
             'renew_permission',
             'permission_expired',
-          ],
-        },
-      },
-      orderBy: { createdAt: 'desc' },
-    });
+          ]}},
+      orderBy: { createdAt: 'desc' }});
 
     return history;
   }

@@ -107,10 +107,9 @@ export class RealMetricsService {
       // Verify student exists
       const student = await this.prisma.user.findUnique({
         where: { id: studentId },
-        include: { Role: true },
       });
 
-      if (!student || student.Role.name !== 'student') {
+      if (!student || student.role !== 'student') {
         throw new NotFoundException('Student not found');
       }
 
@@ -281,13 +280,13 @@ export class RealMetricsService {
 
     try {
       // Get class members
-      const classMembers = await this.prisma.class_enrollments.findMany({
+      const classMembers = await this.prisma.classEnrollment.findMany({
         where: {
           classId,
           status: 'ACTIVE',
         },
         include: {
-          User: {
+          student: {
             select: {
               id: true,
               displayName: true,
@@ -306,7 +305,7 @@ export class RealMetricsService {
 
       for (const member of classMembers) {
         const studentId = member.studentId;
-        const studentName = member.User.displayName || member.User.nickname || member.User.email;
+        const studentName = member.student.displayName || member.student.nickname || member.student.email;
 
         // Get weekly stats for this student
         const weeklyStats = await this.prisma.$queryRaw<Array<{

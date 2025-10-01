@@ -57,7 +57,7 @@ export class SearchController {
     
     // 构建搜索条件
     const where: any = {
-      role: { name: 'student' },
+      role: 'student',
       discoverable: true, // 只搜索可被发现的学生
     };
 

@@ -4,31 +4,6 @@ import * as argon2 from 'argon2';
 const prisma = new PrismaClient();
 
 async function main() {
-  // 创建角色
-  const studentRole = await prisma.role.upsert({
-    where: { name: 'student' },
-    update: {},
-    create: { name: 'student' },
-  });
-
-  const _parentRole = await prisma.role.upsert({
-    where: { name: 'parent' },
-    update: {},
-    create: { name: 'parent' },
-  });
-
-  const _teacherRole = await prisma.role.upsert({
-    where: { name: 'teacher' },
-    update: {},
-    create: { name: 'teacher' },
-  });
-
-  const adminRole = await prisma.role.upsert({
-    where: { name: 'admin' },
-    update: {},
-    create: { name: 'admin' },
-  });
-
   // 创建测试用户
   const hashedPassword = await argon2.hash('password123');
 
@@ -37,9 +12,10 @@ async function main() {
     update: {},
     create: {
       email: 'student@example.com',
+      name: 'Test Student',
       displayName: 'Test Student',
       passwordHash: hashedPassword,
-      roleId: studentRole.id,
+      role: 'student',
     },
   });
 
@@ -48,14 +24,39 @@ async function main() {
     update: {},
     create: {
       email: 'admin@example.com',
+      name: 'Test Admin',
       displayName: 'Test Admin',
       passwordHash: hashedPassword,
-      roleId: adminRole.id,
+      role: 'admin',
+    },
+  });
+
+  const testTeacher = await prisma.user.upsert({
+    where: { email: 'teacher@example.com' },
+    update: {},
+    create: {
+      email: 'teacher@example.com',
+      name: 'Test Teacher',
+      displayName: 'Test Teacher',
+      passwordHash: hashedPassword,
+      role: 'teacher',
+    },
+  });
+
+  const testParent = await prisma.user.upsert({
+    where: { email: 'parent@example.com' },
+    update: {},
+    create: {
+      email: 'parent@example.com',
+      name: 'Test Parent',
+      displayName: 'Test Parent',
+      passwordHash: hashedPassword,
+      role: 'parent',
     },
   });
 
   // eslint-disable-next-line no-console
-  console.log('Seeded users:', { testStudent, testAdmin });
+  console.log('Seeded users:', { testStudent, testAdmin, testTeacher, testParent });
 }
 
 main()

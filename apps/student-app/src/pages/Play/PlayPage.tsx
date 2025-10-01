@@ -1,140 +1,77 @@
-﻿import { useEffect, useMemo, useState } from "react";
-import type { CSSProperties, ReactNode } from "react";
-import { useParams } from "react-router-dom";
-import type { Level } from "@kids/types";
-import { levelRepo } from "../../services/level.repo";
-import { RunPanel } from "../../components/RunPanel";
-import { ErrorView, PageSkeleton } from "../../components/Feedback";
-import type { RunAndJudgeResult } from "../../lib/runAndJudge";
+﻿import { useEffect, useMemo, useState } from 'react';
+import type { ReactNode } from 'react';
+import { useParams } from 'react-router-dom';
+import { levelRepo, type Level } from '../../services/level.repo';
+import { RunPanel } from '../../components/RunPanel';
+import type { RunAndJudgeResult } from '../../lib/runAndJudge';
 
-interface LoadStateLoading {
-  status: "loading";
+interface ViewState {
+  status: 'loading' | 'error' | 'ready';
+  level?: Level;
+  message?: string;
 }
-
-interface LoadStateError {
-  status: "error";
-  message: string;
-}
-
-interface LoadStateReady {
-  status: "ready";
-  level: Level;
-}
-
-type LoadState = LoadStateLoading | LoadStateError | LoadStateReady;
 
 export default function PlayPage() {
-  const params = useParams();
-  const levelId = params.levelId ?? "";
-  const [state, setState] = useState<LoadState>({ status: "loading" });
-  const [reloadToken, setReloadToken] = useState(0);
-  const [code, setCode] = useState("");
+  const { levelId } = useParams();
+  const [state, setState] = useState<ViewState>({ status: 'loading' });
+  const [code, setCode] = useState('');
   const [runResult, setRunResult] = useState<RunAndJudgeResult | null>(null);
 
   useEffect(() => {
-    let cancelled = false;
-
-    if (!levelId) {
-      setState({ status: "error", message: "未提供关卡 ID" });
-      return;
-    }
-
+    let active = true;
     (async () => {
-      setState({ status: "loading" });
+      if (!levelId) {
+        setState({ status: 'error', message: '缺少关卡 ID' });
+        return;
+      }
+      setState({ status: 'loading' });
       try {
         const level = await levelRepo.getLevelById(levelId);
-        if (cancelled) {
-          return;
-        }
-
+        if (!active) return;
         if (!level) {
-          setState({ status: "error", message: `未找到关卡 ${levelId}` });
+          setState({ status: 'error', message: `未找到关卡 ${levelId}` });
           return;
         }
-
-        setState({ status: "ready", level });
-        setCode(level.starter?.code ?? "");
+        setCode(level.starter?.code ?? '');
+        setState({ status: 'ready', level });
       } catch (error) {
-        if (cancelled) {
-          return;
-        }
-        const message = error instanceof Error ? error.message : "加载关卡失败";
-        setState({ status: "error", message });
+        if (!active) return;
+        const message = error instanceof Error ? error.message : '加载关卡失败';
+        setState({ status: 'error', message });
       }
     })();
-
     return () => {
-      cancelled = true;
+      active = false;
     };
-  }, [levelId, reloadToken]);
+  }, [levelId]);
 
-  if (state.status === "loading") {
-    return <PageSkeleton rows={8} />;
+  if (state.status === 'loading') {
+    return <div className="card" style={{ height: 240 }} />;
   }
 
-  if (state.status === "error") {
-    return (
-      <ErrorView
-        title="关卡加载失败"
-        message={state.message}
-        actionLabel="重试"
-        onAction={() => setReloadToken((token) => token + 1)}
-      />
-    );
+  if (state.status === 'error' || !state.level) {
+    return <div className="alert alert-error">{state.message ?? '加载失败'}</div>;
   }
 
-  const { level } = state;
-  const graderConstraints = (level as any).grader?.constraints;
-  const requiredStructures: string[] = Array.isArray(graderConstraints?.requireStructures)
-    ? (graderConstraints.requireStructures as string[])
-    : [];
-
-  const visualization = useMemo(() => renderVisualization(level, runResult), [level, runResult]);
+  const level = state.level;
+  const summary = level.story || (level.goals?.length ? `目标：${level.goals.join('、')}` : '');
+  const visual = useMemo(() => renderVisualization(level, runResult), [level, runResult]);
 
   return (
-    <div className="grid" style={{ gap: 24 }}>
-      <section className="card">
-        <h1 className="page-title">{level.title}</h1>
-        <p className="text-muted" style={{ marginBottom: 16 }}>
-          {level.story || "欢迎来到新的编程挑战，试着完成目标吧！"}
-        </p>
-
-        <div style={{ display: "grid", gap: 12 }}>
-          <div>
-            <strong>任务目标</strong>
-            <ul>
-              {level.goals.map((goal) => (
-                <li key={goal}>{goal}</li>
-              ))}
-            </ul>
-          </div>
-
-          {level.hints && level.hints.length > 0 && (
-            <div>
-              <strong>提示</strong>
-              <ul>
-                {level.hints.map((hint) => (
-                  <li key={hint}>{hint}</li>
-                ))}
-              </ul>
-            </div>
-          )}
-
-          {requiredStructures.length > 0 && (
-            <div className="alert" style={{ borderColor: "rgba(31, 111, 230, 0.2)", background: "rgba(47, 138, 255, 0.08)" }}>
-              <strong>结构要求</strong>
-              <p style={{ marginTop: 8 }}>请在代码中包含：{requiredStructures.join("、")}</p>
-            </div>
-          )}
-        </div>
+    <div className="kc-container" style={{ maxWidth: 1128 }}>
+      <section className="card" style={{ marginBottom: 24 }}>
+        <h1 className="kc-section-title" style={{ marginBottom: 8 }}>
+          {level.title}
+        </h1>
+        {summary && <p className="text-muted">{summary}</p>}
       </section>
 
       <RunPanel
         level={level}
         code={code}
         onCodeChange={setCode}
-        onResult={(result) => setRunResult(result)}
-        gameRunner={{ render: () => visualization }}
+        onResult={setRunResult}
+        gameRunner={{ render: () => visual }}
       />
     </div>
   );
@@ -142,131 +79,119 @@ export default function PlayPage() {
 
 function renderVisualization(level: Level, result: RunAndJudgeResult | null): ReactNode {
   if (!result) {
-    return <p className="text-muted">运行代码后可查看可视化结果。</p>;
+    return <p className="text-muted">运行代码后将在此显示可视化结果。</p>;
   }
 
   switch (level.gameType) {
-    case "io":
-      return <IoVisualization level={level} result={result} />;
-    case "pixel":
-      return <PixelVisualization data={result.artifacts.pixelMatrix} />;
-    case "music":
-      return <MusicVisualization sequence={result.artifacts.musicSeq} />;
+    case 'io':
+      return <IoPreview result={result} />;
+    case 'pixel':
+      return <PixelPreview result={result} />;
+    case 'music':
+      return <MusicPreview result={result} />;
+    case 'led':
+      return <LedPreview result={result} />;
+    case 'maze':
+      return <MazePreview result={result} />;
     default:
-      return (
-        <div className="text-muted">
-          <p>该关卡暂未提供可视化展示。</p>
-          <pre
-            style={{
-              marginTop: 8,
-              whiteSpace: "pre-wrap",
-              background: "rgba(15, 23, 42, 0.04)",
-              padding: 12,
-              borderRadius: 10,
-            }}
-          >
-            {JSON.stringify(result.artifacts.raw ?? {}, null, 2)}
-          </pre>
-        </div>
-      );
+      return <div className="alert alert-warn">暂无 {level.gameType} 类型的可视化。</div>;
   }
 }
 
-function IoVisualization({ level, result }: { level: Level; result: RunAndJudgeResult }) {
-  const cases = level.grader?.io?.cases ?? [];
-  const ioCases = result.artifacts.ioCases ?? [];
-
-  if (cases.length === 0) {
-    return <p className="text-muted">该关卡没有提供示例输入输出。</p>;
+function IoPreview({ result }: { result: RunAndJudgeResult }): ReactNode {
+  const cases = result.artifacts.ioCases ?? [];
+  if (!cases.length) {
+    return <div className="text-muted">未提供输入输出示例。</div>;
   }
-
   return (
-    <div style={{ display: "grid", gap: 12 }}>
-      {cases.map((item, index) => {
-        const caseResult = ioCases[index];
-        return (
-          <div key={index} className="card" style={{ padding: 12, boxShadow: "none" }}>
-            <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 8 }}>
-              <span className="badge">测试 {index + 1}</span>
-              <strong>{result.judge.passed ? "✓ 通过" : "⚠ 未通过"}</strong>
-            </div>
-            <pre style={ioBlockStyle}>输入：{item.in || "无"}</pre>
-            <pre style={ioBlockStyle}>期望输出：{item.out}</pre>
-            {caseResult && <pre style={ioBlockStyle}>实际输出：{caseResult.actual}</pre>}
-            {result.exec.stdout && <pre style={ioBlockStyle}>控制台：{result.exec.stdout.trim()}</pre>}
+    <div className="kc-list">
+      {cases.map((item, index) => (
+        <div key={`${item.input}-${index}`} className="kc-list__item">
+          <div>
+            <div className="text-muted" style={{ fontSize: 12 }}>输入</div>
+            <div>{item.input || '(空)'}</div>
           </div>
-        );
-      })}
+          <div>
+            <div className="text-muted" style={{ fontSize: 12 }}>期望</div>
+            <div>{item.expected}</div>
+          </div>
+          <div>
+            <div className="text-muted" style={{ fontSize: 12 }}>输出</div>
+            <div>{item.actual}</div>
+          </div>
+        </div>
+      ))}
     </div>
   );
 }
 
-const ioBlockStyle: CSSProperties = {
-  fontFamily: "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace",
-  background: "rgba(15, 23, 42, 0.04)",
-  padding: 8,
-  borderRadius: 8,
-  whiteSpace: "pre-wrap",
-};
-
-function PixelVisualization({ data }: { data?: number[][] }) {
-  if (!data || data.length === 0) {
-    return <p className="text-muted">暂无像素可视化数据。</p>;
+function PixelPreview({ result }: { result: RunAndJudgeResult }): ReactNode {
+  const matrix = result.artifacts.pixelMatrix;
+  if (!matrix || matrix.length === 0) {
+    return <div className="text-muted">未生成像素数据。</div>;
   }
-
-  const cols = Math.max(...data.map((row) => row.length));
-
+  const columns = Math.max(...matrix.map((row) => row.length));
   return (
     <div
       style={{
-        display: "grid",
-        gridTemplateColumns: `repeat(${cols}, 24px)`,
-        gap: 4,
-        justifyContent: "start",
+        display: 'grid',
+        gridTemplateColumns: `repeat(${columns}, 24px)`,
+        gap: 6,
+        justifyContent: 'start',
+        padding: 12,
+        background: 'rgba(255,255,255,.04)',
+        borderRadius: 12,
       }}
     >
-      {data.flatMap((row, y) =>
-        Array.from({ length: cols }).map((_, x) => {
-          const value = row[x] ?? 0;
-          return (
-            <div
-              key={`${x}-${y}`}
-              style={{
-                width: 24,
-                height: 24,
-                borderRadius: 6,
-                border: "1px solid rgba(15, 23, 42, 0.12)",
-                background:
-                  value > 0 ? `rgba(47, 138, 255, ${Math.min(value / 255, 1)})` : "rgba(15, 23, 42, 0.05)",
-              }}
-              aria-label={`像素 (${x}, ${y}) 值 ${value}`}
-            />
-          );
-        }),
+      {matrix.flatMap((row, y) =>
+        row.map((value, x) => (
+          <div
+            key={`${x}-${y}`}
+            style={{
+              width: 24,
+              height: 24,
+              borderRadius: 6,
+              border: '1px solid rgba(148,163,184,.35)',
+              background: value ? `rgba(93,168,255, ${Math.min(value / 255, 1)})` : 'rgba(15,23,42,.2)',
+              boxShadow: value ? '0 0 12px rgba(93,168,255,.35)' : 'none',
+            }}
+          />
+        )),
       )}
     </div>
   );
 }
 
-function MusicVisualization({
-  sequence,
-}: {
-  sequence?: Array<{ pitch: string; duration: number }>;
-}) {
+function MusicPreview({ result }: { result: RunAndJudgeResult }): ReactNode {
+  const sequence = result.artifacts.musicSeq;
   if (!sequence || sequence.length === 0) {
-    return <p className="text-muted">暂无音乐可视化数据。</p>;
+    return <div className="text-muted">未生成音符序列。</div>;
   }
-
   return (
-    <div className="card" style={{ boxShadow: "none", padding: 16 }}>
-      <p style={{ marginBottom: 12 }}>音符序列：</p>
-      <ul style={{ listStyle: "disc", marginLeft: 20 }}>
-        {sequence.map((note, index) => (
-          <li key={`${note.pitch}-${index}`}>
-            音符 {note.pitch}，时长 {note.duration.toFixed(2)}s
-          </li>
-        ))}
-      </ul>
-    </div>
+    <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
+      {sequence.map((note, index) => (
+        <li key={`${note.pitch}-${index}`} className="kc-list__item">
+          <strong>{note.pitch}</strong>
+          <span className="text-muted">{note.duration.toFixed(2)} 秒</span>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+function LedPreview({ result }: { result: RunAndJudgeResult }): ReactNode {
+  return result.exec.stdout ? (
+    <pre style={{ whiteSpace: 'pre-wrap', fontFamily: 'ui-monospace' }}>{result.exec.stdout}</pre>
+  ) : (
+    <div className="text-muted">运行后将显示灯阵状态。</div>
+  );
+}
+
+function MazePreview({ result }: { result: RunAndJudgeResult }): ReactNode {
+  const diff = result.artifacts.raw ?? {};
+  return (
+    <pre style={{ whiteSpace: 'pre-wrap', fontFamily: 'ui-monospace' }}>
+      {JSON.stringify(diff, null, 2)}
+    </pre>
   );
 }

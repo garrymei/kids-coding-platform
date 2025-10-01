@@ -4,6 +4,7 @@ import { RouterProvider } from 'react-router-dom';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { router } from './routes';
 import './App.css';
+import './styles/theme.css';
 
 export default function App() {
   return (

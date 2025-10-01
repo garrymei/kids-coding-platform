@@ -16,7 +16,6 @@ export class CacheService implements OnModuleInit, OnModuleDestroy {
       
       if (redisUrl) {
         this.redis = new Redis(redisUrl, {
-          retryDelayOnFailover: 100,
           maxRetriesPerRequest: 3,
           lazyConnect: true,
         });

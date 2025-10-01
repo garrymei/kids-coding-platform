@@ -94,7 +94,7 @@ export class ClassInviteController {
 
     const classes = await this.prisma.class.findMany({
       where: {
-        ownerTeacherId: teacherId,
+        teacherId: teacherId,
         status: 'ACTIVE',
       },
       select: {
@@ -140,7 +140,7 @@ export class ClassInviteController {
     const classInfo = await this.prisma.class.findFirst({
       where: {
         id: classId,
-        ownerTeacherId: teacherId,
+        teacherId: teacherId,
         status: 'ACTIVE',
       },
     });

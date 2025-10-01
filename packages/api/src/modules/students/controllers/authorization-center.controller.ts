@@ -122,10 +122,8 @@ export class AuthorizationCenterController {
             id: true,
             displayName: true,
             email: true,
-            role: {
-              select: { name: true },
-            },
-          },
+            role: true
+          }
         },
       },
       orderBy: { createdAt: 'desc' },
@@ -160,10 +158,8 @@ export class AuthorizationCenterController {
             id: true,
             displayName: true,
             email: true,
-            role: {
-              select: { name: true },
-            },
-          },
+            role: true
+          }
         },
         accessGrants: {
           where: { status: 'ACTIVE' },

@@ -107,11 +107,7 @@ export class AuditService {
             id: true,
             displayName: true,
             email: true,
-            role: {
-              select: {
-                name: true,
-              },
-            },
+            role: true,
           },
         },
       },
@@ -138,11 +134,7 @@ export class AuditService {
             id: true,
             displayName: true,
             email: true,
-            role: {
-              select: {
-                name: true,
-              },
-            },
+            role: true,
           },
         },
       },

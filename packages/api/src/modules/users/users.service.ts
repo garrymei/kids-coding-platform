@@ -10,7 +10,6 @@ export class UsersService {
     try {
       return await this.prisma.user.findUnique({
         where: { id },
-        include: { role: true },
       });
     } catch (error) {
       // In development mode, provide mock user data if database is not available
@@ -21,7 +20,7 @@ export class UsersService {
             id: '1',
             email: 'parent@example.com',
             displayName: 'Parent User',
-            role: { name: Role.Parent },
+            role: Role.Parent,
             createdAt: new Date(),
             updatedAt: new Date(),
           },
@@ -29,7 +28,7 @@ export class UsersService {
             id: '2',
             email: 'teacher@example.com',
             displayName: 'Teacher User',
-            role: { name: Role.Teacher },
+            role: Role.Teacher,
             createdAt: new Date(),
             updatedAt: new Date(),
           },
@@ -37,7 +36,7 @@ export class UsersService {
             id: '3',
             email: 'admin@example.com',
             displayName: 'Admin User',
-            role: { name: Role.Admin },
+            role: Role.Admin,
             createdAt: new Date(),
             updatedAt: new Date(),
           }
@@ -53,7 +52,6 @@ export class UsersService {
   async findAll() {
     try {
       return await this.prisma.user.findMany({
-        include: { role: true },
         orderBy: { createdAt: 'desc' },
       });
     } catch (error) {
@@ -65,7 +63,7 @@ export class UsersService {
             id: '1',
             email: 'parent@example.com',
             displayName: 'Parent User',
-            role: { name: Role.Parent },
+            role: Role.Parent,
             createdAt: new Date(),
             updatedAt: new Date(),
           },
@@ -73,7 +71,7 @@ export class UsersService {
             id: '2',
             email: 'teacher@example.com',
             displayName: 'Teacher User',
-            role: { name: Role.Teacher },
+            role: Role.Teacher,
             createdAt: new Date(),
             updatedAt: new Date(),
           },
@@ -81,7 +79,7 @@ export class UsersService {
             id: '3',
             email: 'admin@example.com',
             displayName: 'Admin User',
-            role: { name: Role.Admin },
+            role: Role.Admin,
             createdAt: new Date(),
             updatedAt: new Date(),
           }

@@ -2,8 +2,7 @@ import {
   Injectable,
   BadRequestException,
   HttpException,
-  HttpStatus,
-} from '@nestjs/common';
+  HttpStatus} from '@nestjs/common';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { randomBytes } from 'crypto';
 
@@ -46,11 +45,10 @@ export class SearchStrategyService {
     },
   ) {
     const student = await this.prisma.user.findUnique({
-      where: { id: studentId },
-      include: { role: true },
+      where: { id: studentId }
     });
 
-    if (!student || student.role.name !== 'student') {
+    if (!student || student.role !== 'student') {
       throw new BadRequestException('用户不是学生');
     }
 
@@ -62,8 +60,7 @@ export class SearchStrategyService {
 
     // 更新用户搜索设置
     const updateData: any = {
-      discoverable: visibility !== SearchVisibility.PRIVATE,
-    };
+      discoverable: visibility !== SearchVisibility.PRIVATE};
 
     if (options?.nickname) {
       updateData.nickname = options.nickname;
@@ -81,8 +78,7 @@ export class SearchStrategyService {
 
     await this.prisma.user.update({
       where: { id: studentId },
-      data: updateData,
-    });
+      data: updateData});
 
     // 记录审计日志
     await this.prisma.auditLog.create({
@@ -94,16 +90,12 @@ export class SearchStrategyService {
         metadata: {
           oldVisibility: 'private', // 这里应该从数据库获取
           newVisibility: visibility,
-          anonymousId,
-        },
-      },
-    });
+          anonymousId}}});
 
     return {
       anonymousId,
       visibility,
-      message: this.getVisibilityMessage(visibility),
-    };
+      message: this.getVisibilityMessage(visibility)};
   }
 
   // 获取可见性说明信息
@@ -143,8 +135,7 @@ export class SearchStrategyService {
         '需要谨慎设置昵称和学校信息',
         '可能收到更多的关注申请',
       ],
-      benefits: ['方便家长和老师找到您', '提高建立关注关系的效率'],
-    };
+      benefits: ['方便家长和老师找到您', '提高建立关注关系的效率']};
   }
 
   // 检查搜索权限
@@ -154,8 +145,7 @@ export class SearchStrategyService {
     searchType: 'nickname' | 'anonymous_id',
   ): Promise<boolean> {
     const searcher = await this.prisma.user.findUnique({
-      where: { id: searcherId },
-      include: { role: true },
+      where: { id: searcherId }
     });
 
     if (!searcher) {
@@ -163,16 +153,15 @@ export class SearchStrategyService {
     }
 
     // 只有家长和教师可以搜索
-    if (!['parent', 'teacher'].includes(searcher.role.name)) {
+    if (!['parent', 'teacher'].includes(searcher.role)) {
       return false;
     }
 
     const targetStudent = await this.prisma.user.findUnique({
-      where: { id: targetStudentId },
-      include: { role: true },
+      where: { id: targetStudentId }
     });
 
-    if (!targetStudent || targetStudent.role.name !== 'student') {
+    if (!targetStudent || targetStudent.role !== 'student') {
       return false;
     }
 
@@ -181,9 +170,7 @@ export class SearchStrategyService {
       where: {
         studentId: targetStudentId,
         partyId: searcherId,
-        status: { in: ['ACTIVE', 'PENDING'] },
-      },
-    });
+        status: { in: ['ACTIVE', 'PENDING'] }}});
 
     if (existingRelationship) {
       return false; // 已建立关系，不需要搜索
@@ -207,8 +194,7 @@ export class SearchStrategyService {
     searchType: 'nickname' | 'anonymous_id',
   ): Promise<SearchResult[]> {
     const searcher = await this.prisma.user.findUnique({
-      where: { id: searcherId },
-      include: { role: true },
+      where: { id: searcherId }
     });
 
     if (!searcher) {
@@ -224,8 +210,7 @@ export class SearchStrategyService {
       visibility: student.searchVisibility || SearchVisibility.PRIVATE,
       // 去标识化处理
       maskedNickname: this.maskNickname(student.nickname),
-      schoolSummary: this.getSchoolSummary(student.school, student.className),
-    }));
+      schoolSummary: this.getSchoolSummary(student.school, student.className)}));
   }
 
   // 掩码昵称

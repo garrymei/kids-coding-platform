@@ -1,139 +1,138 @@
-﻿import { useEffect } from "react";
-import { Link } from "react-router-dom";
-import { Button, Card, Col, Row, Statistic, Progress, List, Tag, Skeleton, Empty, message, Space } from "antd";
-import { FireOutlined, StarOutlined, ClockCircleOutlined, CheckCircleOutlined, CloseCircleOutlined } from "@ant-design/icons";
-import { useProgressStore } from "../../stores/progress";
+﻿import { useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useProgressStore } from '../../stores/progress';
 
-const MOCK_STUDENT_ID = "stu_1";
+const MOCK_STUDENT_ID = 'stu_1';
 
 export default function HomePage() {
-  const { snapshot, loading, fetchHome, applyAttempt } = useProgressStore();
+  const navigate = useNavigate();
+  const { snapshot, loading, fetchHome } = useProgressStore();
 
   useEffect(() => {
     fetchHome(MOCK_STUDENT_ID).catch((error) => {
-      console.error("Failed to load student snapshot", error);
+      console.error('Failed to load student snapshot', error);
     });
   }, [fetchHome]);
 
-  const handleTestAttempt = (passed: boolean) => {
-    const levelId = "loops-2";
-    applyAttempt({ levelId, passed });
-    message.success(`已模拟一次练习（通过：${passed}），请查看数据变化。`);
-  };
-
   if (loading || !snapshot) {
-    return <Skeleton active paragraph={{ rows: 8 }} style={{ padding: "2rem" }} />;
+    return <div className="card" style={{ height: 240 }} />;
   }
 
-  if (!snapshot.xp && snapshot.recent.length === 0) {
-    return (
-      <Empty description="还没有开始学习，马上开启第一课吧！" style={{ padding: "4rem" }}>
-        <Button type="primary" size="large">
-          <Link to={snapshot.nextLesson ? `/play/${snapshot.nextLesson.levelId}` : "/hub/python"}>开始第一堂课</Link>
-        </Button>
-      </Empty>
-    );
-  }
+  const nextLesson = snapshot.nextLesson;
 
   return (
-    <div style={{ padding: "2rem", maxWidth: "1000px", margin: "0 auto" }}>
-      <Row gutter={16}>
-        <Col span={8}>
-          <Card>
-            <Statistic title="连续学习" value={snapshot.streakDays} prefix={<FireOutlined />} suffix="天" />
-          </Card>
-        </Col>
-        <Col span={8}>
-          <Card>
-            <Statistic title="累计经验" value={snapshot.xp} prefix={<StarOutlined />} suffix="XP" />
-          </Card>
-        </Col>
-        <Col span={8}>
-          <Card>
-            <Statistic title="今日学习" value={snapshot.today.studyMinutes} prefix={<ClockCircleOutlined />} suffix="分钟" />
-          </Card>
-        </Col>
-      </Row>
+    <div className="kc-home">
+      <section className="kc-home__stats">
+        <article className="card kpi-card">
+          <div className="text-muted">连续学习</div>
+          <div className="kc-metric-value">
+            {snapshot.streakDays}
+            <span>天</span>
+          </div>
+        </article>
+        <article className="card kpi-card">
+          <div className="text-muted">累计经验</div>
+          <div className="kc-metric-value">
+            {snapshot.xp}
+            <span>XP</span>
+          </div>
+        </article>
+        <article className="card kpi-card">
+          <div className="text-muted">今日学习</div>
+          <div className="kc-metric-value">
+            {snapshot.today.studyMinutes}
+            <span>分钟</span>
+          </div>
+        </article>
+      </section>
 
-      {snapshot.nextLesson && (
-        <Card style={{ marginTop: "2rem" }} title="🚀 继续学习">
-          <Row align="middle">
-            <Col span={18}>
-              <h3>{snapshot.nextLesson.title}</h3>
-              <Tag>{snapshot.nextLesson.pkgId}</Tag>
-            </Col>
-            <Col span={6} style={{ textAlign: "right" }}>
-              <Link to={`/play/${snapshot.nextLesson.levelId}`}>
-                <Button type="primary" size="large">
-                  开始学习
-                </Button>
-              </Link>
-            </Col>
-          </Row>
-        </Card>
+      {nextLesson && (
+        <section className="card" style={{ padding: 24 }}>
+          <div className="kc-home__cta">
+            <div>
+              <h2 className="kc-section-title" style={{ marginBottom: 6 }}>
+                🚀 继续挑战：{nextLesson.title}
+              </h2>
+              <div className="kc-tag">{nextLesson.pkgId}</div>
+            </div>
+            <button className="btn btn-cta" onClick={() => navigate(`/play/${nextLesson.levelId}`)}>
+              开始学习
+            </button>
+          </div>
+        </section>
       )}
 
-      <Card style={{ marginTop: "2rem" }} title="课程包进度">
-        <div style={{ display: "flex", gap: "1rem", overflowX: "auto" }}>
+      <section className="card" style={{ padding: 24 }}>
+        <div className="kc-section-title">课程包进度</div>
+        <div className="kc-scroll-row">
           {snapshot.packages.map((pkg) => (
-            <Card key={pkg.pkgId} style={{ minWidth: 250 }}>
-              <Progress type="circle" percent={Math.round(pkg.percent * 100)} width={80} />
-              <div style={{ marginTop: "1rem", textAlign: "center" }}>
-                <strong>{pkg.title}</strong>
-                <p>
-                  {pkg.completed} / {pkg.total}
-                </p>
+            <article key={pkg.pkgId} className="card" style={{ minWidth: 240 }}>
+              <div style={{ fontWeight: 700, marginBottom: 6 }}>{pkg.title}</div>
+              <div className="text-muted" style={{ fontSize: 14, marginBottom: 12 }}>
+                {pkg.completed} / {pkg.total}
               </div>
-            </Card>
+              <div
+                style={{
+                  height: 10,
+                  width: '100%',
+                  borderRadius: 999,
+                  background: 'rgba(148,163,184,.25)',
+                  overflow: 'hidden',
+                }}
+                aria-label={`完成进度 ${Math.round(pkg.percent * 100)}%`}
+              >
+                <div
+                  style={{
+                    height: '100%',
+                    width: `${Math.round(pkg.percent * 100)}%`,
+                    background: 'linear-gradient(90deg, #5da8ff, #a78bfa)',
+                    borderRadius: 999,
+                    transition: 'width .3s ease',
+                  }}
+                />
+              </div>
+            </article>
           ))}
         </div>
-      </Card>
+      </section>
 
-      <Row gutter={16} style={{ marginTop: "2rem" }}>
-        <Col span={12}>
-          <Card title="近期活动">
-            <List
-              dataSource={snapshot.recent}
-              renderItem={(item) => (
-                <List.Item>
-                  <List.Item.Meta
-                    avatar={
-                      item.passed ? <CheckCircleOutlined style={{ color: "#16a34a" }} /> : <CloseCircleOutlined style={{ color: "#ef4444" }} />
-                    }
-                    title={`关卡：${item.levelId}`}
-                    description={new Date(item.ts).toLocaleString()}
-                  />
-                </List.Item>
-              )}
-            />
-          </Card>
-        </Col>
+      <section className="grid duo">
+        <article className="card">
+          <div className="kc-section-title">近期活动</div>
+          <div className="kc-list">
+            {snapshot.recent.map((item) => (
+              <div key={item.ts} className="kc-list__item">
+                <div>
+                  <strong>{item.levelId}</strong>
+                  <div className="text-muted" style={{ fontSize: 12 }}>
+                    {new Date(item.ts).toLocaleString()}
+                  </div>
+                </div>
+                <span className="kc-tag" style={{ background: item.passed ? 'rgba(34,197,94,.3)' : 'rgba(239,68,68,.25)' }}>
+                  {item.passed ? '通过' : '未通过'}
+                </span>
+              </div>
+            ))}
+          </div>
+        </article>
 
-        <Col span={12}>
-          <Card title="近期成就">
-            <List
-              dataSource={snapshot.achievements}
-              renderItem={(item) => (
-                <List.Item>
-                  <List.Item.Meta
-                    avatar={<StarOutlined />}
-                    title={item.title}
-                    description={`获得时间：${item.gainedAt}`}
-                  />
-                </List.Item>
-              )}
-            />
-          </Card>
-        </Col>
-      </Row>
-
-      <Card title="模拟测试 (M6)" style={{ marginTop: "2rem" }}>
-        <p>点击按钮模拟一次 loops-2 关卡尝试，可观察经验、今日统计和课程包进度的变化。</p>
-        <Space>
-          <Button onClick={() => handleTestAttempt(true)}>模拟通过</Button>
-          <Button danger onClick={() => handleTestAttempt(false)}>模拟失败</Button>
-        </Space>
-      </Card>
+        <article className="card">
+          <div className="kc-section-title">近期成就</div>
+          <div className="kc-list">
+            {snapshot.achievements.map((item) => (
+              <div key={item.id} className="kc-list__item">
+                <div>
+                  <strong>{item.title}</strong>
+                  <div className="text-muted" style={{ fontSize: 12 }}>
+                    获得时间：{item.gainedAt}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </article>
+      </section>
     </div>
   );
 }
+

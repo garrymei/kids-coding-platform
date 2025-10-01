@@ -2,16 +2,14 @@ import {
   Injectable,
   NotFoundException,
   ForbiddenException,
-  BadRequestException,
-} from '@nestjs/common';
+  BadRequestException} from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import {
   RequestParentAccessDto,
   RequestTeacherAccessDto,
   RespondToAccessRequestDto,
   UpdateRelationshipDto,
-  UpdateAccessGrantDto,
-} from './dto/relationships.dto';
+  UpdateAccessGrantDto} from './dto/relationships.dto';
 // import { PartyRole, RelationshipSource, ConsentStatus, GrantStatus } from '@prisma/client';
 
 @Injectable()
@@ -25,15 +23,14 @@ export class RelationshipsService {
   ) {
     // 查找学生
     const student = await this.prisma.user.findUnique({
-      where: { email: requestDto.studentEmail },
-      include: { role: true },
+      where: { email: requestDto.studentEmail }
     });
 
     if (!student) {
       throw new NotFoundException('学生不存在');
     }
 
-    if (student.role.name !== 'student') {
+    if (student.role !== 'student') {
       throw new BadRequestException('该邮箱不是学生账号');
     }
 
@@ -42,10 +39,7 @@ export class RelationshipsService {
       where: {
         studentId_partyId: {
           studentId: student.id,
-          partyId: parentId,
-        },
-      },
-    });
+          partyId: parentId}}});
 
     if (existingRelationship && existingRelationship.status === 'ACTIVE') {
       throw new ForbiddenException('您已经与该学生建立了关系');
@@ -59,25 +53,18 @@ export class RelationshipsService {
         purpose: requestDto.purpose,
         reason: requestDto.reason,
         expiresAt: requestDto.expiresAt ? new Date(requestDto.expiresAt) : null,
-        status: 'PENDING',
-      },
+        status: 'PENDING'},
       include: {
         student: {
           select: {
             id: true,
             displayName: true,
-            email: true,
-          },
-        },
+            email: true}},
         requester: {
           select: {
             id: true,
             displayName: true,
-            email: true,
-          },
-        },
-      },
-    });
+            email: true}}}});
 
     return consent;
   }
@@ -89,15 +76,14 @@ export class RelationshipsService {
   ) {
     // 查找学生
     const student = await this.prisma.user.findUnique({
-      where: { email: requestDto.studentEmail },
-      include: { role: true },
+      where: { email: requestDto.studentEmail }
     });
 
     if (!student) {
       throw new NotFoundException('学生不存在');
     }
 
-    if (student.role.name !== 'student') {
+    if (student.role !== 'student') {
       throw new BadRequestException('该邮箱不是学生账号');
     }
 
@@ -106,10 +92,7 @@ export class RelationshipsService {
       where: {
         studentId_partyId: {
           studentId: student.id,
-          partyId: teacherId,
-        },
-      },
-    });
+          partyId: teacherId}}});
 
     if (existingRelationship && existingRelationship.status === 'ACTIVE') {
       throw new ForbiddenException('您已经与该学生建立了关系');
@@ -123,25 +106,18 @@ export class RelationshipsService {
         purpose: requestDto.purpose,
         reason: requestDto.reason,
         expiresAt: requestDto.expiresAt ? new Date(requestDto.expiresAt) : null,
-        status: 'PENDING',
-      },
+        status: 'PENDING'},
       include: {
         student: {
           select: {
             id: true,
             displayName: true,
-            email: true,
-          },
-        },
+            email: true}},
         requester: {
           select: {
             id: true,
             displayName: true,
-            email: true,
-          },
-        },
-      },
-    });
+            email: true}}}});
 
     return consent;
   }
@@ -156,14 +132,10 @@ export class RelationshipsService {
       where: {
         id: responseDto.consentId,
         studentId,
-        status: 'PENDING',
-      },
+        status: 'PENDING'},
       include: {
         requester: {
-          include: { role: true },
-        },
-      },
-    });
+        }}});
 
     if (!consent) {
       throw new NotFoundException('同意书不存在或已处理');
@@ -176,9 +148,7 @@ export class RelationshipsService {
         status: responseDto.status as any,
         expiresAt: responseDto.expiresAt
           ? new Date(responseDto.expiresAt)
-          : consent.expiresAt,
-      },
-    });
+          : consent.expiresAt}});
 
     if (responseDto.status === 'APPROVED') {
       // 创建关系
@@ -186,21 +156,16 @@ export class RelationshipsService {
         where: {
           studentId_partyId: {
             studentId,
-            partyId: consent.requesterId,
-          },
-        },
+            partyId: consent.requesterId}},
         update: {
-          status: 'ACTIVE',
-        },
+          status: 'ACTIVE'},
         create: {
           studentId,
           partyId: consent.requesterId,
           partyRole:
-            consent.requester.role.name === 'parent' ? 'PARENT' : 'TEACHER',
+            consent.requester.role === 'parent' ? 'PARENT' : 'TEACHER',
           source: 'MANUAL',
-          status: 'ACTIVE',
-        },
-      });
+          status: 'ACTIVE'}});
 
       // 创建访问授权
       if (responseDto.scopes && responseDto.scopes.length > 0) {
@@ -222,26 +187,16 @@ export class RelationshipsService {
     return this.prisma.consent.findMany({
       where: {
         studentId,
-        status: 'PENDING',
-      },
+        status: 'PENDING'},
       include: {
         requester: {
           select: {
             id: true,
             displayName: true,
             email: true,
-            role: {
-              select: {
-                name: true,
-              },
-            },
-          },
-        },
-      },
+            role: true }}},
       orderBy: {
-        createdAt: 'desc',
-      },
-    });
+        createdAt: 'desc'}});
   }
 
   // 获取用户的关系列表
@@ -250,61 +205,41 @@ export class RelationshipsService {
       return this.prisma.relationship.findMany({
         where: {
           studentId: userId,
-          status: 'ACTIVE',
-        },
+          status: 'ACTIVE'},
         include: {
           party: {
             select: {
               id: true,
               displayName: true,
               email: true,
-              role: {
-                select: {
-                  name: true,
-                },
-              },
-            },
-          },
+              role: true }},
           accessGrants: {
             select: {
               id: true,
               scope: true,
               status: true,
-              expiresAt: true,
-            },
-          },
-        },
+              expiresAt: true}}},
         orderBy: {
-          createdAt: 'desc',
-        },
-      });
+          createdAt: 'desc'}});
     } else {
       return this.prisma.relationship.findMany({
         where: {
           partyId: userId,
-          status: 'ACTIVE',
-        },
+          status: 'ACTIVE'},
         include: {
           student: {
             select: {
               id: true,
               displayName: true,
-              email: true,
-            },
-          },
+              email: true}},
           accessGrants: {
             select: {
               id: true,
               scope: true,
               status: true,
-              expiresAt: true,
-            },
-          },
-        },
+              expiresAt: true}}},
         orderBy: {
-          createdAt: 'desc',
-        },
-      });
+          createdAt: 'desc'}});
     }
   }
 
@@ -317,9 +252,7 @@ export class RelationshipsService {
     const relationship = await this.prisma.relationship.findFirst({
       where: {
         id: relationshipId,
-        OR: [{ studentId: userId }, { partyId: userId }],
-      },
-    });
+        OR: [{ studentId: userId }, { partyId: userId }]}});
 
     if (!relationship) {
       throw new NotFoundException('关系不存在或无权限');
@@ -328,20 +261,15 @@ export class RelationshipsService {
     const updatedRelationship = await this.prisma.relationship.update({
       where: { id: relationshipId },
       data: {
-        status: updateDto.status as any,
-      },
-    });
+        status: updateDto.status as any}});
 
     // 如果关系被撤销，同时撤销相关授权
     if (updateDto.status === 'REVOKED') {
       await this.prisma.accessGrant.updateMany({
         where: {
-          relationshipId,
-        },
+          relationshipId},
         data: {
-          status: 'REVOKED',
-        },
-      });
+          status: 'REVOKED'}});
     }
 
     return updatedRelationship;
@@ -356,9 +284,7 @@ export class RelationshipsService {
     const grant = await this.prisma.accessGrant.findFirst({
       where: {
         id: grantId,
-        granteeId: userId,
-      },
-    });
+        granteeId: userId}});
 
     if (!grant) {
       throw new NotFoundException('授权不存在或无权限');
@@ -368,9 +294,7 @@ export class RelationshipsService {
       where: { id: grantId },
       data: {
         scope: updateDto.scopes,
-        expiresAt: updateDto.expiresAt ? new Date(updateDto.expiresAt) : null,
-      },
-    });
+        expiresAt: updateDto.expiresAt ? new Date(updateDto.expiresAt) : null}});
   }
 
   // 撤销访问授权
@@ -378,9 +302,7 @@ export class RelationshipsService {
     const grant = await this.prisma.accessGrant.findFirst({
       where: {
         id: grantId,
-        granteeId: userId,
-      },
-    });
+        granteeId: userId}});
 
     if (!grant) {
       throw new NotFoundException('授权不存在或无权限');
@@ -389,9 +311,7 @@ export class RelationshipsService {
     return this.prisma.accessGrant.update({
       where: { id: grantId },
       data: {
-        status: 'REVOKED',
-      },
-    });
+        status: 'REVOKED'}});
   }
 
   // 检查用户是否有权限访问学生数据
@@ -405,12 +325,9 @@ export class RelationshipsService {
         granteeId,
         studentId: studentId,
         scope: {
-          has: scope,
-        },
+          has: scope},
         status: 'ACTIVE',
-        OR: [{ expiresAt: null }, { expiresAt: { gt: new Date() } }],
-      },
-    });
+        OR: [{ expiresAt: null }, { expiresAt: { gt: new Date() } }]}});
 
     return !!grant;
   }
@@ -421,36 +338,26 @@ export class RelationshipsService {
       where: {
         granteeId,
         status: 'ACTIVE',
-        OR: [{ expiresAt: null }, { expiresAt: { gt: new Date() } }],
-      },
+        OR: [{ expiresAt: null }, { expiresAt: { gt: new Date() } }]},
       include: {
         grantee: {
           select: {
             id: true,
             displayName: true,
-            email: true,
-          },
-        },
-      },
-      distinct: ['studentId'],
-    });
+            email: true}}},
+      distinct: ['studentId']});
 
     // 获取学生信息
     const studentIds = grants.map((grant) => grant.studentId);
     const students = await this.prisma.user.findMany({
       where: {
         id: { in: studentIds },
-        role: {
-          name: 'student',
-        },
-      },
+        role: 'student' },
       select: {
         id: true,
         displayName: true,
         email: true,
-        createdAt: true,
-      },
-    });
+        createdAt: true}});
 
     return students;
   }
@@ -468,11 +375,9 @@ export class RelationshipsService {
       scope: [scope],
       relationshipId,
       expiresAt,
-      status: 'ACTIVE' as any,
-    }));
+      status: 'ACTIVE' as any}));
 
     return this.prisma.accessGrant.createMany({
-      data: grants,
-    });
+      data: grants});
   }
 }

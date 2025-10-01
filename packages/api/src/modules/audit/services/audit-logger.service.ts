@@ -48,9 +48,7 @@ export class AuditLoggerService {
           metadata: data.metadata || {},
           ipAddress: data.ip,
           userAgent: data.userAgent,
-          ts: new Date(),
-        },
-      });
+          ts: new Date()}});
     } catch (error) {
       // 审计日志记录失败不应该影响主业务流程
       console.error('Failed to log audit event:', error);
@@ -71,9 +69,7 @@ export class AuditLoggerService {
       targetId: targetStudentId,
       metadata: {
         dataType,
-        ...metadata,
-      },
-    });
+        ...metadata}});
   }
 
   // 记录权限变更日志
@@ -95,9 +91,7 @@ export class AuditLoggerService {
         oldPermissions,
         newPermissions,
         reason,
-        changes: this.calculatePermissionChanges(oldPermissions, newPermissions),
-      },
-    });
+        changes: this.calculatePermissionChanges(oldPermissions, newPermissions)}});
   }
 
   // 记录关系变更日志
@@ -118,9 +112,7 @@ export class AuditLoggerService {
         changeType,
         oldStatus,
         newStatus,
-        ...metadata,
-      },
-    });
+        ...metadata}});
   }
 
   // 记录搜索日志
@@ -140,9 +132,7 @@ export class AuditLoggerService {
         searchType,
         keyword,
         resultCount,
-        ...metadata,
-      },
-    });
+        ...metadata}});
   }
 
   // 记录申请日志
@@ -157,8 +147,7 @@ export class AuditLoggerService {
       action: `relationship_request_${requestType}`,
       targetType: 'consent',
       targetId,
-      metadata,
-    });
+      metadata});
   }
 
   // 记录系统操作日志
@@ -174,8 +163,7 @@ export class AuditLoggerService {
       action: `system_${operation}`,
       targetType,
       targetId,
-      metadata,
-    });
+      metadata});
   }
 
   // 记录登录事件
@@ -192,8 +180,7 @@ export class AuditLoggerService {
       targetId: actorId,
       ip,
       userAgent,
-      metadata,
-    });
+      metadata});
   }
 
   // 记录密码重置事件
@@ -210,8 +197,7 @@ export class AuditLoggerService {
       targetId: actorId,
       ip,
       userAgent,
-      metadata,
-    });
+      metadata});
   }
 
   // 记录家长链接决策
@@ -230,9 +216,7 @@ export class AuditLoggerService {
       ip,
       metadata: {
         decision,
-        ...metadata,
-      },
-    });
+        ...metadata}});
   }
 
   // 记录班级成员决策
@@ -253,9 +237,7 @@ export class AuditLoggerService {
       metadata: {
         studentId,
         decision,
-        ...metadata,
-      },
-    });
+        ...metadata}});
   }
 
   // 记录报告导出
@@ -271,8 +253,7 @@ export class AuditLoggerService {
       targetType: 'report',
       targetId: reportType,
       ip,
-      metadata,
-    });
+      metadata});
   }
 
   // 记录执行器封禁事件 (for M10-B)
@@ -291,9 +272,7 @@ export class AuditLoggerService {
       ip,
       metadata: {
         reason,
-        ...metadata,
-      },
-    });
+        ...metadata}});
   }
 
   // 计算权限变更
@@ -346,16 +325,10 @@ export class AuditLoggerService {
               id: true,
               displayName: true,
               email: true,
-              role: {
-                select: { name: true },
-              },
-            },
-          },
-        },
+              role: true }}},
         orderBy: { ts: 'desc' },
         take: pageSize,
-        skip: skip,
-      }),
+        skip: skip}),
       this.prisma.auditLog.count({ where }),
     ]);
 
@@ -365,19 +338,17 @@ export class AuditLoggerService {
       ts: log.ts.toISOString(),
       cid: '', // We don't have cid in the current model, would need migration
       actorId: log.actorId,
-      actorRole: log.actor.role.name as 'student' | 'parent' | 'teacher' | 'admin',
+      actorRole: log.actor.role as 'student' | 'parent' | 'teacher' | 'admin',
       action: log.action as AuditEventType,
       target: log.targetId,
       payload: log.metadata ? JSON.parse(JSON.stringify(log.metadata)) : undefined,
-      ip: log.ipAddress || undefined,
-    }));
+      ip: log.ipAddress || undefined}));
 
     return {
       items: auditEvents,
       page,
       pageSize,
-      total: totalCount,
-    };
+      total: totalCount};
   }
 
   // 导出审计日志
@@ -417,14 +388,8 @@ export class AuditLoggerService {
             id: true,
             displayName: true,
             email: true,
-            role: {
-              select: { name: true },
-            },
-          },
-        },
-      },
-      orderBy: { ts: 'desc' },
-    });
+            role: true }}},
+      orderBy: { ts: 'desc' }});
 
     // 转换为CSV格式
     const csvData = logs.map(log => ({
@@ -432,12 +397,11 @@ export class AuditLoggerService {
       actorId: log.actorId,
       actorName: log.actor.displayName,
       actorEmail: log.actor.email,
-      actorRole: log.actor.role.name,
+      actorRole: log.actor.role,
       action: log.action,
       targetType: log.targetType,
       targetId: log.targetId,
-      metadata: JSON.stringify(log.metadata),
-    }));
+      metadata: JSON.stringify(log.metadata)}));
 
     return csvData;
   }
@@ -482,16 +446,13 @@ export class AuditLoggerService {
       dailyStats,
       period: {
         startDate: filters.startDate,
-        endDate: filters.endDate,
-      },
-    };
+        endDate: filters.endDate}};
   }
 
   private async getActionStatistics(where: any) {
     const logs = await this.prisma.auditLog.findMany({
       where,
-      select: { action: true },
-    });
+      select: { action: true }});
 
     const stats = logs.reduce((acc, log) => {
       acc[log.action] = (acc[log.action] || 0) + 1;
@@ -500,15 +461,13 @@ export class AuditLoggerService {
 
     return Object.entries(stats).map(([action, count]) => ({
       action,
-      count,
-    }));
+      count}));
   }
 
   private async getTargetTypeStatistics(where: any) {
     const logs = await this.prisma.auditLog.findMany({
       where,
-      select: { targetType: true },
-    });
+      select: { targetType: true }});
 
     const stats = logs.reduce((acc, log) => {
       acc[log.targetType] = (acc[log.targetType] || 0) + 1;
@@ -517,15 +476,13 @@ export class AuditLoggerService {
 
     return Object.entries(stats).map(([targetType, count]) => ({
       targetType,
-      count,
-    }));
+      count}));
   }
 
   private async getDailyStatistics(where: any) {
     const logs = await this.prisma.auditLog.findMany({
       where,
-      select: { ts: true },
-    });
+      select: { ts: true }});
 
     const stats = logs.reduce((acc, log) => {
       const date = log.ts.toISOString().split('T')[0];
@@ -535,7 +492,6 @@ export class AuditLoggerService {
 
     return Object.entries(stats).map(([date, count]) => ({
       date,
-      count,
-    }));
+      count}));
   }
 }

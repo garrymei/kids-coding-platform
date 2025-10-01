@@ -10,11 +10,9 @@ export class VisibilityService {
     const baseData = await this.prisma.user.findUnique({
       where: { id: studentId },
       include: {
-        role: true,
         metricsSnapshots: true,
         // 这里可以添加更多需要过滤的数据
-      },
-    });
+      }});
 
     if (!baseData) {
       return null;
@@ -55,8 +53,7 @@ export class VisibilityService {
         // 可以添加更多学习相关数据
       },
       createdAt: student.createdAt,
-      updatedAt: student.updatedAt,
-    };
+      updatedAt: student.updatedAt};
   }
 
   // 家长查看数据 - 仅授权范围内的只读数据
@@ -70,9 +67,7 @@ export class VisibilityService {
         OR: [
           { expiresAt: null },
           { expiresAt: { gt: new Date() } },
-        ],
-      },
-    });
+        ]}});
 
     if (!accessGrant) {
       return null; // 无授权，返回空
@@ -109,8 +104,7 @@ export class VisibilityService {
       grantedBy: 'student',
       grantedAt: accessGrant.createdAt,
       expiresAt: accessGrant.expiresAt,
-      scopes: accessGrant.scope,
-    };
+      scopes: accessGrant.scope};
 
     return filteredData;
   }
@@ -123,14 +117,10 @@ export class VisibilityService {
         studentId: student.id,
         status: 'ACTIVE',
         class: {
-          ownerTeacherId: teacherId,
-          status: 'ACTIVE',
-        },
-      },
+          teacherId: teacherId,
+          status: 'ACTIVE'}},
       include: {
-        class: true,
-      },
-    });
+        class: true}});
 
     if (!classAccess) {
       return null; // 无班级关系，返回空
@@ -141,8 +131,7 @@ export class VisibilityService {
       displayName: student.displayName,
       nickname: student.nickname,
       school: student.school,
-      className: student.className,
-    };
+      className: student.className};
 
     // 教师可以查看教学相关数据
     filteredData.teachingData = {
@@ -156,8 +145,7 @@ export class VisibilityService {
     filteredData.classInfo = {
       classId: classAccess.class.id,
       className: classAccess.class.name,
-      enrolledAt: classAccess.createdAt,
-    };
+      enrolledAt: classAccess.createdAt};
 
     return filteredData;
   }
@@ -180,8 +168,7 @@ export class VisibilityService {
         // 不包含具体的学习数据
       },
       createdAt: student.createdAt,
-      updatedAt: student.updatedAt,
-    };
+      updatedAt: student.updatedAt};
   }
 
   // 过滤进度数据
@@ -226,14 +213,12 @@ export class VisibilityService {
       // 家长只能看到成果，不能看到代码
       return {
         works: [], // 这里应该返回过滤后的作品列表
-        note: '家长只能查看学习成果，不能查看代码内容',
-      };
+        note: '家长只能查看学习成果，不能查看代码内容'};
     } else if (viewerType === 'teacher') {
       // 教师可以看到教学相关的内容
       return {
         works: [], // 这里应该返回教师可见的作品列表
-        note: '教师可以查看教学相关内容',
-      };
+        note: '教师可以查看教学相关内容'};
     }
 
     return { works: [] };
@@ -242,8 +227,7 @@ export class VisibilityService {
   // 检查用户是否有权限查看特定数据
   async hasDataAccess(viewerId: string, targetStudentId: string, dataType: string): Promise<boolean> {
     const viewer = await this.prisma.user.findUnique({
-      where: { id: viewerId },
-      include: { role: true },
+      where: { id: viewerId }
     });
 
     if (!viewer) {
@@ -256,7 +240,7 @@ export class VisibilityService {
     }
 
     // 根据角色检查权限
-    switch (viewer.role.name) {
+    switch (viewer.role) {
       case 'parent':
         return this.checkParentAccess(viewerId, targetStudentId, dataType);
       case 'teacher':
@@ -278,9 +262,7 @@ export class VisibilityService {
         OR: [
           { expiresAt: null },
           { expiresAt: { gt: new Date() } },
-        ],
-      },
-    });
+        ]}});
 
     return !!accessGrant;
   }
@@ -292,11 +274,8 @@ export class VisibilityService {
         studentId,
         status: 'ACTIVE',
         class: {
-          ownerTeacherId: teacherId,
-          status: 'ACTIVE',
-        },
-      },
-    });
+          teacherId: teacherId,
+          status: 'ACTIVE'}}});
 
     if (!classAccess) {
       return false;

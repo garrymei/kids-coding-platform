@@ -2,8 +2,7 @@ import {
   Injectable,
   BadRequestException,
   ForbiddenException,
-  NotFoundException,
-} from '@nestjs/common';
+  NotFoundException} from '@nestjs/common';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { VisibilityService } from '../../auth/services/visibility.service';
 
@@ -97,9 +96,7 @@ export class MetricsService {
       select: {
         id: true,
         displayName: true,
-        nickname: true,
-      },
-    });
+        nickname: true}});
 
     if (!student) {
       throw new NotFoundException('学生不存在');
@@ -140,8 +137,7 @@ export class MetricsService {
       tasks_done: 0,
       accuracy: 0,
       xp: 0,
-      streak: 0,
-    };
+      streak: 0};
 
     // 缓存结果 (30分钟)
     this.summaryCache.set(cacheKey, result, 30 * 60 * 1000);
@@ -176,11 +172,10 @@ export class MetricsService {
 
       // 验证学生存在
       const student = await this.prisma.user.findUnique({
-        where: { id: studentId },
-        include: { role: true },
+        where: { id: studentId }
       });
 
-      if (!student || student.role.name !== 'student') {
+      if (!student || student.role !== 'student') {
         throw new NotFoundException('学生不存在');
       }
 
@@ -247,10 +242,7 @@ export class MetricsService {
             from,
             to,
             granularity,
-            dataPoints: result.length,
-          },
-        },
-      });
+            dataPoints: result.length}}});
 
       const duration = Date.now() - startTime;
       console.log(`getStudentTrend completed in ${duration}ms for student ${studentId}`);
@@ -282,16 +274,15 @@ export class MetricsService {
 
       // 验证请求者身份和权限
       const requester = await this.prisma.user.findUnique({
-        where: { id: requesterId },
-        include: { role: true },
+        where: { id: requesterId }
       });
 
       if (!requester) {
         throw new NotFoundException('用户不存在');
       }
 
-      const isTeacher = requester.role.name === 'teacher';
-      const isParent = requester.role.name === 'parent';
+      const isTeacher = requester.role === 'teacher';
+      const isParent = requester.role === 'parent';
 
       // 计算时间窗口
       const windowDays = this.parseWindow(window);
@@ -305,14 +296,11 @@ export class MetricsService {
       if (isTeacher) {
         // 教师只能对比同班级学生
         const teacherClasses = await this.prisma.class.findMany({
-          where: { ownerTeacherId: requesterId, status: 'ACTIVE' },
+          where: { teacherId: requesterId, status: 'ACTIVE' },
           include: {
             enrollments: {
               where: { status: 'ACTIVE' },
-              select: { studentId: true },
-            },
-          },
-        });
+              select: { studentId: true }}}});
 
         const classStudentIds = teacherClasses.flatMap((cls) =>
           cls.enrollments.map((enrollment) => enrollment.studentId),
@@ -331,10 +319,8 @@ export class MetricsService {
           where: {
             partyId: requesterId,
             partyRole: 'PARENT',
-            status: 'ACTIVE',
-          },
-          select: { studentId: true },
-        });
+            status: 'ACTIVE'},
+          select: { studentId: true }});
 
         const parentStudentIds = parentRelationships.map((rel) => rel.studentId);
         accessibleStudentIds = studentIds.filter((id) =>
@@ -382,10 +368,7 @@ export class MetricsService {
             studentIds: accessibleStudentIds,
             metrics,
             window,
-            resultCount: result.length,
-          },
-        },
-      });
+            resultCount: result.length}}});
 
       const duration = Date.now() - startTime;
       console.log(`compareStudents completed in ${duration}ms for ${studentIds.length} students`);
@@ -499,8 +482,7 @@ export class MetricsService {
         accuracy: student.accuracy,
         tasks_done: student.tasks_done,
         time_spent_min: student.time_spent_min,
-        rank: Math.round(averageRank),
-      };
+        rank: Math.round(averageRank)};
     });
   }
 
@@ -521,9 +503,7 @@ export class MetricsService {
       select: {
         id: true,
         displayName: true,
-        nickname: true,
-      },
-    });
+        nickname: true}});
 
     const studentMap = new Map(students.map((s) => [s.id, s]));
 
@@ -535,21 +515,18 @@ export class MetricsService {
           // 教师可以看到真实姓名
           result.push({
             ...item,
-            studentName: (student as any).displayName,
-          });
+            studentName: (student as any).displayName});
         } else if (isParent) {
           // 家长只能看到自己孩子的真实姓名
           result.push({
             ...item,
-            studentName: (student as any).displayName,
-          });
+            studentName: (student as any).displayName});
         } else {
           // 其他情况匿名化
           result.push({
             ...item,
             studentName: `学生${item.studentId.slice(-4)}`,
-            isAnonymous: true,
-          });
+            isAnonymous: true});
         }
       }
     });
@@ -605,8 +582,7 @@ export class MetricsService {
       tasks_done: Math.round(avgTasksDone),
       time_spent_min: Math.round(avgTimeSpent),
       rank: 0,
-      isAnonymous: true,
-    });
+      isAnonymous: true});
 
     // 添加P50分位
     if (sortedAccuracy.length > 0) {
@@ -617,8 +593,7 @@ export class MetricsService {
         tasks_done: sortedTasksDone[p50Index]?.tasks_done || 0,
         time_spent_min: sortedTimeSpent[p50Index]?.time_spent_min || 0,
         rank: 0,
-        isAnonymous: true,
-      });
+        isAnonymous: true});
     }
 
     // 添加P90分位
@@ -630,8 +605,7 @@ export class MetricsService {
         tasks_done: sortedTasksDone[p90Index]?.tasks_done || 0,
         time_spent_min: sortedTimeSpent[p90Index]?.time_spent_min || 0,
         rank: 0,
-        isAnonymous: true,
-      });
+        isAnonymous: true});
     }
 
     return stats;
@@ -670,8 +644,7 @@ export class MetricsService {
           tasks_done: existingData.tasks_done,
           accuracy: existingData.accuracy,
           xp: existingData.xp,
-          streak: existingData.streak,
-        });
+          streak: existingData.streak});
       } else {
         result.push({
           date: dateKey,
@@ -679,8 +652,7 @@ export class MetricsService {
           tasks_done: 0,
           accuracy: 0,
           xp: 0,
-          streak: 0,
-        });
+          streak: 0});
       }
 
       if (granularity === 'week') {

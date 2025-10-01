@@ -25,7 +25,7 @@ export class AccessGrantsController {
   constructor(private readonly prisma: PrismaService) {}
 
   @Get('my-grants')
-  @RequirePermissions(Permission.VIEW_AUTHORIZED_STUDENT_DATA, Permission.VIEW_CLASS_STUDENT_DATA)
+  @RequirePermissions(Permission.VIEW_AUTHORIZED_STUDENT_DATA)
   @ApiOperation({ summary: '获取我的访问授权' })
   @ApiResponse({ status: 200, description: '获取成功' })
   async getMyGrants(@Request() req) {
@@ -86,10 +86,8 @@ export class AccessGrantsController {
             id: true,
             displayName: true,
             email: true,
-            role: {
-              select: { name: true },
-            },
-          },
+            role: true
+          }
         },
         relationship: {
           select: {
@@ -250,7 +248,7 @@ export class AccessGrantsController {
   }
 
   @Get('check-access/:studentId')
-  @RequirePermissions(Permission.VIEW_AUTHORIZED_STUDENT_DATA, Permission.VIEW_CLASS_STUDENT_DATA)
+  @RequirePermissions(Permission.VIEW_AUTHORIZED_STUDENT_DATA)
   @ApiOperation({ summary: '检查访问权限' })
   @ApiResponse({ status: 200, description: '检查成功' })
   async checkAccess(
@@ -283,7 +281,7 @@ export class AccessGrantsController {
   }
 
   @Get('access-history/:studentId')
-  @RequirePermissions(Permission.VIEW_AUTHORIZED_STUDENT_DATA, Permission.VIEW_CLASS_STUDENT_DATA)
+  @RequirePermissions(Permission.VIEW_AUTHORIZED_STUDENT_DATA)
   @ApiOperation({ summary: '获取访问历史' })
   @ApiResponse({ status: 200, description: '获取成功' })
   async getAccessHistory(

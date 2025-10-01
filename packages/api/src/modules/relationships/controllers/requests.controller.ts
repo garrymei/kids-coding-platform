@@ -8,8 +8,7 @@ import {
   UseGuards,
   Request,
   BadRequestException,
-  NotFoundException,
-} from '@nestjs/common';
+  NotFoundException} from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { PermissionsGuard } from '../../auth/guards/permissions.guard';
@@ -66,19 +65,17 @@ export class RequestsController {
     let targetStudent;
     if (requestData.studentId) {
       targetStudent = await this.prisma.user.findUnique({
-        where: { id: requestData.studentId },
-        include: { role: true },
+        where: { id: requestData.studentId }
       });
     } else if (requestData.shareCode) {
       // 这里应该通过分享码查找学生
       // 暂时用模拟数据
       targetStudent = {
         id: 'temp-student-id',
-        role: { name: 'student' },
-      };
+        role: 'student' };
     }
 
-    if (!targetStudent || targetStudent.role.name !== 'student') {
+    if (!targetStudent || targetStudent.role !== 'student') {
       throw new NotFoundException('目标学生不存在');
     }
 
@@ -87,9 +84,7 @@ export class RequestsController {
       where: {
         studentId: targetStudent.id,
         partyId: requesterId,
-        status: { in: ['ACTIVE', 'PENDING'] },
-      },
-    });
+        status: { in: ['ACTIVE', 'PENDING'] }}});
 
     if (existingRelationship) {
       throw new BadRequestException('您已经关注了该学生或申请正在处理中');
@@ -104,9 +99,7 @@ export class RequestsController {
         scope: requestData.scope,
         reason: requestData.reason,
         expiresAt: requestData.expiresAt ? new Date(requestData.expiresAt) : null,
-        status: 'PENDING',
-      },
-    });
+        status: 'PENDING'}});
 
     // 创建关系记录（待处理状态）
     const relationship = await this.prisma.relationship.create({
@@ -115,9 +108,7 @@ export class RequestsController {
         partyId: requesterId,
         partyRole: 'PARENT', // 这里需要根据实际情况判断
         source: requestData.shareCode ? 'SHARE_CODE' : 'SEARCH',
-        status: 'PENDING',
-      },
-    });
+        status: 'PENDING'}});
 
     // 记录审计日志
     await this.auditLogger.logRequest(
@@ -130,8 +121,7 @@ export class RequestsController {
         reason: requestData.reason,
         expiresAt: requestData.expiresAt,
         shareCode: requestData.shareCode,
-        ip: requesterIp,
-      },
+        ip: requesterIp},
     );
 
     // 这里应该发送通知给学生
@@ -141,8 +131,7 @@ export class RequestsController {
       message: '关注申请已发送，等待学生同意',
       consentId: consent.id,
       relationshipId: relationship.id,
-      studentId: targetStudent.id,
-    };
+      studentId: targetStudent.id};
   }
 
   @Get('pending-requests')
@@ -155,22 +144,15 @@ export class RequestsController {
     const pendingRequests = await this.prisma.consent.findMany({
       where: {
         studentId,
-        status: 'PENDING',
-      },
+        status: 'PENDING'},
       include: {
         requester: {
           select: {
             id: true,
             displayName: true,
             email: true,
-            role: {
-              select: { name: true },
-            },
-          },
-        },
-      },
-      orderBy: { createdAt: 'desc' },
-    });
+            role: true}}},
+      orderBy: { createdAt: 'desc' }});
 
     return pendingRequests.map(request => ({
       id: request.id,
@@ -179,8 +161,7 @@ export class RequestsController {
       scope: request.scope,
       reason: request.reason,
       expiresAt: request.expiresAt,
-      createdAt: request.createdAt,
-    }));
+      createdAt: request.createdAt}));
   }
 
   @Post('requests/:consentId/approve')
@@ -202,9 +183,7 @@ export class RequestsController {
       where: {
         id: consentId,
         studentId,
-        status: 'PENDING',
-      },
-    });
+        status: 'PENDING'}});
 
     if (!consent) {
       throw new NotFoundException('请求不存在或已处理');
@@ -216,24 +195,19 @@ export class RequestsController {
       data: {
         status: 'APPROVED',
         scope: approvalData.scopes || consent.scope,
-        expiresAt: approvalData.expiresAt ? new Date(approvalData.expiresAt) : consent.expiresAt,
-      },
-    });
+        expiresAt: approvalData.expiresAt ? new Date(approvalData.expiresAt) : consent.expiresAt}});
 
     // 更新关系状态
     const relationship = await this.prisma.relationship.findFirst({
       where: {
         studentId,
         partyId: consent.requesterId,
-        status: 'PENDING',
-      },
-    });
+        status: 'PENDING'}});
 
     if (relationship) {
       await this.prisma.relationship.update({
         where: { id: relationship.id },
-        data: { status: 'ACTIVE' },
-      });
+        data: { status: 'ACTIVE' }});
     }
 
     // 创建访问授权
@@ -244,9 +218,7 @@ export class RequestsController {
         scope: approvalData.scopes || consent.scope,
         status: 'ACTIVE',
         expiresAt: approvalData.expiresAt ? new Date(approvalData.expiresAt) : consent.expiresAt,
-        relationshipId: relationship?.id,
-      },
-    });
+        relationshipId: relationship?.id}});
 
     // 记录审计日志 - Parent link decision
     await this.auditLogger.logParentLinkDecision(
@@ -258,16 +230,14 @@ export class RequestsController {
         consentId,
         scopes: approvalData.scopes || consent.scope,
         expiresAt: approvalData.expiresAt,
-        accessGrantId: accessGrant.id,
-      },
+        accessGrantId: accessGrant.id},
     );
 
     return {
       message: '关注请求已批准',
       consentId,
       relationshipId: relationship?.id,
-      accessGrantId: accessGrant.id,
-    };
+      accessGrantId: accessGrant.id};
   }
 
   @Post('requests/:consentId/reject')
@@ -285,9 +255,7 @@ export class RequestsController {
       where: {
         id: consentId,
         studentId,
-        status: 'PENDING',
-      },
-    });
+        status: 'PENDING'}});
 
     if (!consent) {
       throw new NotFoundException('请求不存在或已处理');
@@ -298,24 +266,19 @@ export class RequestsController {
       where: { id: consentId },
       data: { 
         status: 'REJECTED',
-        reason: rejectionData.reason ? `${consent.reason} [拒绝理由: ${rejectionData.reason}]` : consent.reason,
-      },
-    });
+        reason: rejectionData.reason ? `${consent.reason} [拒绝理由: ${rejectionData.reason}]` : consent.reason}});
 
     // 更新关系状态
     const relationship = await this.prisma.relationship.findFirst({
       where: {
         studentId,
         partyId: consent.requesterId,
-        status: 'PENDING',
-      },
-    });
+        status: 'PENDING'}});
 
     if (relationship) {
       await this.prisma.relationship.update({
         where: { id: relationship.id },
-        data: { status: 'REVOKED' },
-      });
+        data: { status: 'REVOKED' }});
     }
 
     // 记录审计日志 - Parent link decision
@@ -326,15 +289,13 @@ export class RequestsController {
       req.ip,
       {
         consentId,
-        rejectionReason: rejectionData.reason,
-      },
+        rejectionReason: rejectionData.reason},
     );
 
     return {
       message: '关注请求已拒绝',
       consentId,
-      relationshipId: relationship?.id,
-    };
+      relationshipId: relationship?.id};
   }
 
   @Get('my-requests')
@@ -353,12 +314,8 @@ export class RequestsController {
             displayName: true,
             nickname: true,
             school: true,
-            className: true,
-          },
-        },
-      },
-      orderBy: { createdAt: 'desc' },
-    });
+            className: true}}},
+      orderBy: { createdAt: 'desc' }});
 
     return requests.map(request => ({
       id: request.id,
@@ -368,8 +325,6 @@ export class RequestsController {
       reason: request.reason,
       status: request.status,
       expiresAt: request.expiresAt,
-      createdAt: request.createdAt,
-      updatedAt: request.updatedAt,
-    }));
+      createdAt: request.createdAt}));
   }
 }

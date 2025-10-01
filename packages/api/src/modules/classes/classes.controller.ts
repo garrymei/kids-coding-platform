@@ -1,7 +1,7 @@
 import { Controller, Post, Body, UseGuards, Request, BadRequestException, Logger } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
-import { EnrollmentStatus } from '@prisma/client';
+// EnrollmentStatus is now a string enum in the schema
 
 @Controller('classes')
 @UseGuards(JwtAuthGuard)
@@ -19,9 +19,9 @@ export class ClassesController {
 
     try {
       // Find class by code
-      const classToJoin = await this.prisma.classes.findUnique({
+      const classToJoin = await this.prisma.class.findUnique({
         where: { code },
-        include: { class_enrollments: true },
+        include: { enrollments: true },
       });
 
       if (!classToJoin) {
@@ -33,7 +33,7 @@ export class ClassesController {
       }
 
       // Check if student is already enrolled
-      const existingEnrollment = await this.prisma.class_enrollments.findFirst({
+      const existingEnrollment = await this.prisma.classEnrollment.findFirst({
         where: {
           classId: classToJoin.id,
           studentId: studentId,
@@ -52,16 +52,16 @@ export class ClassesController {
       }
 
       // Create enrollment request
-      const enrollment = await this.prisma.class_enrollments.create({
+      const enrollment = await this.prisma.classEnrollment.create({
         data: {
           classId: classToJoin.id,
           studentId: studentId,
-          status: EnrollmentStatus.PENDING,
+          status: 'pending',
         },
       });
 
       // Create audit log
-      await this.prisma.audit_logs.create({
+      await this.prisma.auditLog.create({
         data: {
           actorId: studentId,
           action: 'CLASS_JOIN_REQUEST',

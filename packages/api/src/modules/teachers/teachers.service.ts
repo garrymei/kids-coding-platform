@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException, BadRequestException, Logger } from '@nestjs/common';
 import { CreateClassDto } from './dto/create-class.dto';
 import { PrismaService } from '../../prisma/prisma.service';
-import { ClassStatus, EnrollmentStatus } from '@prisma/client';
+// ClassStatus and EnrollmentStatus are now string enums in the schema
 
 // Mock data for fallback
 const mockApprovals = [
@@ -42,13 +42,12 @@ export class TeachersService {
     this.logger.log(`Creating class: ${createClassDto.name} by teacher: ${teacherId}`);
     
     try {
-      const newClass = await this.prisma.classes.create({
+      const newClass = await this.prisma.class.create({
         data: {
-          name: createClassDto.name,
-          description: createClassDto.description,
-          ownerTeacherId: teacherId,
+        name: createClassDto.name,
+          teacherId: teacherId,
           code: generateInviteCode(),
-          status: ClassStatus.ACTIVE,
+          codeTTL: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days
         },
       });
 
@@ -68,10 +67,10 @@ export class TeachersService {
     
     try {
       // Verify teacher owns the class
-      const classExists = await this.prisma.classes.findFirst({
+      const classExists = await this.prisma.class.findFirst({
         where: {
           id: classId,
-          ownerTeacherId: teacherId,
+          teacherId: teacherId,
         },
       });
 
@@ -84,13 +83,13 @@ export class TeachersService {
       };
 
       if (status) {
-        whereClause.status = EnrollmentStatus[status.toUpperCase() as keyof typeof EnrollmentStatus];
+        whereClause.status = status.toLowerCase();
       }
 
-      const approvals = await this.prisma.class_enrollments.findMany({
+      const approvals = await this.prisma.classEnrollment.findMany({
         where: whereClause,
         include: {
-          User: {
+          student: {
             select: {
               id: true,
               displayName: true,
@@ -106,7 +105,7 @@ export class TeachersService {
         memberId: approval.id,
         classId: approval.classId,
         studentId: approval.studentId,
-        studentName: approval.User.displayName || approval.User.nickname || approval.User.email,
+        studentName: approval.student.displayName || approval.student.nickname || approval.student.email,
         status: approval.status.toLowerCase(),
         requestedAt: approval.createdAt.toISOString(),
       }));
@@ -127,10 +126,10 @@ export class TeachersService {
     
     try {
       // Verify teacher owns the class
-      const classExists = await this.prisma.classes.findFirst({
+      const classExists = await this.prisma.class.findFirst({
         where: {
           id: classId,
-          ownerTeacherId: teacherId,
+          teacherId: teacherId,
         },
       });
 
@@ -138,7 +137,7 @@ export class TeachersService {
         throw new NotFoundException('Class not found or access denied');
       }
 
-      const enrollment = await this.prisma.class_enrollments.findFirst({
+      const enrollment = await this.prisma.classEnrollment.findFirst({
         where: {
           id: memberId,
           classId: classId,
@@ -149,7 +148,7 @@ export class TeachersService {
         throw new NotFoundException('Enrollment request not found');
       }
 
-      if (enrollment.status !== EnrollmentStatus.PENDING) {
+      if (enrollment.status !== 'pending') {
         // Idempotency - return current state
         return {
           memberId: enrollment.id,
@@ -159,16 +158,15 @@ export class TeachersService {
         };
       }
 
-      const updatedEnrollment = await this.prisma.class_enrollments.update({
+      const updatedEnrollment = await this.prisma.classEnrollment.update({
         where: { id: memberId },
         data: {
-          status: EnrollmentStatus.ACTIVE,
-          updatedAt: new Date(),
+          status: 'active',
         },
       });
 
       // Create audit log
-      await this.prisma.audit_logs.create({
+      await this.prisma.auditLog.create({
         data: {
           actorId: teacherId,
           action: 'CLASS_MEMBER_DECISION',
@@ -198,10 +196,10 @@ export class TeachersService {
     
     try {
       // Verify teacher owns the class
-      const classExists = await this.prisma.classes.findFirst({
+      const classExists = await this.prisma.class.findFirst({
         where: {
           id: classId,
-          ownerTeacherId: teacherId,
+          teacherId: teacherId,
         },
       });
 
@@ -209,7 +207,7 @@ export class TeachersService {
         throw new NotFoundException('Class not found or access denied');
       }
 
-      const enrollment = await this.prisma.class_enrollments.findFirst({
+      const enrollment = await this.prisma.classEnrollment.findFirst({
         where: {
           id: memberId,
           classId: classId,
@@ -220,7 +218,7 @@ export class TeachersService {
         throw new NotFoundException('Enrollment request not found');
       }
 
-      if (enrollment.status !== EnrollmentStatus.PENDING) {
+      if (enrollment.status !== 'pending') {
         // Idempotency - return current state
         return {
           memberId: enrollment.id,
@@ -230,16 +228,15 @@ export class TeachersService {
         };
       }
 
-      const updatedEnrollment = await this.prisma.class_enrollments.update({
+      const updatedEnrollment = await this.prisma.classEnrollment.update({
         where: { id: memberId },
         data: {
-          status: EnrollmentStatus.REVOKED,
-          updatedAt: new Date(),
+          status: 'revoked',
         },
       });
 
       // Create audit log
-      await this.prisma.audit_logs.create({
+      await this.prisma.auditLog.create({
         data: {
           actorId: teacherId,
           action: 'CLASS_MEMBER_DECISION',

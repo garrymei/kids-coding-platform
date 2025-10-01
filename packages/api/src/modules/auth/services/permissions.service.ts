@@ -14,7 +14,6 @@ export class PermissionsService {
       // 获取请求者信息
       const requester = await this.prisma.user.findUnique({
         where: { id: requesterId },
-        include: { Role: true },
       });
 
       if (!requester) {
@@ -27,13 +26,13 @@ export class PermissionsService {
       }
 
       // 管理员可以访问所有数据
-      if (requester.Role.name === 'admin') {
+      if (requester.role === 'admin') {
         return true;
       }
 
       // 检查家长授权关系
-      if (requester.Role.name === 'parent') {
-        const consent = await this.prisma.consents.findFirst({
+      if (requester.role === 'parent') {
+        const consent = await this.prisma.consent.findFirst({
           where: {
             requesterId,
             studentId,
@@ -44,13 +43,13 @@ export class PermissionsService {
       }
 
       // 检查教师班级关系
-      if (requester.Role.name === 'teacher') {
-        const classMembership = await this.prisma.class_enrollments.findFirst({
+      if (requester.role === 'teacher') {
+        const classMembership = await this.prisma.classEnrollment.findFirst({
           where: {
             studentId,
             status: 'ACTIVE',
-            classes: {
-              ownerTeacherId: requesterId,
+            class: {
+              teacherId: requesterId,
             },
           },
         });
@@ -70,7 +69,6 @@ export class PermissionsService {
       // 获取请求者信息
       const requester = await this.prisma.user.findUnique({
         where: { id: requesterId },
-        include: { Role: true },
       });
 
       if (!requester) {
@@ -78,24 +76,24 @@ export class PermissionsService {
       }
 
       // 管理员可以访问所有数据
-      if (requester.Role.name === 'admin') {
+      if (requester.role === 'admin') {
         return true;
       }
 
       // 检查是否是班级的教师
-      if (requester.Role.name === 'teacher') {
-        const classExists = await this.prisma.classes.findFirst({
+      if (requester.role === 'teacher') {
+        const classExists = await this.prisma.class.findFirst({
           where: {
             id: classId,
-            ownerTeacherId: requesterId,
+            teacherId: requesterId,
           },
         });
         return !!classExists;
       }
 
       // 检查是否是班级的学生
-      if (requester.Role.name === 'student') {
-        const membership = await this.prisma.class_enrollments.findFirst({
+      if (requester.role === 'student') {
+        const membership = await this.prisma.classEnrollment.findFirst({
           where: {
             classId,
             studentId: requesterId,
@@ -123,10 +121,9 @@ export class PermissionsService {
       // 管理员可以记录所有事件
       const requester = await this.prisma.user.findUnique({
         where: { id: requesterId },
-        include: { Role: true },
       });
 
-      if (requester?.Role.name === 'admin') {
+      if (requester?.role === 'admin') {
         return true;
       }
 
@@ -143,7 +140,6 @@ export class PermissionsService {
       // 获取请求者信息
       const requester = await this.prisma.user.findUnique({
         where: { id: requesterId },
-        include: { Role: true },
       });
 
       if (!requester) {
@@ -151,16 +147,16 @@ export class PermissionsService {
       }
 
       // 管理员可以管理所有班级
-      if (requester.Role.name === 'admin') {
+      if (requester.role === 'admin') {
         return true;
       }
 
       // 检查是否是班级的教师
-      if (requester.Role.name === 'teacher') {
-        const classExists = await this.prisma.classes.findFirst({
+      if (requester.role === 'teacher') {
+        const classExists = await this.prisma.class.findFirst({
           where: {
             id: classId,
-            ownerTeacherId: requesterId,
+            teacherId: requesterId,
           },
         });
         return !!classExists;
@@ -177,7 +173,7 @@ export class PermissionsService {
   async canManageConsent(requesterId: string, consentId: string): Promise<boolean> {
     try {
       // 获取授权请求信息
-      const consent = await this.prisma.consents.findUnique({
+      const consent = await this.prisma.consent.findUnique({
         where: { id: consentId },
       });
 
@@ -198,10 +194,9 @@ export class PermissionsService {
       // 管理员可以管理所有授权请求
       const requester = await this.prisma.user.findUnique({
         where: { id: requesterId },
-        include: { Role: true },
       });
 
-      if (requester?.Role.name === 'admin') {
+      if (requester?.role === 'admin') {
         return true;
       }
 

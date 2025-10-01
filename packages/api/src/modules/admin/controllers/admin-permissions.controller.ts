@@ -7,8 +7,7 @@ import {
   Param, 
   UseGuards,
   Request,
-  Query,
-} from '@nestjs/common';
+  Query} from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { PermissionsGuard } from '../../auth/guards/permissions.guard';
@@ -33,26 +32,19 @@ export class AdminPermissionsController {
     const stats = {
       totalUsers: await this.prisma.user.count(),
       totalStudents: await this.prisma.user.count({
-        where: { role: { name: 'student' } },
-      }),
+        where: { role: 'student' }}),
       totalParents: await this.prisma.user.count({
-        where: { role: { name: 'parent' } },
-      }),
+        where: { role: 'parent' }}),
       totalTeachers: await this.prisma.user.count({
-        where: { role: { name: 'teacher' } },
-      }),
+        where: { role: 'teacher' }}),
       totalClasses: await this.prisma.class.count(),
       activeClasses: await this.prisma.class.count({
-        where: { status: 'ACTIVE' },
-      }),
+        where: { status: 'ACTIVE' }}),
       totalRelationships: await this.prisma.relationship.count(),
       activeRelationships: await this.prisma.relationship.count({
-        where: { status: 'ACTIVE' },
-      }),
+        where: { status: 'ACTIVE' }}),
       pendingConsents: await this.prisma.consent.count({
-        where: { status: 'PENDING' },
-      }),
-    };
+        where: { status: 'PENDING' }})};
 
     // 记录访问日志
     await this.prisma.auditLog.create({
@@ -62,16 +54,12 @@ export class AdminPermissionsController {
         targetType: 'system',
         targetId: 'system',
         metadata: {
-          stats,
-        },
-      },
-    });
+          stats}}});
 
     return {
       systemStatus: 'healthy',
       timestamp: new Date(),
-      stats,
-    };
+      stats};
   }
 
   @Get('appeals')
@@ -84,8 +72,7 @@ export class AdminPermissionsController {
 
     // 这里应该有一个申诉表，暂时用审计日志模拟
     const where: any = {
-      action: { in: ['appeal_created', 'appeal_resolved'] },
-    };
+      action: { in: ['appeal_created', 'appeal_resolved'] }};
 
     if (status) {
       where.metadata = { path: ['status'], equals: status };
@@ -106,15 +93,9 @@ export class AdminPermissionsController {
             id: true,
             displayName: true,
             email: true,
-            role: {
-              select: { name: true },
-            },
-          },
-        },
-      },
+            role: true }}},
       orderBy: { ts: 'desc' },
-      take: 50,
-    });
+      take: 50});
 
     return appeals;
   }
@@ -140,8 +121,7 @@ export class AdminPermissionsController {
         status: 'pending_second_approval',
         decision: decision.action,
         reason: decision.reason,
-        createdAt: new Date(),
-      };
+        createdAt: new Date()};
 
       // 记录审计日志
       await this.prisma.auditLog.create({
@@ -153,16 +133,12 @@ export class AdminPermissionsController {
           metadata: {
             decision: decision.action,
             reason: decision.reason,
-            requiresSecondApproval: true,
-          },
-        },
-      });
+            requiresSecondApproval: true}}});
 
       return {
         message: '申诉已提交，等待二次审批',
         approvalId: pendingApproval.id,
-        status: 'pending_second_approval',
-      };
+        status: 'pending_second_approval'};
     }
 
     // 直接处理申诉
@@ -175,16 +151,12 @@ export class AdminPermissionsController {
         metadata: {
           decision: decision.action,
           reason: decision.reason,
-          resolvedAt: new Date(),
-        },
-      },
-    });
+          resolvedAt: new Date()}}});
 
     return {
       message: '申诉已处理',
       decision: decision.action,
-      reason: decision.reason,
-    };
+      reason: decision.reason};
   }
 
   @Post('second-approval/:approvalId')
@@ -204,8 +176,7 @@ export class AdminPermissionsController {
       id: approvalId,
       appealId: 'temp-appeal-id',
       firstApproverId: 'other-admin-id',
-      status: 'pending_second_approval',
-    };
+      status: 'pending_second_approval'};
 
     if (pendingApproval.firstApproverId === adminId) {
       throw new Error('不能对自己的一审进行二次审批');
@@ -224,16 +195,12 @@ export class AdminPermissionsController {
           reason: approval.reason,
           firstApproverId: pendingApproval.firstApproverId,
           secondApproverId: adminId,
-          completedAt: new Date(),
-        },
-      },
-    });
+          completedAt: new Date()}}});
 
     return {
       message: '二次审批完成',
       decision: approval.action,
-      reason: approval.reason,
-    };
+      reason: approval.reason};
   }
 
   @Get('system-audit')
@@ -267,15 +234,9 @@ export class AdminPermissionsController {
             id: true,
             displayName: true,
             email: true,
-            role: {
-              select: { name: true },
-            },
-          },
-        },
-      },
+            role: true }}},
       orderBy: { ts: 'desc' },
-      take: parseInt(limit),
-    });
+      take: parseInt(limit)});
 
     // 记录访问日志
     await this.prisma.auditLog.create({
@@ -286,16 +247,12 @@ export class AdminPermissionsController {
         targetId: 'audit_logs',
         metadata: {
           queryParams: query,
-          resultCount: auditLogs.length,
-        },
-      },
-    });
+          resultCount: auditLogs.length}}});
 
     return {
       auditLogs,
       totalCount: auditLogs.length,
-      queryParams: query,
-    };
+      queryParams: query};
   }
 
   @Get('user-management')
@@ -323,15 +280,18 @@ export class AdminPermissionsController {
     const [users, totalCount] = await Promise.all([
       this.prisma.user.findMany({
         where,
-        include: {
-          role: {
-            select: { name: true },
-          },
+        select: {
+          id: true,
+          email: true,
+          displayName: true,
+          name: true,
+          role: true,
+          createdAt: true,
+          updatedAt: true
         },
         skip,
         take: parseInt(limit),
-        orderBy: { createdAt: 'desc' },
-      }),
+        orderBy: { createdAt: 'desc' }}),
       this.prisma.user.count({ where }),
     ]);
 
@@ -340,7 +300,7 @@ export class AdminPermissionsController {
         id: user.id,
         email: user.email,
         displayName: user.displayName,
-        role: user.role.name,
+        role: user.role,
         createdAt: user.createdAt,
         updatedAt: user.updatedAt,
         // 不包含敏感信息
@@ -349,9 +309,7 @@ export class AdminPermissionsController {
         page: parseInt(page),
         limit: parseInt(limit),
         totalCount,
-        totalPages: Math.ceil(totalCount / parseInt(limit)),
-      },
-    };
+        totalPages: Math.ceil(totalCount / parseInt(limit))}};
   }
 
   @Put('user-status/:userId')
@@ -375,17 +333,13 @@ export class AdminPermissionsController {
         metadata: {
           newStatus: statusData.status,
           reason: statusData.reason,
-          updatedAt: new Date(),
-        },
-      },
-    });
+          updatedAt: new Date()}}});
 
     return {
       message: '用户状态已更新',
       userId,
       status: statusData.status,
-      reason: statusData.reason,
-    };
+      reason: statusData.reason};
   }
 
   @Get('data-export')
@@ -424,17 +378,13 @@ export class AdminPermissionsController {
           dataType,
           startDate,
           endDate,
-          recordCount: Array.isArray(exportData) ? exportData.length : 0,
-        },
-      },
-    });
+          recordCount: Array.isArray(exportData) ? exportData.length : 0}}});
 
     return {
       message: '数据导出完成',
       dataType,
       recordCount: Array.isArray(exportData) ? exportData.length : 0,
-      data: exportData,
-    };
+      data: exportData};
   }
 
   private async exportUsersData(startDate?: string, endDate?: string) {
@@ -452,12 +402,11 @@ export class AdminPermissionsController {
         id: true,
         email: true,
         displayName: true,
-        role: { select: { name: true } },
+        role: true,
         createdAt: true,
         updatedAt: true,
         // 不包含敏感信息
-      },
-    });
+      }});
   }
 
   private async exportRelationshipsData(startDate?: string, endDate?: string) {
@@ -473,9 +422,7 @@ export class AdminPermissionsController {
       where,
       include: {
         student: { select: { id: true, displayName: true } },
-        party: { select: { id: true, displayName: true, role: { select: { name: true } } } },
-      },
-    });
+        party: { select: { id: true, displayName: true, role: true } }}});
   }
 
   private async exportAuditLogsData(startDate?: string, endDate?: string) {
@@ -490,8 +437,6 @@ export class AdminPermissionsController {
     return this.prisma.auditLog.findMany({
       where,
       include: {
-        actor: { select: { id: true, displayName: true, role: { select: { name: true } } } },
-      },
-    });
+        actor: { select: { id: true, displayName: true, role: true } }}});
   }
 }

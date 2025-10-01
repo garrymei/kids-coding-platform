@@ -20,6 +20,8 @@ export default [
     },
     rules: {
       'no-unused-vars': 'off',
+      'no-undef': 'off',
+      'no-case-declarations': 'off',
       '@typescript-eslint/no-unused-vars': [
         'warn',
         {
@@ -45,6 +47,7 @@ export default [
   {
     files: [
       'packages/api/**/*.{ts,tsx,js,jsx}',
+      'server/api/**/*.{ts,tsx,js,jsx}',
       'server/executor/**/*.{ts,tsx,js,jsx}',
       'server/websocket/**/*.{ts,tsx,js,jsx}',
     ],

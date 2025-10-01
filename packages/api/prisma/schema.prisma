@@ -8,21 +8,42 @@ datasource db {
 }
 
 model User {
-  id        String  @id @default(cuid())
-  email     String  @unique
-  role      Role
-  name      String
-  avatar    String?
-  createdAt DateTime @default(now())
+  id              String   @id @default(cuid())
+  email           String   @unique
+  passwordHash    String?
+  role            Role
+  name            String
+  displayName     String?
+  nickname        String?
+  school          String?
+  className       String?
+  avatar          String?
+  discoverable    Boolean  @default(true)
+  anonymousId     String?  @unique
+  status          String?  // "active", "suspended", "banned"
+  needsAuditReview Boolean @default(false)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
 
   // Reverse relationships
   parentRequestsSent   ParentLinkRequest[] @relation("ParentIs")
   parentRequestsToMe   ParentLinkRequest[] @relation("StudentIs")
   classesOwned         Class[]             @relation("TeacherOwns")
   classMemberships     ClassMember[]       @relation("StudentMember")
+  classEnrollments     ClassEnrollment[]   @relation("StudentEnrollment")
   learnEvents          LearnEvent[]
   dailyStats           DailyStat[]
   packageProgress      PackageProgress[]
+  auditLogs            AuditLog[]          @relation("AuditActor")
+  metricsSnapshots     MetricsSnapshot[]   @relation("StudentMetrics")
+  
+  // Security relationships
+  relationshipsAsStudent Relationship[]  @relation("StudentRelationship")
+  relationshipsAsParty   Relationship[]  @relation("PartyRelationship")
+  consentsAsStudent      Consent[]       @relation("StudentConsent")
+  consentsAsRequester    Consent[]       @relation("RequesterConsent")
+  accessGrantsAsStudent  AccessGrant[]   @relation("StudentGrant")
+  accessGrantsAsGrantee  AccessGrant[]   @relation("GranteeGrant")
 }
 
 enum Role {
@@ -55,16 +76,22 @@ enum ConsentStatus {
 }
 
 model Class {
-  id        String   @id @default(cuid())
-  teacherId String
-  name      String
-  code      String   @unique
-  codeTTL   DateTime
-  isActive  Boolean  @default(true)
-  createdAt DateTime @default(now())
+  id          String   @id @default(cuid())
+  teacherId   String
+  name        String
+  description String?
+  code        String   @unique
+  codeTTL     DateTime
+  isActive    Boolean  @default(true)
+  status      String   @default("active") // "active", "archived", "closed"
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
-  teacher   User     @relation("TeacherOwns", fields: [teacherId], references: [id])
-  members   ClassMember[]
+  ownerTeacher  User            @relation("TeacherOwns", fields: [teacherId], references: [id])
+  members       ClassMember[]
+  enrollments   ClassEnrollment[]
+  
+  @@index([teacherId])
 }
 
 model ClassMember {
@@ -123,4 +150,144 @@ model PackageProgress {
   student    User    @relation(fields: [studentId], references: [id], onDelete: Cascade)
 
   @@unique([studentId, pkgId])
+}
+
+// Security and authorization models
+model Relationship {
+  id         String   @id @default(cuid())
+  studentId  String
+  partyId    String
+  partyRole  String   // "parent" or "teacher"
+  source     String   // "share_code", "search", "class_invite"
+  status     String   // "pending", "active", "revoked", "expired"
+  createdAt  DateTime @default(now())
+  revokedAt  DateTime?
+
+  student      User          @relation("StudentRelationship", fields: [studentId], references: [id], onDelete: Cascade)
+  party        User          @relation("PartyRelationship", fields: [partyId], references: [id], onDelete: Cascade)
+  accessGrants AccessGrant[]
+
+  @@unique([studentId, partyId])
+  @@index([studentId])
+  @@index([partyId])
+}
+
+model Consent {
+  id          String   @id @default(cuid())
+  studentId   String
+  requesterId String
+  purpose     String
+  scope       String[] // array of permission scopes
+  status      String   // "pending", "approved", "rejected"
+  reason      String?  // rejection or revocation reason
+  createdAt   DateTime @default(now())
+  expiresAt   DateTime?
+
+  student   User @relation("StudentConsent", fields: [studentId], references: [id], onDelete: Cascade)
+  requester User @relation("RequesterConsent", fields: [requesterId], references: [id], onDelete: Cascade)
+
+  @@index([studentId])
+  @@index([requesterId])
+}
+
+model AccessGrant {
+  id             String   @id @default(cuid())
+  studentId      String
+  granteeId      String
+  relationshipId String?
+  scope          String[] // array of permission scopes
+  status         String   // "active", "revoked", "expired"
+  grantedAt      DateTime @default(now())
+  grantedBy      String?  // user ID who granted access
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  expiresAt      DateTime?
+  revokedAt      DateTime?
+  revokedBy      String?  // user ID who revoked the grant
+
+  student      User          @relation("StudentGrant", fields: [studentId], references: [id], onDelete: Cascade)
+  grantee      User          @relation("GranteeGrant", fields: [granteeId], references: [id], onDelete: Cascade)
+  relationship Relationship? @relation(fields: [relationshipId], references: [id], onDelete: Cascade)
+
+  @@index([studentId])
+  @@index([granteeId])
+  @@index([relationshipId])
+}
+
+model AuditLog {
+  id         String   @id @default(cuid())
+  actorId    String
+  action     String
+  targetType String
+  targetId   String?
+  route      String?
+  meta       Json?
+  metadata   Json?
+  ipAddress  String?
+  userAgent  String?
+  severity   String?  // "info", "warning", "critical"
+  ts         DateTime @default(now()) @db.Timestamp(6)
+  createdAt  DateTime @default(now())
+
+  actor User @relation("AuditActor", fields: [actorId], references: [id], onDelete: Cascade)
+
+  @@index([actorId])
+  @@index([targetType, targetId])
+  @@index([ts])
+  @@index([createdAt])
+}
+
+model MetricsSnapshot {
+  id           String   @id @default(cuid())
+  studentId    String
+  chapterId    String?
+  date         DateTime @db.Date
+  tasksDone    Int      @default(0)
+  accuracy     Float?
+  timeSpentMin Int      @default(0)
+  streakDays   Int      @default(0)
+  xpGained     Int      @default(0)
+
+  student User @relation("StudentMetrics", fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@unique([studentId, date, chapterId])
+  @@index([studentId])
+}
+
+model ClassEnrollment {
+  id        String   @id @default(cuid())
+  classId   String
+  studentId String
+  status    String   // "pending", "active", "revoked"
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  class   Class @relation(fields: [classId], references: [id], onDelete: Cascade)
+  student User  @relation("StudentEnrollment", fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@unique([classId, studentId])
+  @@index([classId])
+  @@index([studentId])
+}
+
+// Appeal system for handling ban appeals and access restoration
+model Appeal {
+  id          String   @id @default(cuid())
+  userId      String
+  targetUserId String? // for appeals about other users
+  type        String   // "ban_appeal", "access_restoration"
+  reason      String
+  status      String   @default("pending") // "pending", "approved", "rejected", "in_review"
+  reviewerId  String?
+  reviewNotes String?
+  submittedAt DateTime @default(now())
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  decidedAt   DateTime?
+  closedAt    DateTime?
+
+  @@index([userId])
+  @@index([targetUserId])
+  @@index([status])
+  @@index([reviewerId])
 }

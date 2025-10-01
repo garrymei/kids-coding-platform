@@ -14,9 +14,9 @@ export class ClassesService {
     const classData = await this.prisma.class.create({
       data: {
         name: createClassDto.name,
-        description: createClassDto.description,
-        ownerTeacherId: teacherId,
+        teacherId: teacherId,
         code: inviteCode,
+        codeTTL: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days
       },
       include: {
         ownerTeacher: {
@@ -35,7 +35,7 @@ export class ClassesService {
   async getClassesByTeacher(teacherId: string) {
     return this.prisma.class.findMany({
       where: {
-        ownerTeacherId: teacherId,
+        teacherId: teacherId,
         status: 'ACTIVE',
       },
       include: {
@@ -66,7 +66,7 @@ export class ClassesService {
     const classData = await this.prisma.class.findFirst({
       where: {
         id: classId,
-        ownerTeacherId: teacherId,
+        teacherId: teacherId,
       },
       include: {
         enrollments: {
@@ -102,7 +102,7 @@ export class ClassesService {
     const classData = await this.prisma.class.findFirst({
       where: {
         id: classId,
-        ownerTeacherId: teacherId,
+        teacherId: teacherId,
       },
     });
 
@@ -121,7 +121,7 @@ export class ClassesService {
     const classData = await this.prisma.class.findFirst({
       where: {
         id: classId,
-        ownerTeacherId: teacherId,
+        teacherId: teacherId,
       },
     });
 
@@ -195,7 +195,7 @@ export class ClassesService {
     const classData = await this.prisma.class.findFirst({
       where: {
         id: classId,
-        ownerTeacherId: teacherId,
+        teacherId: teacherId,
       },
     });
 
@@ -234,7 +234,7 @@ export class ClassesService {
     const classData = await this.prisma.class.findFirst({
       where: {
         id: classId,
-        ownerTeacherId: teacherId,
+        teacherId: teacherId,
       },
     });
 
@@ -319,22 +319,26 @@ export class ClassesService {
     // 为班级教师创建访问学生数据的授权
     const classData = await this.prisma.class.findUnique({
       where: { id: classId },
-      select: { ownerTeacherId: true },
+      select: { teacherId: true },
     });
 
     if (!classData) return;
 
-    await this.prisma.accessGrant.createMany({
-      data: [
+      await this.prisma.accessGrant.createMany({
+        data: [
+          {
+            studentId,
+            granteeId: classData.teacherId,
+            scope: ['progress:read'],
+            status: 'active',
+            grantedAt: new Date(),
+          },
         {
           studentId,
-          granteeId: classData.ownerTeacherId,
-          scope: ['progress:read'],
-        },
-        {
-          studentId,
-          granteeId: classData.ownerTeacherId,
+          granteeId: classData.teacherId,
           scope: ['works:read'],
+          status: 'active',
+          grantedAt: new Date(),
         },
       ],
     });
@@ -343,7 +347,7 @@ export class ClassesService {
   private async revokeClassAccessGrants(studentId: string, classId: string) {
     const classData = await this.prisma.class.findUnique({
       where: { id: classId },
-      select: { ownerTeacherId: true },
+      select: { teacherId: true },
     });
 
     if (!classData) return;
@@ -351,7 +355,7 @@ export class ClassesService {
     await this.prisma.accessGrant.updateMany({
       where: {
         studentId,
-        granteeId: classData.ownerTeacherId,
+        granteeId: classData.teacherId,
       },
       data: {
         status: 'REVOKED',
