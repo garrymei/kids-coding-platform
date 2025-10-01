@@ -1,4 +1,4 @@
-﻿import { Component, type ErrorInfo, type ReactNode } from "react";
+﻿import React, { Component, type ErrorInfo, type ReactNode } from "react";
 import { Card, Button } from "@kids/ui-kit";
 
 interface Props {
