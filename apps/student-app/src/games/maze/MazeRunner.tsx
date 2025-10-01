@@ -39,8 +39,6 @@ interface MazeGridProps {
 function MazeGrid({ maze, robotPosition, path }: MazeGridProps) {
   // Convert string maze to 2D array
   const grid: MazeCell[][] = maze.map(row => row.split('') as MazeCell[]);
-  const height = grid.length;
-  const width = grid[0]?.length || 0;
 
   // Create a set of visited positions for path visualization
   const visitedPositions = new Set(

@@ -1,4 +1,4 @@
-import { HomeSnapshot, LearnEvent, PackageProgress } from '../types/progress';
+import type { HomeSnapshot, LearnEvent, PackageProgress } from '../types/progress';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000';
 

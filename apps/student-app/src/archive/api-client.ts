@@ -52,7 +52,7 @@ export const apiClient = ky.create({
       },
     ],
     afterResponse: [
-      (request, options, response) => {
+      (request, _options, response) => {
         const requestId = request.headers.get('X-Request-ID');
         const duration = Date.now() - parseInt(requestId?.split('_')[1] || '0');
         
@@ -85,7 +85,7 @@ export const apiClient = ky.create({
 apiClient.extend({
   hooks: {
     afterResponse: [
-      async (request, options, response) => {
+      async (request, _options, response) => {
         if (!response.ok) {
           let errorResponse: ApiErrorResponse;
           

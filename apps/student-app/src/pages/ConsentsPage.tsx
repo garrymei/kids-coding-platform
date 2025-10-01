@@ -1,67 +1,83 @@
-import React, { useEffect } from 'react';
-import { Tabs, List, Avatar, Tag, Spin, Button, Space, Popconfirm } from 'antd';
-import { useConsentStore } from '../stores/consent';
+﻿import { useEffect } from "react";
+import { Tabs, List, Avatar, Spin, Button, Space, Popconfirm } from "antd";
+import { useConsentStore } from "../stores/consent";
 
 const { TabPane } = Tabs;
 
-type ConsentStatus = 'pending' | 'approved' | 'rejected' | 'revoked';
+type ConsentStatus = "pending" | "approved" | "rejected" | "revoked";
 
 function ConsentList({ status }: { status: ConsentStatus }) {
-  const { consents, loading, error, fetchConsents, approveConsent, rejectConsent, revokeConsent } = useConsentStore();
+  const { consents, loading, error, fetchConsents, approveConsent, rejectConsent, revokeConsent } =
+    useConsentStore();
 
   useEffect(() => {
-    fetchConsents(status);
+    fetchConsents(status).catch((err) => {
+      console.error("Failed to load consents", err);
+    });
   }, [status, fetchConsents]);
 
-  const handleApprove = (id: string) => {
-    approveConsent(id).then(() => fetchConsents(status));
+  const handleApprove = async (id: string) => {
+    await approveConsent(id);
+    fetchConsents(status);
   };
 
-  const handleReject = (id: string) => {
-    rejectConsent(id).then(() => fetchConsents(status));
+  const handleReject = async (id: string) => {
+    await rejectConsent(id);
+    fetchConsents(status);
   };
 
-  const handleRevoke = (id: string) => {
-    revokeConsent(id).then(() => fetchConsents(status));
+  const handleRevoke = async (id: string) => {
+    await revokeConsent(id);
+    fetchConsents(status);
   };
 
   if (loading) {
-    return <Spin tip="Loading..."><div style={{ height: 200 }} /></Spin>;
+    return (
+      <Spin tip="加载中...">
+        <div style={{ height: 200 }} />
+      </Spin>
+    );
   }
 
   if (error) {
-    return <p>Error: {error}</p>;
+    return <p>出错了：{error}</p>;
   }
 
   return (
     <List
       itemLayout="horizontal"
       dataSource={consents}
-      renderItem={item => (
+      renderItem={(item) => (
         <List.Item
           actions={[
-            status === 'pending' && (
+            status === "pending" && (
               <Space>
-                <Button type="primary" onClick={() => handleApprove(item.id)}>Approve</Button>
-                <Button danger onClick={() => handleReject(item.id)}>Reject</Button>
+                <Button type="primary" onClick={() => handleApprove(item.id)}>
+                  通过
+                </Button>
+                <Button danger onClick={() => handleReject(item.id)}>
+                  拒绝
+                </Button>
               </Space>
             ),
-            status === 'approved' && (
+            status === "approved" && (
               <Popconfirm
-                title="Are you sure you want to revoke this consent?"
+                title="确定要撤销该授权吗？"
                 onConfirm={() => handleRevoke(item.id)}
-                okText="Yes, Revoke"
-                cancelText="Cancel"
+                okText="确认"
+                cancelText="取消"
               >
-                <Button type="dashed" danger>Revoke</Button>
+                <Button type="dashed" danger>
+                  撤销
+                </Button>
               </Popconfirm>
             ),
-          ]}
+          ].filter(Boolean)}
         >
           <List.Item.Meta
-            avatar={<Avatar>{item.requesterName[0]}</Avatar>}
+            avatar={<Avatar>{item.requesterName ? item.requesterName[0] : "?"}</Avatar>}
             title={item.requesterName}
-            description={`Note: ${item.note || 'N/A'} | Requested on: ${new Date(item.createdAt).toLocaleDateString()}`}
+            description={`备注：${item.note || "无"} ｜ 请求时间：${new Date(item.createdAt).toLocaleDateString()}`}
           />
         </List.Item>
       )}
@@ -71,19 +87,19 @@ function ConsentList({ status }: { status: ConsentStatus }) {
 
 export function ConsentsPage() {
   return (
-    <div style={{ padding: '2rem' }}>
-      <h1>Consent Management</h1>
+    <div style={{ padding: "2rem" }}>
+      <h1>授权管理</h1>
       <Tabs defaultActiveKey="pending">
-        <TabPane tab="Pending" key="pending">
+        <TabPane tab="待处理" key="pending">
           <ConsentList status="pending" />
         </TabPane>
-        <TabPane tab="Approved" key="approved">
+        <TabPane tab="已通过" key="approved">
           <ConsentList status="approved" />
         </TabPane>
-        <TabPane tab="Rejected" key="rejected">
+        <TabPane tab="已拒绝" key="rejected">
           <ConsentList status="rejected" />
         </TabPane>
-        <TabPane tab="Revoked" key="revoked">
+        <TabPane tab="已撤销" key="revoked">
           <ConsentList status="revoked" />
         </TabPane>
       </Tabs>

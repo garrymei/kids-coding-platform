@@ -99,7 +99,7 @@ export const useProgressStore = create<ProgressState & ProgressActions>((set, ge
     // Initialize completedLevels from a reliable source if available, or derive it.
     // For this mock, we'll fetch the main package and derive from it.
     const pkgData = await mockApi.get(`/progress/students/${studentId}/packages/python-basics`);
-    const initialCompleted = new Set(
+    const initialCompleted = new Set<string>(
       (pkgData as any).levels.filter((l: any) => l.status === 'done').map((l: any) => l.levelId)
     );
     set({ snapshot: data as HomeSnapshot, completedLevels: initialCompleted, loading: false });

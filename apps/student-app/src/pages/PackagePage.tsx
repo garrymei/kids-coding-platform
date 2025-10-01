@@ -1,16 +1,18 @@
-import React, { useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
-import { useProgressStore } from '../stores/progress';
-import { List, Typography, Skeleton, Tag } from 'antd';
-import { CheckCircleFilled, SyncOutlined, LockFilled } from '@ant-design/icons';
+﻿import { useEffect } from "react";
+import { useParams, Link } from "react-router-dom";
+import { List, Typography, Skeleton, Tag } from "antd";
+import { CheckCircleFilled, SyncOutlined, LockFilled } from "@ant-design/icons";
+import { useProgressStore } from "../stores/progress";
 
 const { Title } = Typography;
 
-const statusIcons = {
-  done: <CheckCircleFilled style={{ color: 'green' }} />,
-  in_progress: <SyncOutlined spin style={{ color: 'blue' }} />,
-  locked: <LockFilled style={{ color: 'grey' }} />,
-};
+const STATUS_ICON_MAP = {
+  done: <CheckCircleFilled style={{ color: "#16a34a" }} />,
+  in_progress: <SyncOutlined spin style={{ color: "#2563eb" }} />,
+  locked: <LockFilled style={{ color: "#9ca3af" }} />,
+} as const;
+
+type StatusKey = keyof typeof STATUS_ICON_MAP;
 
 export default function PackagePage() {
   const { pkgId } = useParams<{ pkgId: string }>();
@@ -19,26 +21,28 @@ export default function PackagePage() {
 
   useEffect(() => {
     if (pkgId) {
-      fetchPackage('stu_1', pkgId);
+      fetchPackage("stu_1", pkgId).catch((error) => {
+        console.error("Failed to load package", error);
+      });
     }
   }, [pkgId, fetchPackage]);
 
   if (loading || !packageDetails) {
-    return <Skeleton active paragraph={{ rows: 5 }} style={{ padding: '2rem' }} />;
+    return <Skeleton active paragraph={{ rows: 5 }} style={{ padding: "2rem" }} />;
   }
 
   return (
-    <div style={{ padding: '2rem', maxWidth: '800px', margin: '0 auto' }}>
-      <Title level={2} style={{ marginBottom: '2rem' }}>
-        Package: {pkgId}
+    <div style={{ padding: "2rem", maxWidth: "800px", margin: "0 auto" }}>
+      <Title level={2} style={{ marginBottom: "2rem" }}>
+        课程包：{pkgId}
       </Title>
       <List
         itemLayout="horizontal"
         dataSource={packageDetails.levels}
-        renderItem={level => (
+        renderItem={(level) => (
           <List.Item>
             <List.Item.Meta
-              avatar={statusIcons[level.status]}
+              avatar={STATUS_ICON_MAP[level.status as StatusKey]}
               title={<Link to={`/play/${level.levelId}`}>{level.levelId}</Link>}
             />
             <Tag>{level.status}</Tag>

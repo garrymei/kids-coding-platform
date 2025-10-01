@@ -1,13 +1,13 @@
-import { useState } from 'react';
-import { NavLink } from 'react-router-dom';
+﻿import { useState } from "react";
+import { NavLink } from "react-router-dom";
 
 const NAV_LINKS = [
-  { to: '/', label: '首页' },
-  { to: '/hub/python', label: '课程地图' },
-  { to: '/works', label: '作品集' },
-  { to: '/leaderboard', label: '排行榜' },
-  { to: '/my-classes', label: '我的班级' },
-  { to: '/consents', label: '授权管理' },
+  { to: "/", label: "首页" },
+  { to: "/hub/python", label: "课程地图" },
+  { to: "/works", label: "作品集" },
+  { to: "/leaderboard", label: "排行榜" },
+  { to: "/my-classes", label: "我的班级" },
+  { to: "/consents", label: "授权管理" },
 ];
 
 export function AppHeader() {
@@ -17,9 +17,7 @@ export function AppHeader() {
   const closeMobile = () => setMobileOpen(false);
 
   const linkClass = ({ isActive }: { isActive: boolean }) =>
-    ['app-header__link', isActive ? 'app-header__link--active' : '']
-      .filter(Boolean)
-      .join(' ');
+    ["app-header__link", isActive ? "app-header__link--active" : ""].filter(Boolean).join(" ");
 
   return (
     <header className="app-header">
@@ -37,7 +35,7 @@ export function AppHeader() {
           ))}
         </nav>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
           <a className="btn btn-ghost" href="/tasks">
             今日任务
           </a>
@@ -61,7 +59,7 @@ export function AppHeader() {
       </div>
 
       <nav
-        className={`app-header__mobile-panel ${mobileOpen ? 'is-open' : ''}`.trim()}
+        className={`app-header__mobile-panel ${mobileOpen ? "is-open" : ""}`.trim()}
         aria-label="移动版导航"
       >
         {NAV_LINKS.map((link) => (

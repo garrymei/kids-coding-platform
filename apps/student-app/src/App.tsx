@@ -1,21 +1,16 @@
-import React from 'react';
+import { ConfigProvider } from 'antd';
+import zhCN from 'antd/locale/zh_CN';
 import { RouterProvider } from 'react-router-dom';
-import { router } from './routes';
 import { ErrorBoundary } from './components/ErrorBoundary';
+import { router } from './routes';
+import './App.css';
 
-function App() {
+export default function App() {
   return (
-    <ErrorBoundary
-      onError={(error, errorInfo) => {
-        // 在开发环境下打印详细错误信息
-        if (import.meta.env.DEV) {
-          console.error('Application Error:', error, errorInfo);
-        }
-      }}
-    >
-      <RouterProvider router={router} />
+    <ErrorBoundary>
+      <ConfigProvider locale={zhCN}>
+        <RouterProvider router={router} />
+      </ConfigProvider>
     </ErrorBoundary>
   );
 }
-
-export default App;
