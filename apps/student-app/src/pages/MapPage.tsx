@@ -1,4 +1,16 @@
-﻿import { useEffect, useState } from 'react';
+﻿import { useEffect, useState, useCallback, type CSSProperties } from 'react';
+import { useNavigate } from 'react-router-dom';
+import ReactFlow, {
+  Background,
+  Controls,
+  MiniMap,
+  type Node,
+  type Edge,
+  Position,
+  MarkerType,
+} from 'reactflow';
+import dagre from 'dagre';
+import 'reactflow/dist/style.css';
 
 type MapNode = {
   id: string;
@@ -12,7 +24,157 @@ type MapData = {
   edges: Array<{ from: string; to: string }>;
 };
 
+// 自动布局函数
+const getLayoutedElements = (nodes: Node[], edges: Edge[]) => {
+  const dagreGraph = new dagre.graphlib.Graph();
+  dagreGraph.setDefaultEdgeLabel(() => ({}));
+  dagreGraph.setGraph({ rankdir: 'TB', nodesep: 100, ranksep: 120 });
+
+  nodes.forEach((node) => {
+    dagreGraph.setNode(node.id, { width: 220, height: 120 });
+  });
+
+  edges.forEach((edge) => {
+    dagreGraph.setEdge(edge.source, edge.target);
+  });
+
+  dagre.layout(dagreGraph);
+
+  const layoutedNodes = nodes.map((node) => {
+    const nodeWithPosition = dagreGraph.node(node.id);
+    return {
+      ...node,
+      position: {
+        x: nodeWithPosition.x - 110,
+        y: nodeWithPosition.y - 60,
+      },
+    };
+  });
+
+  return { nodes: layoutedNodes, edges };
+};
+
+// 自定义节点组件
+function CourseNode({ data }: { data: MapNode & { onClick: () => void } }) {
+  const statusColors = {
+    completed: {
+      bg: 'linear-gradient(135deg, rgba(34, 197, 94, 0.25), rgba(34, 197, 94, 0.1))',
+      border: '2px solid rgba(34, 197, 94, 0.6)',
+      glow: '0 0 20px rgba(34, 197, 94, 0.4)',
+      icon: '✓',
+      label: '已完成',
+    },
+    ready: {
+      bg: 'linear-gradient(135deg, rgba(93, 168, 255, 0.3), rgba(167, 139, 250, 0.2))',
+      border: '2px solid rgba(93, 168, 255, 0.8)',
+      glow: '0 0 24px rgba(93, 168, 255, 0.6)',
+      icon: '▶',
+      label: '可挑战',
+    },
+    locked: {
+      bg: 'rgba(30, 41, 59, 0.6)',
+      border: '2px solid rgba(148, 163, 184, 0.3)',
+      glow: 'none',
+      icon: '🔒',
+      label: '待解锁',
+    },
+  };
+
+  const config = statusColors[data.status];
+
+  const nodeStyle: CSSProperties = {
+    background: config.bg,
+    border: config.border,
+    borderRadius: '12px',
+    padding: '16px',
+    width: '220px',
+    minHeight: '120px',
+    cursor: data.status !== 'locked' ? 'pointer' : 'not-allowed',
+    transition: 'all 0.3s ease',
+    boxShadow: config.glow,
+    backdropFilter: 'blur(8px)',
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '8px',
+  };
+
+  return (
+    <div
+      style={nodeStyle}
+      onClick={data.status !== 'locked' ? data.onClick : undefined}
+      onMouseEnter={(e) => {
+        if (data.status !== 'locked') {
+          e.currentTarget.style.transform = 'scale(1.05)';
+          e.currentTarget.style.boxShadow = `${config.glow}, 0 4px 12px rgba(0, 0, 0, 0.3)`;
+        }
+      }}
+      onMouseLeave={(e) => {
+        e.currentTarget.style.transform = 'scale(1)';
+        e.currentTarget.style.boxShadow = config.glow;
+      }}
+    >
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+        <div
+          style={{
+            fontSize: '10px',
+            color: 'var(--text-secondary)',
+            textTransform: 'uppercase',
+            fontWeight: 600,
+          }}
+        >
+          #{data.id}
+        </div>
+        <span style={{ fontSize: '18px' }}>{config.icon}</span>
+      </div>
+
+      <h3
+        style={{
+          fontSize: '16px',
+          fontWeight: 700,
+          margin: 0,
+          color: data.status === 'locked' ? 'var(--text-secondary)' : 'var(--text-primary)',
+        }}
+      >
+        {data.title}
+      </h3>
+
+      <p
+        style={{
+          fontSize: '12px',
+          color: 'var(--text-secondary)',
+          margin: 0,
+          lineHeight: 1.4,
+          flex: 1,
+        }}
+      >
+        {data.summary}
+      </p>
+
+      <div
+        style={{
+          fontSize: '11px',
+          fontWeight: 700,
+          textTransform: 'uppercase',
+          color:
+            data.status === 'completed'
+              ? '#22c55e'
+              : data.status === 'ready'
+                ? '#5da8ff'
+                : 'var(--text-secondary)',
+        }}
+      >
+        {config.label}
+      </div>
+    </div>
+  );
+}
+
+const nodeTypes = {
+  courseNode: CourseNode,
+};
+
 export default function MapPage() {
+  const navigate = useNavigate();
   const [state, setState] = useState<{
     status: 'loading' | 'error' | 'ready';
     data?: MapData;
@@ -20,6 +182,9 @@ export default function MapPage() {
   }>({
     status: 'loading',
   });
+
+  const [nodes, setNodes] = useState<Node[]>([]);
+  const [edges, setEdges] = useState<Edge[]>([]);
 
   useEffect(() => {
     let active = true;
@@ -31,6 +196,40 @@ export default function MapPage() {
       .then((data) => {
         if (!active) return;
         setState({ status: 'ready', data });
+
+        // 转换为 React Flow 格式
+        const flowNodes: Node[] = data.nodes.map((node) => ({
+          id: node.id,
+          type: 'courseNode',
+          data: {
+            ...node,
+            onClick: () => {
+              if (node.status !== 'locked') {
+                navigate(`/play/${node.id}`);
+              }
+            },
+          },
+          position: { x: 0, y: 0 },
+          sourcePosition: Position.Bottom,
+          targetPosition: Position.Top,
+        }));
+
+        const flowEdges: Edge[] = data.edges.map((edge, idx) => ({
+          id: `edge-${idx}`,
+          source: edge.from,
+          target: edge.to,
+          type: 'smoothstep',
+          animated: true,
+          style: { stroke: 'rgba(93, 168, 255, 0.5)', strokeWidth: 2 },
+          markerEnd: {
+            type: MarkerType.ArrowClosed,
+            color: 'rgba(93, 168, 255, 0.5)',
+          },
+        }));
+
+        const layouted = getLayoutedElements(flowNodes, flowEdges);
+        setNodes(layouted.nodes);
+        setEdges(layouted.edges);
       })
       .catch((error) => {
         if (!active) return;
@@ -42,53 +241,104 @@ export default function MapPage() {
     return () => {
       active = false;
     };
-  }, []);
+  }, [navigate]);
+
+  const onNodesChange = useCallback(
+    (changes: any) => {
+      // React Flow的节点变更处理
+      setNodes((nds) =>
+        nds.map((node) => {
+          const change = changes.find((c: any) => c.id === node.id);
+          if (change && change.type === 'position' && change.position) {
+            return { ...node, position: change.position };
+          }
+          return node;
+        }),
+      );
+    },
+    [setNodes],
+  );
 
   if (state.status === 'loading') {
-    return <div className="card" style={{ height: 240 }} />;
+    return (
+      <div className="kc-container" style={{ padding: '2rem 0' }}>
+        <div className="card" style={{ padding: '80px 40px', textAlign: 'center' }}>
+          <div style={{ fontSize: '48px', marginBottom: '16px' }}>🗺️</div>
+          <p className="text-muted">加载课程地图中...</p>
+        </div>
+      </div>
+    );
   }
 
   if (state.status === 'error' || !state.data) {
-    return <div className="alert alert-error">课程地图加载失败：{state.message ?? '未知错误'}</div>;
+    return (
+      <div className="kc-container" style={{ padding: '2rem 0' }}>
+        <div className="card alert-error" style={{ padding: '40px' }}>
+          <div style={{ fontSize: '32px', marginBottom: '12px' }}>⚠️</div>
+          <h3 style={{ marginBottom: '8px' }}>课程地图加载失败</h3>
+          <p className="text-muted">{state.message ?? '未知错误'}</p>
+        </div>
+      </div>
+    );
   }
 
-  const { nodes } = state.data;
-
   return (
-    <section className="kc-container" style={{ display: 'grid', gap: 20 }}>
-      <header>
-        <h1 className="kc-section-title">课程地图</h1>
-        <p className="text-muted">按照推荐顺序完成课程节点，逐步点亮实验岛。</p>
+    <div className="kc-container" style={{ padding: '2rem 0', height: 'calc(100vh - 120px)' }}>
+      <header style={{ marginBottom: '1.5rem' }}>
+        <h1 className="kc-section-title" style={{ fontSize: '28px', marginBottom: '0.5rem' }}>
+          🗺️ 课程地图
+        </h1>
+        <p className="text-muted">
+          按照推荐顺序完成课程节点，逐步点亮实验岛。可拖拽和缩放地图查看全局。
+        </p>
       </header>
 
-      <div className="grid duo">
-        {nodes.map((node) => (
-          <article key={node.id} className="card" style={{ padding: 20 }}>
-            <div className="text-muted" style={{ fontSize: 12 }}>
-              #{node.id}
-            </div>
-            <h2 style={{ margin: '8px 0', fontSize: 18 }}>{node.title}</h2>
-            <p className="text-muted" style={{ fontSize: 14 }}>
-              {node.summary}
-            </p>
-            <span
-              className="kc-tag"
-              style={{
-                background:
-                  node.status === 'completed'
-                    ? 'rgba(34,197,94,.25)'
-                    : node.status === 'ready'
-                      ? 'rgba(93,168,255,.25)'
-                      : 'rgba(148,163,184,.25)',
-              }}
-            >
-              {node.status === 'completed' && '已完成'}
-              {node.status === 'ready' && '可挑战'}
-              {node.status === 'locked' && '待解锁'}
-            </span>
-          </article>
-        ))}
+      <div
+        className="card"
+        style={{
+          padding: 0,
+          height: 'calc(100% - 100px)',
+          overflow: 'hidden',
+          background: 'rgba(15, 23, 42, 0.8)',
+        }}
+      >
+        <ReactFlow
+          nodes={nodes}
+          edges={edges}
+          onNodesChange={onNodesChange}
+          nodeTypes={nodeTypes}
+          fitView
+          minZoom={0.5}
+          maxZoom={1.5}
+          defaultViewport={{ x: 0, y: 0, zoom: 1 }}
+          style={{
+            background: 'transparent',
+          }}
+        >
+          <Background color="rgba(93, 168, 255, 0.15)" gap={20} size={1} style={{ opacity: 0.3 }} />
+          <Controls
+            style={{
+              background: 'rgba(30, 41, 59, 0.9)',
+              border: '1px solid rgba(148, 163, 184, 0.2)',
+              borderRadius: '8px',
+            }}
+          />
+          <MiniMap
+            style={{
+              background: 'rgba(30, 41, 59, 0.9)',
+              border: '1px solid rgba(148, 163, 184, 0.2)',
+            }}
+            nodeColor={(node) => {
+              const status = (node.data as MapNode).status;
+              return status === 'completed'
+                ? '#22c55e'
+                : status === 'ready'
+                  ? '#5da8ff'
+                  : '#64748b';
+            }}
+          />
+        </ReactFlow>
       </div>
-    </section>
+    </div>
   );
 }
