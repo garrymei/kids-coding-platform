@@ -22,12 +22,12 @@ const mockAchievements = [
 ];
 
 const mockNextLevel = {
-  id: 'loops-3',
-  title: '嵌套循环挑战',
+  id: 'loops-1', // 改为实际存在的关卡ID
+  title: '循环入门',
   type: 'pixel' as const,
-  difficulty: 3,
+  difficulty: 1,
   xp: 50,
-  story: '学会使用嵌套循环绘制复杂的像素图案',
+  story: '学习基本循环语法',
 };
 
 export default function HomePage() {

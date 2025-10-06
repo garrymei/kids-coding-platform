@@ -1,0 +1,51 @@
+{
+  "nodes": [
+    {
+      "id": "loops-1",
+      "title": "循环入门",
+      "summary": "学习基本循环语法",
+      "group": "python-basics",
+      "status": "ready"
+    },
+    {
+      "id": "loops-2",
+      "title": "循环练习",
+      "summary": "输出平方序列",
+      "group": "python-basics",
+      "status": "locked"
+    },
+    {
+      "id": "loops-3",
+      "title": "嵌套循环",
+      "summary": "学习嵌套循环绘制复杂图案",
+      "group": "python-basics",
+      "status": "locked"
+    },
+    {
+      "id": "maze-1",
+      "title": "迷宫入门",
+      "summary": "学习迷宫导航",
+      "group": "maze",
+      "status": "ready"
+    },
+    {
+      "id": "py-io-001",
+      "title": "输入输出基础",
+      "summary": "学习Python输入输出",
+      "group": "python-io",
+      "status": "ready"
+    },
+    {
+      "id": "py-io-002",
+      "title": "回声频道",
+      "summary": "读入并回显文本",
+      "group": "python-io",
+      "status": "completed"
+    }
+  ],
+  "edges": [
+    { "from": "loops-1", "to": "loops-2" },
+    { "from": "loops-2", "to": "loops-3" },
+    { "from": "py-io-001", "to": "py-io-002" }
+  ]
+}

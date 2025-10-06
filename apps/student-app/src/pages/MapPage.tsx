@@ -188,56 +188,69 @@ export default function MapPage() {
 
   useEffect(() => {
     let active = true;
-    fetch('/map.json')
-      .then((res) => {
-        if (!res.ok) throw new Error(res.statusText);
-        return res.json() as Promise<MapData>;
-      })
-      .then((data) => {
-        if (!active) return;
-        setState({ status: 'ready', data });
 
-        // 转换为 React Flow 格式
-        const flowNodes: Node[] = data.nodes.map((node) => ({
-          id: node.id,
-          type: 'courseNode',
-          data: {
-            ...node,
-            onClick: () => {
-              if (node.status !== 'locked') {
-                navigate(`/play/${node.id}`);
-              }
+    // 使用新的getCourseMap从统一的地图源加载
+    import('../../services/level.repo').then(({ getCourseMap }) => {
+      getCourseMap()
+        .then((data) => {
+          if (!active) return;
+
+          // 转换节点数据格式
+          const mapData: MapData = {
+            nodes: data.nodes.map((n) => ({
+              id: n.id,
+              title: n.title,
+              summary: n.summary,
+              status: n.status,
+            })),
+            edges: data.edges,
+          };
+
+          setState({ status: 'ready', data: mapData });
+
+          // 转换为 React Flow 格式
+          const flowNodes: Node[] = mapData.nodes.map((node) => ({
+            id: node.id,
+            type: 'courseNode',
+            data: {
+              ...node,
+              onClick: () => {
+                if (node.status !== 'locked') {
+                  navigate(`/play/${node.id.toLowerCase()}`);
+                }
+              },
             },
-          },
-          position: { x: 0, y: 0 },
-          sourcePosition: Position.Bottom,
-          targetPosition: Position.Top,
-        }));
+            position: { x: 0, y: 0 },
+            sourcePosition: Position.Bottom,
+            targetPosition: Position.Top,
+          }));
 
-        const flowEdges: Edge[] = data.edges.map((edge, idx) => ({
-          id: `edge-${idx}`,
-          source: edge.from,
-          target: edge.to,
-          type: 'smoothstep',
-          animated: true,
-          style: { stroke: 'rgba(93, 168, 255, 0.5)', strokeWidth: 2 },
-          markerEnd: {
-            type: MarkerType.ArrowClosed,
-            color: 'rgba(93, 168, 255, 0.5)',
-          },
-        }));
+          const flowEdges: Edge[] = mapData.edges.map((edge, idx) => ({
+            id: `edge-${idx}`,
+            source: edge.from,
+            target: edge.to,
+            type: 'smoothstep',
+            animated: true,
+            style: { stroke: 'rgba(93, 168, 255, 0.5)', strokeWidth: 2 },
+            markerEnd: {
+              type: MarkerType.ArrowClosed,
+              color: 'rgba(93, 168, 255, 0.5)',
+            },
+          }));
 
-        const layouted = getLayoutedElements(flowNodes, flowEdges);
-        setNodes(layouted.nodes);
-        setEdges(layouted.edges);
-      })
-      .catch((error) => {
-        if (!active) return;
-        setState({
-          status: 'error',
-          message: error instanceof Error ? error.message : String(error),
+          const layouted = getLayoutedElements(flowNodes, flowEdges);
+          setNodes(layouted.nodes);
+          setEdges(layouted.edges);
+        })
+        .catch((error) => {
+          if (!active) return;
+          setState({
+            status: 'error',
+            message: error instanceof Error ? error.message : String(error),
+          });
         });
-      });
+    });
+
     return () => {
       active = false;
     };

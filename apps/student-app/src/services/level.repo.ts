@@ -80,3 +80,59 @@ class LevelRepository {
 
 export const levelRepo = new LevelRepository();
 export type { Level, GamePack };
+
+// 新增：轻量级关卡索引和地图服务
+export type LevelLite = {
+  id: string;
+  title: string;
+  type: 'pixel' | 'maze' | 'io' | 'music' | 'led';
+  pack: string;
+  prereq?: string[];
+};
+
+export type CourseMap = {
+  nodes: Array<{
+    id: string;
+    title: string;
+    summary: string;
+    group: string;
+    status: 'ready' | 'locked' | 'completed';
+  }>;
+  edges: Array<{ from: string; to: string }>;
+};
+
+export async function getAllLevels(): Promise<LevelLite[]> {
+  const res = await fetch('/assets/levels/index.json', { cache: 'no-cache' });
+  if (!res.ok) throw new Error('加载关卡索引失败');
+  const list = (await res.json()) as LevelLite[];
+  return list.map((l) => ({ ...l, id: l.id.toLowerCase() })); // 一律小写
+}
+
+export async function getLevelLiteById(id: string): Promise<LevelLite | undefined> {
+  const all = await getAllLevels();
+  return all.find((l) => l.id === id.toLowerCase());
+}
+
+export async function getCourseMap(): Promise<CourseMap> {
+  const res = await fetch('/assets/levels/map.json', { cache: 'no-cache' });
+  if (!res.ok) throw new Error('加载课程地图失败');
+  const data = (await res.json()) as CourseMap;
+  // 兼容大小写
+  return {
+    nodes: data.nodes.map((n) => ({ ...n, id: n.id.toLowerCase() })),
+    edges: data.edges.map((e) => ({ from: e.from.toLowerCase(), to: e.to.toLowerCase() })),
+  };
+}
+
+/** 选择"下一关"：优先找未完成的第一个 */
+export async function pickNextLevel(doneIds: string[] = []): Promise<LevelLite | null> {
+  const all = await getAllLevels();
+  const done = new Set(doneIds.map((x) => x.toLowerCase()));
+  for (const lv of all) {
+    const pre = (lv.prereq ?? []).map((x) => x.toLowerCase());
+    const preOk = pre.every((p) => done.has(p));
+    if (!done.has(lv.id) && preOk) return lv;
+  }
+  // 都完成：回到最后一个
+  return all[all.length - 1] ?? null;
+}

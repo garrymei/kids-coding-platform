@@ -1,0 +1,44 @@
+[
+  {
+    "id": "loops-1",
+    "title": "循环入门",
+    "type": "pixel",
+    "pack": "python-basics",
+    "prereq": []
+  },
+  {
+    "id": "loops-2",
+    "title": "循环练习",
+    "type": "pixel",
+    "pack": "python-basics",
+    "prereq": ["loops-1"]
+  },
+  {
+    "id": "loops-3",
+    "title": "嵌套循环",
+    "type": "pixel",
+    "pack": "python-basics",
+    "prereq": ["loops-2"]
+  },
+  {
+    "id": "maze-1",
+    "title": "迷宫入门",
+    "type": "maze",
+    "pack": "maze",
+    "prereq": []
+  },
+  {
+    "id": "py-io-001",
+    "title": "输入输出基础",
+    "type": "io",
+    "pack": "python-io",
+    "prereq": []
+  },
+  {
+    "id": "py-io-002",
+    "title": "回声频道",
+    "type": "io",
+    "pack": "python-io",
+    "prereq": ["py-io-001"]
+  }
+]
