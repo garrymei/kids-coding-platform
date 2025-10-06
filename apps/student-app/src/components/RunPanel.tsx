@@ -46,11 +46,11 @@ export function RunPanel({ level, code, onCodeChange, onResult, gameRunner }: Ru
     }
   };
 
-  const handleReset = () => {
-    onCodeChange(level.starterCode || '');
-    setResult(null);
-    setError(null);
-  };
+      const handleReset = () => {
+        onCodeChange(level.starter?.code || '');
+        setResult(null);
+        setError(null);
+      };
 
   return (
     <div className="grid duo">

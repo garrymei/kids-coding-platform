@@ -190,7 +190,7 @@ export default function MapPage() {
     let active = true;
 
     // 使用新的getCourseMap从统一的地图源加载
-    import('../../services/level.repo').then(({ getCourseMap }) => {
+    import('@/services/level.repo').then(({ getCourseMap }) => {
       getCourseMap()
         .then((data) => {
           if (!active) return;

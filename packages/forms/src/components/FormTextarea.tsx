@@ -1,13 +1,15 @@
-import React, { forwardRef, type ForwardedRef } from 'react';
+﻿import React, { forwardRef, type ForwardedRef } from 'react';
 import { type UseFormRegisterReturn } from 'react-hook-form';
 
-type AssignableForwardedRef<T> = ForwardedRef<T>;
+const assignRef = <T,>(target: ForwardedRef<T>, value: T | null) => {
+  if (!target) {
+    return;
+  }
 
-const assignRef = <T,>(target: AssignableForwardedRef<T>, value: T | null) => {
   if (typeof target === 'function') {
     target(value);
-  } else if (target) {
-    (target as React.MutableRefObject<T | null>).current = value;
+  } else {
+    target.current = value;
   }
 };
 
@@ -16,27 +18,45 @@ export interface FormTextareaProps extends React.TextareaHTMLAttributes<HTMLText
 }
 
 export const FormTextarea = forwardRef<HTMLTextAreaElement, FormTextareaProps>(
-  ({ register, className = '', ...props }, ref) => {
-    const { ref: registerRef, ...registerProps } = register ?? ({} as UseFormRegisterReturn);
+  ({ register, className = '', onChange, onBlur, name, ...restProps }, ref) => {
+    const composedClassName = ['form-textarea', className].filter(Boolean).join(' ').trim();
 
-    const handleRef = (element: HTMLTextAreaElement | null) => {
-      if (registerRef) {
-        if (typeof registerRef === 'function') {
-          registerRef(element);
-        } else {
-          registerRef.current = element;
-        }
-      }
+    if (register) {
+      const { ref: registerRef, onChange: registerOnChange, onBlur: registerOnBlur, name: registerName } = register;
 
-      assignRef(ref, element);
-    };
+      const handleChange: React.ChangeEventHandler<HTMLTextAreaElement> = (event) => {
+        registerOnChange?.(event);
+        onChange?.(event);
+      };
+
+      const handleBlur: React.FocusEventHandler<HTMLTextAreaElement> = (event) => {
+        registerOnBlur?.(event);
+        onBlur?.(event);
+      };
+
+      return (
+        <textarea
+          {...restProps}
+          name={name ?? registerName}
+          className={composedClassName}
+          onChange={handleChange}
+          onBlur={handleBlur}
+          ref={(element) => {
+            registerRef?.(element);
+            assignRef(ref, element);
+          }}
+        />
+      );
+    }
 
     return (
       <textarea
-        {...registerProps}
-        {...props}
-        ref={handleRef}
-        className={`form-textarea ${className}`}
+        {...restProps}
+        name={name}
+        className={composedClassName}
+        onChange={onChange}
+        onBlur={onBlur}
+        ref={(element) => assignRef(ref, element)}
       />
     );
   },

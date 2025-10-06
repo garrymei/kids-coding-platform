@@ -1,13 +1,15 @@
-import React, { forwardRef, type ForwardedRef } from 'react';
+﻿import React, { forwardRef, type ForwardedRef } from 'react';
 import { type UseFormRegisterReturn } from 'react-hook-form';
 
-type AssignableForwardedRef<T> = ForwardedRef<T>;
+const assignRef = <T,>(target: ForwardedRef<T>, value: T | null) => {
+  if (!target) {
+    return;
+  }
 
-const assignRef = <T,>(target: AssignableForwardedRef<T>, value: T | null) => {
   if (typeof target === 'function') {
     target(value);
-  } else if (target) {
-    (target as React.MutableRefObject<T | null>).current = value;
+  } else {
+    target.current = value;
   }
 };
 
@@ -17,24 +19,50 @@ export interface FormInputProps extends React.InputHTMLAttributes<HTMLInputEleme
 }
 
 export const FormInput = forwardRef<HTMLInputElement, FormInputProps>(
-  ({ register, type = 'text', className = '', ...props }, ref) => {
-    const { ref: registerRef, ...registerProps } = register ?? ({} as UseFormRegisterReturn);
+  (
+    { register, type = 'text', className = '', onChange, onBlur, name, ...restProps },
+    ref,
+  ) => {
+    const composedClassName = ['form-input', className].filter(Boolean).join(' ').trim();
 
-    const handleRef = (element: HTMLInputElement | null) => {
-      if (registerRef) {
-        registerRef(element);
-      }
+    if (register) {
+      const { ref: registerRef, onChange: registerOnChange, onBlur: registerOnBlur, name: registerName } = register;
 
-      assignRef(ref, element);
-    };
+      const handleChange: React.ChangeEventHandler<HTMLInputElement> = (event) => {
+        registerOnChange?.(event);
+        onChange?.(event);
+      };
+
+      const handleBlur: React.FocusEventHandler<HTMLInputElement> = (event) => {
+        registerOnBlur?.(event);
+        onBlur?.(event);
+      };
+
+      return (
+        <input
+          {...restProps}
+          name={name ?? registerName}
+          type={type}
+          className={composedClassName}
+          onChange={handleChange}
+          onBlur={handleBlur}
+          ref={(element) => {
+            registerRef?.(element);
+            assignRef(ref, element);
+          }}
+        />
+      );
+    }
 
     return (
       <input
-        {...registerProps}
-        {...props}
-        ref={handleRef}
+        {...restProps}
+        name={name}
         type={type}
-        className={`form-input ${className}`}
+        className={composedClassName}
+        onChange={onChange}
+        onBlur={onBlur}
+        ref={(element) => assignRef(ref, element)}
       />
     );
   },

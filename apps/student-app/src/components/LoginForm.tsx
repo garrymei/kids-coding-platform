@@ -33,7 +33,7 @@ export function LoginForm({ onSubmit, isLoading = false }: LoginFormProps) {
 
       <FormField label="邮箱" error={errors.email} required>
         <FormInput
-          {...register("email")}
+          register={register("email")}
           type="email"
           placeholder="请输入邮箱地址"
           disabled={isSubmitting || isLoading}
@@ -42,7 +42,7 @@ export function LoginForm({ onSubmit, isLoading = false }: LoginFormProps) {
 
       <FormField label="密码" error={errors.password} required>
         <FormInput
-          {...register("password")}
+          register={register("password")}
           type="password"
           placeholder="请输入密码"
           disabled={isSubmitting || isLoading}
@@ -60,3 +60,4 @@ export function LoginForm({ onSubmit, isLoading = false }: LoginFormProps) {
     </form>
   );
 }
+

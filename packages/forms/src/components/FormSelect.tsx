@@ -1,4 +1,4 @@
-import React, { forwardRef, type ForwardedRef } from 'react';
+﻿import React, { forwardRef, type ForwardedRef } from 'react';
 import { type UseFormRegisterReturn } from 'react-hook-form';
 
 export interface FormSelectOption {
@@ -7,13 +7,15 @@ export interface FormSelectOption {
   disabled?: boolean;
 }
 
-type AssignableForwardedRef<T> = ForwardedRef<T>;
+const assignRef = <T,>(target: ForwardedRef<T>, value: T | null) => {
+  if (!target) {
+    return;
+  }
 
-const assignRef = <T,>(target: AssignableForwardedRef<T>, value: T | null) => {
   if (typeof target === 'function') {
     target(value);
-  } else if (target) {
-    (target as React.MutableRefObject<T | null>).current = value;
+  } else {
+    target.current = value;
   }
 };
 
@@ -24,19 +26,14 @@ export interface FormSelectProps extends React.SelectHTMLAttributes<HTMLSelectEl
 }
 
 export const FormSelect = forwardRef<HTMLSelectElement, FormSelectProps>(
-  ({ register, options, placeholder, className = '', ...props }, ref) => {
-    const { ref: registerRef, ...registerProps } = register ?? ({} as UseFormRegisterReturn);
+  (
+    { register, options, placeholder, className = '', onChange, onBlur, name, ...restProps },
+    ref,
+  ) => {
+    const composedClassName = ['form-select', className].filter(Boolean).join(' ').trim();
 
-    const handleRef = (element: HTMLSelectElement | null) => {
-      if (registerRef) {
-        registerRef(element);
-      }
-
-      assignRef(ref, element);
-    };
-
-    return (
-      <select {...registerProps} {...props} ref={handleRef} className={`form-select ${className}`}>
+    const renderOptions = () => (
+      <>
         {placeholder && (
           <option value="" disabled>
             {placeholder}
@@ -47,6 +44,49 @@ export const FormSelect = forwardRef<HTMLSelectElement, FormSelectProps>(
             {option.label}
           </option>
         ))}
+      </>
+    );
+
+    if (register) {
+      const { ref: registerRef, onChange: registerOnChange, onBlur: registerOnBlur, name: registerName } = register;
+
+      const handleChange: React.ChangeEventHandler<HTMLSelectElement> = (event) => {
+        registerOnChange?.(event);
+        onChange?.(event);
+      };
+
+      const handleBlur: React.FocusEventHandler<HTMLSelectElement> = (event) => {
+        registerOnBlur?.(event);
+        onBlur?.(event);
+      };
+
+      return (
+        <select
+          {...restProps}
+          name={name ?? registerName}
+          className={composedClassName}
+          onChange={handleChange}
+          onBlur={handleBlur}
+          ref={(element) => {
+            registerRef?.(element);
+            assignRef(ref, element);
+          }}
+        >
+          {renderOptions()}
+        </select>
+      );
+    }
+
+    return (
+      <select
+        {...restProps}
+        name={name}
+        className={composedClassName}
+        onChange={onChange}
+        onBlur={onBlur}
+        ref={(element) => assignRef(ref, element)}
+      >
+        {renderOptions()}
       </select>
     );
   },

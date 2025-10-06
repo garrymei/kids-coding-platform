@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
-import { Card, Badge, Button, Progress } from '@kids/ui-kit';
+﻿import { useState, useEffect } from 'react';
+import { Card, Badge, Button } from '@kids/ui-kit';
 import { useFormValidation, FormField, FormInput } from '@kids/forms';
 import { httpClient } from '../services/http';
 import { z } from 'zod';
@@ -285,7 +285,7 @@ export function ParentBindingPage() {
                 helpText="请输入6位分享码或孩子的注册邮箱"
               >
                 <FormInput
-                  {...register('shareCode')}
+                  register={register('shareCode')}
                   type="text"
                   placeholder="ABC123 或 child@example.com"
                   disabled={isSubmitting}
@@ -317,3 +317,5 @@ export function ParentBindingPage() {
     </div>
   );
 }
+
+

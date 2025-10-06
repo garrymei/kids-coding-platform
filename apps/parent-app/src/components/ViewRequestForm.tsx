@@ -1,4 +1,4 @@
-// React import removed as it's not used
+﻿// React import removed as it's not used
 import { useFormValidation, FormField, FormInput, FormTextarea, FormSelect } from '@kids/forms';
 import { Button } from '@kids/ui-kit';
 import { z } from 'zod';
@@ -63,7 +63,7 @@ export function ViewRequestForm({ onSubmit, isLoading = false }: ViewRequestForm
 
       <FormField label="学生姓名" error={errors.studentName} required>
         <FormInput
-          {...register('studentName')}
+          register={register('studentName')}
           type="text"
           placeholder="请输入学生姓名"
           disabled={isSubmitting || isLoading}
@@ -72,7 +72,7 @@ export function ViewRequestForm({ onSubmit, isLoading = false }: ViewRequestForm
 
       <FormField label="学生邮箱" error={errors.studentEmail} required>
         <FormInput
-          {...register('studentEmail')}
+          register={register('studentEmail')}
           type="email"
           placeholder="请输入学生注册邮箱"
           disabled={isSubmitting || isLoading}
@@ -81,7 +81,7 @@ export function ViewRequestForm({ onSubmit, isLoading = false }: ViewRequestForm
 
       <FormField label="与学生的关系" error={errors.relationship} required>
         <FormSelect
-          {...register('relationship')}
+          register={register('relationship')}
           options={relationshipOptions}
           placeholder="请选择关系"
           disabled={isSubmitting || isLoading}
@@ -95,7 +95,7 @@ export function ViewRequestForm({ onSubmit, isLoading = false }: ViewRequestForm
         helpText="请详细说明您申请查看学生进度的原因"
       >
         <FormTextarea
-          {...register('reason')}
+          register={register('reason')}
           placeholder="请详细说明申请理由..."
           rows={4}
           disabled={isSubmitting || isLoading}
@@ -104,7 +104,7 @@ export function ViewRequestForm({ onSubmit, isLoading = false }: ViewRequestForm
 
       <FormField label="联系电话" error={errors.contactPhone} helpText="可选，用于紧急联系">
         <FormInput
-          {...register('contactPhone')}
+          register={register('contactPhone')}
           type="tel"
           placeholder="请输入手机号码"
           disabled={isSubmitting || isLoading}
@@ -113,7 +113,7 @@ export function ViewRequestForm({ onSubmit, isLoading = false }: ViewRequestForm
 
       <FormField label="补充信息" error={errors.additionalInfo} helpText="可选，提供其他相关信息">
         <FormTextarea
-          {...register('additionalInfo')}
+          register={register('additionalInfo')}
           placeholder="其他需要说明的信息..."
           rows={3}
           disabled={isSubmitting || isLoading}
@@ -131,3 +131,4 @@ export function ViewRequestForm({ onSubmit, isLoading = false }: ViewRequestForm
     </form>
   );
 }
+

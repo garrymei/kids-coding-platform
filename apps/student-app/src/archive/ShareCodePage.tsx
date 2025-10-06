@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+﻿import { useState, useEffect } from 'react';
 import { Card, Button, Badge } from '@kids/ui-kit';
 import { useFormValidation, FormField, FormSelect } from '@kids/forms';
 import { httpClient } from '../services/http';
@@ -110,7 +110,7 @@ export function ShareCodePage() {
         <p>生成分享码让家长和老师关注您</p>
         <Button
           variant="primary"
-          onClick={() => setShowGenerateForm(true)}
+          onClick={() => setShowGenerateForm(true)}}
         >
           生成新分享码
         </Button>
@@ -131,49 +131,49 @@ export function ShareCodePage() {
                   <div className="share-code-header">
                     <h3>{shareCode.shareCode}</h3>
                     <div className="share-code-badges">
-                      <Badge text={getPurposeLabel(shareCode.purpose)} tone="info" />
+                      <Badge text={getPurposeLabel(shareCode.purpose)}} tone="info" />
                       {isExpired(shareCode.expiresAt) ? (
                         <Badge text="已过期" tone="danger" />
                       ) : shareCode.expiresAt ? (
                         <Badge text="有时效" tone="warning" />
                       ) : (
                         <Badge text="永久有效" tone="success" />
-                      )}
+                      )}}
                     </div>
                   </div>
                   
                   <div className="share-code-details">
-                    <p>创建时间: {formatDate(shareCode.createdAt)}</p>
+                    <p>创建时间: {formatDate(shareCode.createdAt)}}</p>
                     {shareCode.expiresAt && (
-                      <p>过期时间: {formatDate(shareCode.expiresAt)}</p>
-                    )}
+                      <p>过期时间: {formatDate(shareCode.expiresAt)}}</p>
+                    )}}
                   </div>
 
                   <div className="share-code-actions">
                     <Button
                       variant="ghost"
-                      onClick={() => handleCopyShareCode(shareCode.shareCode)}
+                      onClick={() => handleCopyShareCode(shareCode.shareCode)}}
                     >
                       复制分享码
                     </Button>
                     <Button
                       variant="ghost"
-                      onClick={() => handleCopyShareLink(shareCode.shareCode)}
+                      onClick={() => handleCopyShareLink(shareCode.shareCode)}}
                     >
                       复制分享链接
                     </Button>
                     <Button
                       variant="ghost"
-                      onClick={() => window.open(shareCode.qrCodeUrl, '_blank')}
+                      onClick={() => window.open(shareCode.qrCodeUrl, '_blank')}}
                     >
                       查看二维码
                     </Button>
                   </div>
                 </div>
               </div>
-            ))}
+            ))}}
           </div>
-        )}
+        )}}
       </Card>
 
       {/* 生成分享码表单模态框 */}
@@ -183,7 +183,7 @@ export function ShareCodePage() {
             <h2>生成新分享码</h2>
             <p>生成分享码让家长和老师可以关注您</p>
             
-            <form onSubmit={handleSubmit(handleGenerateShareCode)}>
+            <form onSubmit={handleSubmit(handleGenerateShareCode)}}>
               <FormField
                 label="分享目的"
                 error={errors.purpose}
@@ -191,7 +191,7 @@ export function ShareCodePage() {
                 helpText="选择分享码的用途"
               >
                 <FormSelect
-                  {...register('purpose')}
+                  register={register('purpose')}
                   options={[
                     { value: 'parent-view', label: '家长查看学习进度' },
                     { value: 'teacher-view', label: '教师查看学习情况' },
@@ -206,7 +206,7 @@ export function ShareCodePage() {
                 helpText="选择分享码的有效期，过期后需要重新生成"
               >
                 <FormSelect
-                  {...register('expiresAt')}
+                  register={register('expiresAt')}
                   options={[
                     { value: '', label: '永久有效' },
                     { value: '1h', label: '1小时' },
@@ -222,7 +222,7 @@ export function ShareCodePage() {
                 <Button
                   type="button"
                   variant="ghost"
-                  onClick={() => setShowGenerateForm(false)}
+                  onClick={() => setShowGenerateForm(false)}}
                 >
                   取消
                 </Button>
@@ -247,7 +247,7 @@ export function ShareCodePage() {
             </div>
           </div>
         </div>
-      )}
+      )}}
 
       {/* 使用说明 */}
       <Card heading="使用说明" className="usage-guide">
@@ -282,3 +282,5 @@ export function ShareCodePage() {
     </div>
   );
 }
+
+

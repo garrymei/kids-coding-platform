@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+﻿import { useState, useEffect } from 'react';
 import { Card, Button, Badge } from '@kids/ui-kit';
 import { useFormValidation, FormField, FormInput, FormCheckbox } from '@kids/forms';
 import { httpClient } from '../services/http';
@@ -98,17 +98,17 @@ export function SearchSettingsPage() {
       </div>
 
       <Card heading="搜索功能设置">
-        <form onSubmit={handleSubmit(onSubmit)}>
+        <form onSubmit={handleSubmit(onSubmit)}}>
           <div className="search-toggle">
             <FormField
               label="允许被搜索"
               helpText="开启后，家长和老师可以通过昵称和学校信息搜索到您"
             >
               <FormCheckbox
-                {...register('isSearchable')}
+                register={register('isSearchable')}
                 label="开启搜索功能"
                 checked={isSearchable}
-                onChange={(e: any) => handleToggleSearchable(e.target.checked)}
+                onChange={(e: any) => handleToggleSearchable(e.target.checked)}}
               />
             </FormField>
           </div>
@@ -127,7 +127,7 @@ export function SearchSettingsPage() {
                 helpText="其他人搜索时看到的昵称，建议使用昵称而非真实姓名"
               >
                 <FormInput
-                  {...register('searchNickname')}
+                  register={register('searchNickname')}
                   type="text"
                   placeholder="请输入昵称"
                   disabled={isSubmitting}
@@ -140,7 +140,7 @@ export function SearchSettingsPage() {
                 helpText="可选，帮助其他人确认身份"
               >
                 <FormInput
-                  {...register('schoolName')}
+                  register={register('schoolName')}
                   type="text"
                   placeholder="请输入学校名称"
                   disabled={isSubmitting}
@@ -153,14 +153,14 @@ export function SearchSettingsPage() {
                 helpText="可选，帮助其他人确认身份"
               >
                 <FormInput
-                  {...register('className')}
+                  register={register('className')}
                   type="text"
                   placeholder="请输入班级名称"
                   disabled={isSubmitting}
                 />
               </FormField>
             </div>
-          )}
+          )}}
 
           <div className="form-actions">
             <Button
@@ -185,28 +185,28 @@ export function SearchSettingsPage() {
               <ul>
                 {explanation.content.map((item: string, index: number) => (
                   <li key={index}>{item}</li>
-                ))}
+                ))}}
               </ul>
 
               <h3>潜在风险</h3>
               <ul>
                 {explanation.risks.map((risk: string, index: number) => (
                   <li key={index} className="risk-item">{risk}</li>
-                ))}
+                ))}}
               </ul>
 
               <h3>使用好处</h3>
               <ul>
                 {explanation.benefits.map((benefit: string, index: number) => (
                   <li key={index} className="benefit-item">{benefit}</li>
-                ))}
+                ))}}
               </ul>
             </div>
 
             <div className="modal-actions">
               <Button
                 variant="ghost"
-                onClick={() => setShowExplanation(false)}
+                onClick={() => setShowExplanation(false)}}
               >
                 取消
               </Button>
@@ -219,7 +219,7 @@ export function SearchSettingsPage() {
             </div>
           </div>
         </div>
-      )}
+      )}}
 
       {/* 当前设置状态 */}
       <Card heading="当前设置状态">
@@ -247,7 +247,7 @@ export function SearchSettingsPage() {
                 <span className="status-value">{watch('className') || '未设置'}</span>
               </div>
             </>
-          )}
+          )}}
         </div>
       </Card>
 
@@ -275,3 +275,5 @@ export function SearchSettingsPage() {
     </div>
   );
 }
+
+

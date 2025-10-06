@@ -1,5 +1,4 @@
-import React from 'react';
-import './HeatmapMatrix.css'; // We will create this CSS file next
+﻿import './HeatmapMatrix.css'; // We will create this CSS file next
 
 interface HeatmapProps {
   rows: any[]; // e.g., [{ studentId, name, accuracy, ... }]
@@ -39,3 +38,5 @@ export function HeatmapMatrix({ rows, columns, getColor }: HeatmapProps) {
     </div>
   );
 }
+
+

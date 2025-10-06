@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useMetricsStore } from '../../stores/metrics';
 import { LineTimeseries } from '@kids/ui-kit';
-import type { Dim, Period } from '@kids/utils/api/metrics';
+import type { Dim, Period } from '@kids/utils';
 import { Select, Card, Statistic, Row, Col, Skeleton, Button, Tabs } from 'antd';
 import {
   LineChart,
@@ -66,7 +66,7 @@ const mockTrendData = {
 };
 
 export function TrendPage() {
-  const { series, loading: storeLoading, fetchTrend } = useMetricsStore();
+  const { series, fetchTrend } = useMetricsStore();
   const [dimension, setDimension] = useState<Dim>('study_minutes');
   const [period, setPeriod] = useState<Period>('weekly');
   const [timeRange, setTimeRange] = useState<7 | 30 | 90>(7);
@@ -76,7 +76,7 @@ export function TrendPage() {
   useEffect(() => {
     fetchTrend(studentId, [dimension], period);
     loadTrendData();
-  }, [dimension, period, timeRange]);
+  }, [dimension, period, timeRange, fetchTrend]);
 
   const loadTrendData = async () => {
     setLoading(true);
@@ -96,8 +96,11 @@ export function TrendPage() {
     }
   };
 
-  const total = series.reduce((acc, item) => acc + (item[dimension] || 0), 0);
-  const average = total / (series.length || 1);
+  const total = series.reduce((acc, item) => {
+    const value = typeof item[dimension] === 'number' ? (item[dimension] as number) : 0;
+    return acc + value;
+  }, 0);
+  const average = series.length ? total / series.length : 0;
 
   // 计算统计数据
   const latestXP = trendData.xp[trendData.xp.length - 1]?.value || 0;

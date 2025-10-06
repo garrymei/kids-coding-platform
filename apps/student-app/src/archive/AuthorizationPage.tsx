@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+﻿import { useState, useEffect } from 'react';
 import { useFormValidation, FormField, FormSelect, FormCheckbox } from '@kids/forms';
 import { Button, Card, Badge } from '@kids/ui-kit';
 import { httpClient } from '../services/http';
@@ -204,23 +204,23 @@ export function AuthorizationPage() {
               <div key={request.id} className="request-item">
                 <div className="request-info">
                   <h3>{request.requester.displayName}</h3>
-                  <p>{getRoleLabel(request.requester.role.name)} • {request.requester.email}</p>
+                  <p>{getRoleLabel(request.requester.role.name)}} • {request.requester.email}</p>
                   <p><strong>申请目的:</strong> {request.purpose}</p>
                   <p><strong>申请理由:</strong> {request.reason}</p>
-                  <p><strong>申请时间:</strong> {formatDate(request.createdAt)}</p>
+                  <p><strong>申请时间:</strong> {formatDate(request.createdAt)}}</p>
                 </div>
                 <div className="request-actions">
                   <Button
                     variant="primary"
-                    onClick={() => handleResponseRequest(request)}
+                    onClick={() => handleResponseRequest(request)}}
                   >
                     处理请求
                   </Button>
                 </div>
               </div>
-            ))}
+            ))}}
           </div>
-        )}
+        )}}
       </Card>
 
       {/* 当前关系 */}
@@ -233,30 +233,30 @@ export function AuthorizationPage() {
               <div key={relationship.id} className="relationship-item">
                 <div className="relationship-info">
                   <h3>{relationship.party.displayName}</h3>
-                  <p>{getRoleLabel(relationship.party.role.name)} • {relationship.party.email}</p>
+                  <p>{getRoleLabel(relationship.party.role.name)}} • {relationship.party.email}</p>
                   <div className="grants">
                     {relationship.accessGrants.map((grant) => (
                       <Badge
                         key={grant.id}
-                        text={grant.scope.join(', ')}
-                        tone={getStatusColor(grant.status)}
+                        text={grant.scope.join(', ')}}
+                        tone={getStatusColor(grant.status)}}
                       />
-                    ))}
+                    ))}}
                   </div>
-                  <p><strong>建立时间:</strong> {formatDate(relationship.createdAt)}</p>
+                  <p><strong>建立时间:</strong> {formatDate(relationship.createdAt)}}</p>
                 </div>
                 <div className="relationship-actions">
                   <Button
                     variant="ghost"
-                    onClick={() => handleRevokeRelationship(relationship.id)}
+                    onClick={() => handleRevokeRelationship(relationship.id)}}
                   >
                     撤销授权
                   </Button>
                 </div>
               </div>
-            ))}
+            ))}}
           </div>
-        )}
+        )}}
       </Card>
 
       {/* 响应请求模态框 */}
@@ -264,17 +264,17 @@ export function AuthorizationPage() {
         <div className="modal-overlay">
           <div className="modal">
             <h2>处理访问请求</h2>
-            <p>来自: {selectedRequest.requester.displayName} ({getRoleLabel(selectedRequest.requester.role.name)})</p>
+            <p>来自: {selectedRequest.requester.displayName} ({getRoleLabel(selectedRequest.requester.role.name)}})</p>
             <p>申请目的: {selectedRequest.purpose}</p>
             
-            <form onSubmit={handleSubmit(onSubmitResponse)}>
+            <form onSubmit={handleSubmit(onSubmitResponse)}}>
               <FormField
                 label="处理决定"
                 error={errors.status}
                 required
               >
                 <FormSelect
-                  {...register('status')}
+                  register={register('status')}
                   options={[
                     { value: 'APPROVED', label: '同意' },
                     { value: 'REJECTED', label: '拒绝' },
@@ -293,9 +293,9 @@ export function AuthorizationPage() {
                       {scopeOptions.map((option) => (
                         <FormCheckbox
                           key={option.value}
-                          {...register('scopes')}
+                          register={register('scopes')}
                           label={option.label}
-                          checked={selectedScopes.includes(option.value)}
+                          checked={selectedScopes.includes(option.value)}}
                           onChange={(e: any) => {
                             const value = option.value;
                             if (e.target.checked) {
@@ -305,7 +305,7 @@ export function AuthorizationPage() {
                             }
                           }}
                         />
-                      ))}
+                      ))}}
                     </div>
                   </FormField>
 
@@ -315,18 +315,18 @@ export function AuthorizationPage() {
                     helpText="选择授权的有效期"
                   >
                     <FormSelect
-                      {...register('duration')}
+                      register={register('duration')}
                       options={durationOptions}
                     />
                   </FormField>
                 </>
-              )}
+              )}}
 
               <div className="form-actions">
                 <Button
                   type="button"
                   variant="ghost"
-                  onClick={() => setShowResponseForm(false)}
+                  onClick={() => setShowResponseForm(false)}}
                 >
                   取消
                 </Button>
@@ -341,7 +341,9 @@ export function AuthorizationPage() {
             </form>
           </div>
         </div>
-      )}
+      )}}
     </div>
   );
 }
+
+
