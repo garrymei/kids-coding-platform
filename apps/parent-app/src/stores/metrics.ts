@@ -1,5 +1,6 @@
 import { create } from 'zustand';
-import { getStudentTrend, Dim, Period } from '@kids/utils';
+import { getStudentTrend } from '@kids/utils';
+import type { Dim, Period } from '@kids/utils/api/metrics';
 
 interface TrendDataPoint {
   t: Date;
@@ -13,7 +14,12 @@ interface TrendState {
   loading: boolean;
   error?: string;
   series: TrendDataPoint[];
-  fetch(studentId: string, dims: Dim[], period: Period, range?: { from?: string; to?: string }): Promise<void>;
+  fetch(
+    studentId: string,
+    dims: Dim[],
+    period: Period,
+    range?: { from?: string; to?: string },
+  ): Promise<void>;
 }
 
 export const useMetricsStore = create<TrendState>((set) => ({

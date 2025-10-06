@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, Badge, Button, Progress } from '@kids/ui-kit';
 import { useFormValidation, FormField, FormInput } from '@kids/forms';
 import { httpClient } from '../services/http';
@@ -52,7 +52,9 @@ export function ParentBindingPage() {
   const loadBindingRequests = async () => {
     try {
       setLoading(true);
-      const response = await httpClient.get('/relationships/parent-binding-requests');
+      const response = await httpClient.get<BindingStatus[]>(
+        '/relationships/parent-binding-requests',
+      );
       setBindingRequests(response);
     } catch (error) {
       console.error('加载绑定请求失败:', error);
@@ -63,10 +65,12 @@ export function ParentBindingPage() {
 
   const handleSubmitShareCode = async (data: ShareCodeData) => {
     try {
-      await httpClient.post('/relationships/bind-with-share-code', {
-        shareCode: data.shareCode,
+      await httpClient.post<void, { shareCode: string }>('/relationships/bind-with-share-code', {
+        body: {
+          shareCode: data.shareCode,
+        },
       });
-      
+
       setShowShareCodeForm(false);
       reset();
       loadBindingRequests();
@@ -94,31 +98,46 @@ export function ParentBindingPage() {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'pending': return 'warning';
-      case 'approved': return 'success';
-      case 'rejected': return 'danger';
-      case 'expired': return 'danger';
-      default: return 'info';
+      case 'pending':
+        return 'warning';
+      case 'approved':
+        return 'success';
+      case 'rejected':
+        return 'danger';
+      case 'expired':
+        return 'danger';
+      default:
+        return 'info';
     }
   };
 
   const getStatusText = (status: string) => {
     switch (status) {
-      case 'pending': return '等待学生同意';
-      case 'approved': return '已授权';
-      case 'rejected': return '已拒绝';
-      case 'expired': return '已过期';
-      default: return status;
+      case 'pending':
+        return '等待学生同意';
+      case 'approved':
+        return '已授权';
+      case 'rejected':
+        return '已拒绝';
+      case 'expired':
+        return '已过期';
+      default:
+        return status;
     }
   };
 
   const getScopeLabel = (scope: string) => {
     switch (scope) {
-      case 'progress:read': return '学习进度';
-      case 'works:read': return '作品查看';
-      case 'badges:read': return '徽章查看';
-      case 'courses:read': return '课程查看';
-      default: return scope;
+      case 'progress:read':
+        return '学习进度';
+      case 'works:read':
+        return '作品查看';
+      case 'badges:read':
+        return '徽章查看';
+      case 'courses:read':
+        return '课程查看';
+      default:
+        return scope;
     }
   };
 
@@ -131,10 +150,7 @@ export function ParentBindingPage() {
       <div className="page-header">
         <h1>绑定孩子账号</h1>
         <p>通过分享码或邮箱地址绑定孩子的学习账号</p>
-        <Button
-          variant="primary"
-          onClick={() => setShowShareCodeForm(true)}
-        >
+        <Button variant="primary" onClick={() => setShowShareCodeForm(true)}>
           输入分享码
         </Button>
       </div>
@@ -177,9 +193,7 @@ export function ParentBindingPage() {
                     text={getStatusText(request.status)}
                     tone={getStatusColor(request.status)}
                   />
-                  {request.expiresAt && (
-                    <small>过期时间: {formatDate(request.expiresAt)}</small>
-                  )}
+                  {request.expiresAt && <small>过期时间: {formatDate(request.expiresAt)}</small>}
                 </div>
 
                 {request.scopes && request.scopes.length > 0 && (
@@ -187,11 +201,7 @@ export function ParentBindingPage() {
                     <h4>授权范围:</h4>
                     <div className="scope-tags">
                       {request.scopes.map((scope) => (
-                        <Badge
-                          key={scope}
-                          text={getScopeLabel(scope)}
-                          tone="info"
-                        />
+                        <Badge key={scope} text={getScopeLabel(scope)} tone="info" />
                       ))}
                     </div>
                   </div>
@@ -199,26 +209,20 @@ export function ParentBindingPage() {
 
                 <div className="request-actions">
                   {request.status === 'pending' && (
-                    <Button
-                      variant="ghost"
-                      onClick={() => handleCancelRequest(request.id)}
-                    >
+                    <Button variant="ghost" onClick={() => handleCancelRequest(request.id)}>
                       取消请求
                     </Button>
                   )}
                   {request.status === 'approved' && (
                     <Button
                       variant="primary"
-                      onClick={() => window.location.href = `/child-data/${request.student.id}`}
+                      onClick={() => (window.location.href = `/child-data/${request.student.id}`)}
                     >
                       查看数据
                     </Button>
                   )}
                   {request.status === 'rejected' && (
-                    <Button
-                      variant="ghost"
-                      onClick={() => setShowShareCodeForm(true)}
-                    >
+                    <Button variant="ghost" onClick={() => setShowShareCodeForm(true)}>
                       重新申请
                     </Button>
                   )}
@@ -272,7 +276,7 @@ export function ParentBindingPage() {
           <div className="modal">
             <h2>输入分享码</h2>
             <p>请输入孩子提供的分享码，或输入孩子的注册邮箱地址</p>
-            
+
             <form onSubmit={handleSubmit(handleSubmitShareCode)}>
               <FormField
                 label="分享码或邮箱"
@@ -289,18 +293,10 @@ export function ParentBindingPage() {
               </FormField>
 
               <div className="form-actions">
-                <Button
-                  type="button"
-                  variant="ghost"
-                  onClick={() => setShowShareCodeForm(false)}
-                >
+                <Button type="button" variant="ghost" onClick={() => setShowShareCodeForm(false)}>
                   取消
                 </Button>
-                <Button
-                  type="submit"
-                  variant="primary"
-                  disabled={isSubmitting}
-                >
+                <Button type="submit" variant="primary" disabled={isSubmitting}>
                   {isSubmitting ? '提交中...' : '提交请求'}
                 </Button>
               </div>

@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useMetricsStore } from '../../stores/metrics';
 import { LineTimeseries } from '@kids/ui-kit';
-import { Dim, Period } from '@kids/utils/api/metrics';
+import type { Dim, Period } from '@kids/utils/api/metrics';
 import { Select, DatePicker, Card, Statistic, Row, Col, Skeleton } from 'antd';
 
 const { Option } = Select;
@@ -54,10 +54,14 @@ export function TrendPage() {
 
       <Row gutter={16} style={{ marginTop: '2rem' }}>
         <Col span={12}>
-          <Card><Statistic title={`Total ${dimension}`} value={total.toFixed(2)} /></Card>
+          <Card>
+            <Statistic title={`Total ${dimension}`} value={total.toFixed(2)} />
+          </Card>
         </Col>
         <Col span={12}>
-          <Card><Statistic title={`Average ${dimension}`} value={average.toFixed(2)} /></Card>
+          <Card>
+            <Statistic title={`Average ${dimension}`} value={average.toFixed(2)} />
+          </Card>
         </Col>
       </Row>
     </div>

@@ -20,7 +20,7 @@ import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { PermissionsGuard } from '../../auth/guards/permissions.guard';
 import {
   RequirePermissions,
-  Permission,
+  PermissionType,
 } from '../../auth/decorators/permissions.decorator';
 import { PrismaService } from '../../../prisma/prisma.service';
 import {
@@ -40,7 +40,7 @@ export class AuthorizationCenterController {
   constructor(private readonly prisma: PrismaService) {}
 
   @Get('overview')
-  @RequirePermissions(Permission.REVOKE_RELATIONSHIPS)
+  @RequirePermissions(PermissionType.REVOKE_RELATIONSHIPS)
   @ApiOperation({ summary: '获取授权中心概览' })
   @ApiResponse({
     status: 200,
@@ -105,7 +105,7 @@ export class AuthorizationCenterController {
   }
 
   @Get('pending-requests')
-  @RequirePermissions(Permission.APPROVE_RELATIONSHIPS)
+  @RequirePermissions(PermissionType.APPROVE_RELATIONSHIPS)
   @ApiOperation({ summary: '获取待处理的关注请求' })
   @ApiResponse({ status: 200, description: '获取成功' })
   async getPendingRequests(@Request() req) {
@@ -122,8 +122,8 @@ export class AuthorizationCenterController {
             id: true,
             displayName: true,
             email: true,
-            role: true
-          }
+            role: true,
+          },
         },
       },
       orderBy: { createdAt: 'desc' },
@@ -141,7 +141,7 @@ export class AuthorizationCenterController {
   }
 
   @Get('active-relationships')
-  @RequirePermissions(Permission.REVOKE_RELATIONSHIPS)
+  @RequirePermissions(PermissionType.REVOKE_RELATIONSHIPS)
   @ApiOperation({ summary: '获取活跃的关系列表' })
   @ApiResponse({ status: 200, description: '获取成功' })
   async getActiveRelationships(@Request() req) {
@@ -158,8 +158,8 @@ export class AuthorizationCenterController {
             id: true,
             displayName: true,
             email: true,
-            role: true
-          }
+            role: true,
+          },
         },
         accessGrants: {
           where: { status: 'ACTIVE' },
@@ -184,7 +184,7 @@ export class AuthorizationCenterController {
   }
 
   @Get('class-relationships')
-  @RequirePermissions(Permission.REVOKE_RELATIONSHIPS)
+  @RequirePermissions(PermissionType.REVOKE_RELATIONSHIPS)
   @ApiOperation({ summary: '获取班级关系列表' })
   @ApiResponse({ status: 200, description: '获取成功' })
   async getClassRelationships(@Request() req) {
@@ -224,7 +224,7 @@ export class AuthorizationCenterController {
   }
 
   @Post('approve-request/:consentId')
-  @RequirePermissions(Permission.APPROVE_RELATIONSHIPS)
+  @RequirePermissions(PermissionType.APPROVE_RELATIONSHIPS)
   @ApiOperation({ summary: '批准关注请求' })
   @ApiResponse({ status: 200, description: '批准成功' })
   async approveRequest(
@@ -306,7 +306,7 @@ export class AuthorizationCenterController {
   }
 
   @Post('reject-request/:consentId')
-  @RequirePermissions(Permission.APPROVE_RELATIONSHIPS)
+  @RequirePermissions(PermissionType.APPROVE_RELATIONSHIPS)
   @ApiOperation({ summary: '拒绝关注请求' })
   @ApiResponse({ status: 200, description: '拒绝成功' })
   async rejectRequest(
@@ -359,7 +359,7 @@ export class AuthorizationCenterController {
   }
 
   @Delete('revoke-relationship/:relationshipId')
-  @RequirePermissions(Permission.REVOKE_RELATIONSHIPS)
+  @RequirePermissions(PermissionType.REVOKE_RELATIONSHIPS)
   @ApiOperation({ summary: '撤销关系' })
   @ApiResponse({ status: 200, description: '撤销成功' })
   async revokeRelationship(
@@ -416,7 +416,7 @@ export class AuthorizationCenterController {
   }
 
   @Post('leave-class/:classId')
-  @RequirePermissions(Permission.REVOKE_RELATIONSHIPS)
+  @RequirePermissions(PermissionType.REVOKE_RELATIONSHIPS)
   @ApiOperation({ summary: '退出班级' })
   @ApiResponse({ status: 200, description: '退出成功' })
   async leaveClass(
@@ -510,7 +510,7 @@ export class AuthorizationCenterController {
   }
 
   @Get('audit-summary')
-  @RequirePermissions(Permission.VIEW_OWN_AUDIT)
+  @RequirePermissions(PermissionType.VIEW_OWN_AUDIT)
   @ApiOperation({ summary: '获取授权审计摘要' })
   @ApiResponse({ status: 200, description: '获取成功', type: AuditSummaryDto })
   async getAuditSummary(@Request() req, @Query() query: any) {

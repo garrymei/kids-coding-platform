@@ -1,7 +1,7 @@
 import { IsString, IsOptional, IsNumber, IsArray, IsObject, IsBoolean } from 'class-validator';
 import { Type } from 'class-transformer';
 
-export class HomeProgressDto {
+export interface HomeProgressDto {
   xp: number;
   streakDays: number;
   today: {
@@ -36,7 +36,7 @@ export class HomeProgressDto {
   }>;
 }
 
-export class PackageProgressDto {
+export interface PackageProgressDto {
   pkgId: string;
   levels: Array<{
     levelId: string;

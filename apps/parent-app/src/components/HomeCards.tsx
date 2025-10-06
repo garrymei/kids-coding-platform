@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, Badge, Button } from '@kids/ui-kit';
 import { httpClient } from '../services/http';
 
@@ -46,12 +46,12 @@ export function HomeCards() {
     try {
       setLoading(true);
       const [childrenRes, requestsRes] = await Promise.all([
-        httpClient.get('/relationships/accessible-students'),
-        httpClient.get('/relationships/pending-requests'),
+        httpClient.get<ChildData[]>('/relationships/accessible-students'),
+        httpClient.get<PendingRequest[]>('/relationships/pending-requests'),
       ]);
-      
+
       setChildren(childrenRes);
-      setPendingRequests(requestsRes.filter((req: PendingRequest) => req.status === 'pending'));
+      setPendingRequests(requestsRes.filter((req) => req.status === 'pending'));
     } catch (error) {
       console.error('加载数据失败:', error);
     } finally {
@@ -65,19 +65,27 @@ export function HomeCards() {
 
   const getAuthorizationStatusColor = (status: string) => {
     switch (status) {
-      case 'active': return 'success';
-      case 'pending': return 'warning';
-      case 'expired': return 'danger';
-      default: return 'info';
+      case 'active':
+        return 'success';
+      case 'pending':
+        return 'warning';
+      case 'expired':
+        return 'danger';
+      default:
+        return 'info';
     }
   };
 
   const getAuthorizationStatusText = (status: string) => {
     switch (status) {
-      case 'active': return '已授权';
-      case 'pending': return '待审批';
-      case 'expired': return '已过期';
-      default: return '未授权';
+      case 'active':
+        return '已授权';
+      case 'pending':
+        return '待审批';
+      case 'expired':
+        return '已过期';
+      default:
+        return '未授权';
     }
   };
 
@@ -99,7 +107,9 @@ export function HomeCards() {
                 <div key={request.id} className="pending-item">
                   <div className="request-info">
                     <h4>{request.studentEmail}</h4>
-                    <p>{request.purpose} - {request.reason}</p>
+                    <p>
+                      {request.purpose} - {request.reason}
+                    </p>
                     <small>申请时间: {formatDate(request.createdAt)}</small>
                   </div>
                 </div>
@@ -120,9 +130,7 @@ export function HomeCards() {
         {children.length === 0 ? (
           <div className="empty-state">
             <p>还没有绑定任何孩子</p>
-            <Button variant="primary">
-              申请查看孩子数据
-            </Button>
+            <Button variant="primary">申请查看孩子数据</Button>
           </div>
         ) : (
           <div className="children-list">
@@ -132,16 +140,14 @@ export function HomeCards() {
                   {child.avatar ? (
                     <img src={child.avatar} alt={child.displayName} />
                   ) : (
-                    <div className="avatar-placeholder">
-                      {child.displayName.charAt(0)}
-                    </div>
+                    <div className="avatar-placeholder">{child.displayName.charAt(0)}</div>
                   )}
                 </div>
-                
+
                 <div className="child-info">
                   <h3>{child.displayName}</h3>
                   <p className="child-email">{child.email}</p>
-                  
+
                   <div className="child-stats">
                     <div className="stat">
                       <span className="stat-label">经验值</span>
@@ -193,10 +199,7 @@ export function HomeCards() {
                   >
                     查看详情
                   </Button>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                  >
+                  <Button variant="ghost" size="sm">
                     管理授权
                   </Button>
                 </div>

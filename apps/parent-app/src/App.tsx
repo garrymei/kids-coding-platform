@@ -1,5 +1,5 @@
 import { TrendPage } from './pages/Insights/Trend';
-import { AppShell, AppRoute } from '@kids/ui-kit';
+import { AppShell, type AppRoute } from '@kids/ui-kit';
 import { AppLayout } from './layouts/AppLayout';
 import { OverviewPage } from './pages/OverviewPage';
 import { ReportsPage } from './pages/ReportsPage';

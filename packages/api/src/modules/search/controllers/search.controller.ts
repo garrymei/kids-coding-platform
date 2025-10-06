@@ -1,16 +1,28 @@
-import { 
-  Controller, 
-  Get, 
-  Query, 
+import {
+  Controller,
+  Get,
+  Query,
   UseGuards,
   Request,
   BadRequestException,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiQuery } from '@nestjs/swagger';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiBearerAuth,
+  ApiQuery,
+} from '@nestjs/swagger';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { PermissionsGuard } from '../../auth/guards/permissions.guard';
-import { RequirePermissions, Permission } from '../../auth/decorators/permissions.decorator';
-import { SearchStrategyService, SearchResult } from '../services/search-strategy.service';
+import {
+  RequirePermissions,
+  PermissionType,
+} from '../../auth/decorators/permissions.decorator';
+import {
+  SearchStrategyService,
+  SearchResult,
+} from '../services/search-strategy.service';
 import { RateLimitService } from '../services/rate-limit.service';
 import { PrismaService } from '../../../prisma/prisma.service';
 
@@ -26,11 +38,19 @@ export class SearchController {
   ) {}
 
   @Get()
-  @RequirePermissions(Permission.REQUEST_STUDENT_ACCESS)
+  @RequirePermissions(PermissionType.REQUEST_STUDENT_ACCESS)
   @ApiOperation({ summary: '搜索学生' })
   @ApiResponse({ status: 200, description: '搜索成功' })
-  @ApiQuery({ name: 'q', description: '搜索关键词（昵称或匿名ID）', required: true })
-  @ApiQuery({ name: 'school', description: '学校名称（可选）', required: false })
+  @ApiQuery({
+    name: 'q',
+    description: '搜索关键词（昵称或匿名ID）',
+    required: true,
+  })
+  @ApiQuery({
+    name: 'school',
+    description: '学校名称（可选）',
+    required: false,
+  })
   @ApiQuery({ name: 'class', description: '班级名称（可选）', required: false })
   async searchStudents(
     @Request() req,
@@ -54,7 +74,7 @@ export class SearchController {
 
     // 判断搜索类型
     const searchType = keyword.startsWith('S-') ? 'anonymous_id' : 'nickname';
-    
+
     // 构建搜索条件
     const where: any = {
       role: 'student',
@@ -105,12 +125,13 @@ export class SearchController {
     // 过滤结果（排除已建立关系的学生）
     const filteredStudents = [];
     for (const student of students) {
-      const hasPermission = await this.searchStrategyService.checkSearchPermission(
-        searcherId,
-        student.id,
-        searchType
-      );
-      
+      const hasPermission =
+        await this.searchStrategyService.checkSearchPermission(
+          searcherId,
+          student.id,
+          searchType,
+        );
+
       if (hasPermission) {
         filteredStudents.push(student);
       }
@@ -120,7 +141,7 @@ export class SearchController {
     const searchResults = await this.searchStrategyService.filterSearchResults(
       filteredStudents,
       searcherId,
-      searchType
+      searchType,
     );
 
     // 记录搜索审计日志
@@ -154,7 +175,7 @@ export class SearchController {
   }
 
   @Get('rate-limit-status')
-  @RequirePermissions(Permission.REQUEST_STUDENT_ACCESS)
+  @RequirePermissions(PermissionType.REQUEST_STUDENT_ACCESS)
   @ApiOperation({ summary: '获取搜索速率限制状态' })
   @ApiResponse({ status: 200, description: '获取成功' })
   async getRateLimitStatus(@Request() req) {
@@ -174,7 +195,7 @@ export class SearchController {
   }
 
   @Get('search-settings')
-  @RequirePermissions(Permission.MANAGE_OWN_VISIBILITY)
+  @RequirePermissions(PermissionType.MANAGE_OWN_VISIBILITY)
   @ApiOperation({ summary: '获取搜索设置' })
   @ApiResponse({ status: 200, description: '获取成功' })
   async getSearchSettings(@Request() req) {
@@ -213,7 +234,7 @@ export class SearchController {
   }
 
   @Get('visibility-warning')
-  @RequirePermissions(Permission.MANAGE_OWN_VISIBILITY)
+  @RequirePermissions(PermissionType.MANAGE_OWN_VISIBILITY)
   @ApiOperation({ summary: '获取公开搜索警告信息' })
   @ApiResponse({ status: 200, description: '获取成功' })
   async getVisibilityWarning() {

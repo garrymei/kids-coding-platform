@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Card, Button, Badge } from '@kids/ui-kit';
 import { useFormValidation, FormField, FormInput, FormSelect } from '@kids/forms';
 import { z } from 'zod';
@@ -32,12 +32,21 @@ export function SearchStudentsPage() {
   const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
   const [showFollowForm, setShowFollowForm] = useState(false);
 
-  const { register: registerSearch, handleSubmit: handleSearchSubmit, formState: { errors: searchErrors } } = useFormValidation<SearchFormData>({
+  const {
+    register: registerSearch,
+    handleSubmit: handleSearchSubmit,
+    formState: { errors: searchErrors },
+  } = useFormValidation<SearchFormData>({
     schema: searchFormSchema,
     defaultValues: { nickname: '' },
   });
 
-  const { register: registerFollow, handleSubmit: handleFollowSubmit, formState: { errors: followErrors, isSubmitting }, reset: resetFollow } = useFormValidation<FollowRequestData>({
+  const {
+    register: registerFollow,
+    handleSubmit: handleFollowSubmit,
+    formState: { errors: followErrors, isSubmitting },
+    reset: resetFollow,
+  } = useFormValidation<FollowRequestData>({
     schema: followRequestSchema,
     defaultValues: { reason: '' },
   });
@@ -75,7 +84,12 @@ export function SearchStudentsPage() {
       <Card heading="搜索学生">
         <form onSubmit={handleSearchSubmit(handleSearch)}>
           <FormField label="学生昵称" error={searchErrors.nickname} required>
-            <FormInput {...registerSearch('nickname')} type="text" placeholder="请输入学生昵称" disabled={loading} />
+            <FormInput
+              {...registerSearch('nickname')}
+              type="text"
+              placeholder="请输入学生昵称"
+              disabled={loading}
+            />
           </FormField>
           <div className="form-actions">
             <Button type="submit" variant="primary" disabled={loading}>
@@ -109,8 +123,17 @@ export function SearchStudentsPage() {
           <div className="modal">
             <h2>申请关注学生: {selectedStudent.name}</h2>
             <form onSubmit={handleFollowSubmit(submitFollowRequest)}>
-              <FormField label="申请理由" error={followErrors.reason} required helpText="请详细说明您申请关注该学生的原因">
-                <FormInput {...registerFollow('reason')} type="text" placeholder="我是...的家长，希望..." />
+              <FormField
+                label="申请理由"
+                error={followErrors.reason}
+                required
+                helpText="请详细说明您申请关注该学生的原因"
+              >
+                <FormInput
+                  {...registerFollow('reason')}
+                  type="text"
+                  placeholder="我是...的家长，希望..."
+                />
               </FormField>
               <div className="form-actions">
                 <Button type="button" variant="ghost" onClick={() => setShowFollowForm(false)}>

@@ -30,7 +30,7 @@ export class AuthMiddleware implements NestMiddleware {
     }
 
     const token = this.extractToken(req);
-    
+
     if (!token) {
       throw new UnauthorizedException({
         code: 'UNAUTHORIZED',
@@ -41,7 +41,7 @@ export class AuthMiddleware implements NestMiddleware {
 
     try {
       const payload = jwt.verify(token, this.jwtSecret) as JwtPayload;
-      
+
       // 检查token是否过期
       if (payload.exp && payload.exp < Date.now() / 1000) {
         throw new UnauthorizedException({
@@ -53,10 +53,10 @@ export class AuthMiddleware implements NestMiddleware {
 
       // 将用户信息附加到请求对象
       req.user = payload;
-      
+
       // 设置WWW-Authenticate头
       res.setHeader('WWW-Authenticate', 'Bearer');
-      
+
       next();
     } catch (error) {
       if (error instanceof jwt.JsonWebTokenError) {
@@ -66,7 +66,7 @@ export class AuthMiddleware implements NestMiddleware {
           cid: this.generateCorrelationId(),
         });
       }
-      
+
       if (error instanceof jwt.TokenExpiredError) {
         throw new UnauthorizedException({
           code: 'TOKEN_EXPIRED',
@@ -85,17 +85,17 @@ export class AuthMiddleware implements NestMiddleware {
 
   private extractToken(req: Request): string | null {
     const authHeader = req.headers.authorization;
-    
+
     if (authHeader && authHeader.startsWith('Bearer ')) {
       return authHeader.substring(7);
     }
-    
+
     // 也支持从查询参数获取token（用于WebSocket等场景）
     const queryToken = req.query.token as string;
     if (queryToken) {
       return queryToken;
     }
-    
+
     return null;
   }
 
@@ -111,7 +111,7 @@ export class AuthMiddleware implements NestMiddleware {
       '/static',
     ];
 
-    return publicRoutes.some(route => path.startsWith(route));
+    return publicRoutes.some((route) => path.startsWith(route));
   }
 
   private generateCorrelationId(): string {
@@ -133,7 +133,8 @@ export class JwtService {
    * 生成JWT token
    */
   generateToken(payload: { userId: string; role: string }): string {
-    return jwt.sign(payload, this.secret, { expiresIn: this.expiresIn });
+    const options = { expiresIn: this.expiresIn };
+    return jwt.sign(payload, this.secret, options as jwt.SignOptions);
   }
 
   /**

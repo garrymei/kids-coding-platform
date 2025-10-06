@@ -7,7 +7,7 @@ import { LoggerService } from '../../common/services/logger.service';
 export class AuthController {
   constructor(
     private readonly authService: AuthService,
-    private readonly logger: LoggerService
+    private readonly logger: LoggerService,
   ) {}
 
   /**
@@ -17,7 +17,7 @@ export class AuthController {
   @Post('login')
   async login(
     @Body() loginDto: LoginDto,
-    @Request() req: any
+    @Request() req: any,
   ): Promise<{
     accessToken: string;
     refreshToken: string;
@@ -47,7 +47,7 @@ export class AuthController {
     } catch (error) {
       this.logger.error('User login failed', {
         username: loginDto.username,
-        error: error.message,
+        error: error instanceof Error ? error.message : String(error),
         ip: req.ip,
       });
 
@@ -61,7 +61,7 @@ export class AuthController {
           message: 'Login failed',
           cid: this.generateCorrelationId(),
         },
-        HttpStatus.UNAUTHORIZED
+        HttpStatus.UNAUTHORIZED,
       );
     }
   }
@@ -73,7 +73,7 @@ export class AuthController {
   @Post('register')
   async register(
     @Body() registerDto: RegisterDto,
-    @Request() req: any
+    @Request() req: any,
   ): Promise<{
     accessToken: string;
     refreshToken: string;
@@ -104,7 +104,7 @@ export class AuthController {
     } catch (error) {
       this.logger.error('User registration failed', {
         username: registerDto.username,
-        error: error.message,
+        error: error instanceof Error ? error.message : String(error),
         ip: req.ip,
       });
 
@@ -118,7 +118,7 @@ export class AuthController {
           message: 'Registration failed',
           cid: this.generateCorrelationId(),
         },
-        HttpStatus.BAD_REQUEST
+        HttpStatus.BAD_REQUEST,
       );
     }
   }
@@ -130,7 +130,7 @@ export class AuthController {
   @Post('refresh')
   async refreshToken(
     @Body() refreshTokenDto: RefreshTokenDto,
-    @Request() req: any
+    @Request() req: any,
   ): Promise<{
     accessToken: string;
     refreshToken: string;
@@ -150,7 +150,7 @@ export class AuthController {
       return result;
     } catch (error) {
       this.logger.error('Token refresh failed', {
-        error: error.message,
+        error: error instanceof Error ? error.message : String(error),
         ip: req.ip,
       });
 
@@ -164,7 +164,7 @@ export class AuthController {
           message: 'Token refresh failed',
           cid: this.generateCorrelationId(),
         },
-        HttpStatus.UNAUTHORIZED
+        HttpStatus.UNAUTHORIZED,
       );
     }
   }
@@ -176,7 +176,7 @@ export class AuthController {
   @Post('logout')
   async logout(
     @Body() body: { refreshToken: string },
-    @Request() req: any
+    @Request() req: any,
   ): Promise<{ message: string }> {
     try {
       this.logger.info('User logout', {
@@ -193,7 +193,7 @@ export class AuthController {
       return { message: 'Logout successful' };
     } catch (error) {
       this.logger.error('User logout failed', {
-        error: error.message,
+        error: error instanceof Error ? error.message : String(error),
         ip: req.ip,
       });
 

@@ -1,0 +1,26 @@
+﻿{
+  "id": "loops-2",
+  "title": "循环练习 2",
+  "lang": "python",
+  "gameType": "io",
+  "difficulty": 2,
+  "story": "使用循环和表达式，生成平方数序列。",
+  "goals": ["输出 1 到 10 的平方，每行一个数字"],
+  "starter": {
+    "blockly": "<xml/>",
+    "code": "# TODO: 使用循环输出平方数\nfor i in range(1, 11):\n    pass  # 在这里打印 i 的平方\n"
+  },
+  "grader": {
+    "mode": "io",
+    "io": {
+      "cases": [{ "in": "", "out": "1\\n4\\n9\\n16\\n25\\n36\\n49\\n64\\n81\\n100\\n" }],
+      "match": "exact"
+    }
+  },
+  "rewards": {
+    "xp": 35,
+    "coins": 14,
+    "badges": ["循环进阶"]
+  },
+  "hints": ["range(1, 11) 可以遍历 1 到 10", "平方可以使用 i * i 或 pow(i, 2)"]
+}

@@ -1,32 +1,38 @@
-﻿import React, { Suspense, lazy } from "react";
-import { createBrowserRouter } from "react-router-dom";
-import AppLayout from "./layouts/AppLayout";
-import { LoadingSpinner } from "./components/LoadingStates";
+﻿import React, { Suspense, lazy } from 'react';
+import { createBrowserRouter } from 'react-router-dom';
+import AppLayout from './layouts/AppLayout';
+import { LoadingSpinner } from './components/LoadingStates';
 
 // Eagerly loaded core screens
-import HomePage from "./pages/Home/HomePage";
-import HubPage from "./pages/Hub/HubPage";
-import PlayPage from "./pages/Play/PlayPage";
+import HomePage from './pages/Home/HomePage';
+import HubPage from './pages/Hub/HubPage';
+import PlayPage from './pages/Play/PlayPage';
 
 // Lazy screens
-const CoursesPage = lazy(() => import("./pages/CoursesPage").then((m) => ({ default: m.CoursesPage })));
-const WorksPage = lazy(() => import("./pages/Works/WorksPage"));
-const LeaderboardPage = lazy(() => import("./pages/Leaderboard/LeaderboardPage"));
-const SettingsPage = lazy(() => import("./pages/SettingsPage").then((m) => ({ default: m.SettingsPage })));
-const ConsentsPage = lazy(() => import("./pages/ConsentsPage").then((m) => ({ default: m.ConsentsPage })));
-const MyClassesPage = lazy(() => import("./pages/MyClassesPage").then((m) => ({ default: m.MyClassesPage })));
-const PackagePage = lazy(() => import("./pages/PackagePage"));
-const MapPage = lazy(() => import("./pages/MapPage").then((m) => ({ default: m.MapPage })));
+const CoursesPage = lazy(() =>
+  import('./pages/CoursesPage').then((m) => ({ default: m.CoursesPage })),
+);
+const WorksPage = lazy(() => import('./pages/Works/WorksPage'));
+const LeaderboardPage = lazy(() => import('./pages/Leaderboard/LeaderboardPage'));
+const SettingsPage = lazy(() =>
+  import('./pages/SettingsPage').then((m) => ({ default: m.SettingsPage })),
+);
+const ConsentsPage = lazy(() =>
+  import('./pages/ConsentsPage').then((m) => ({ default: m.ConsentsPage })),
+);
+const MyClassesPage = lazy(() =>
+  import('./pages/MyClassesPage').then((m) => ({ default: m.MyClassesPage })),
+);
+const PackagePage = lazy(() => import('./pages/PackagePage'));
+const MapPage = lazy(() => import('./pages/MapPage'));
 
 const withSuspense = (element: React.JSX.Element, text: string) => (
-  <Suspense fallback={<LoadingSpinner text={text} />}>
-    {element}
-  </Suspense>
+  <Suspense fallback={<LoadingSpinner text={text} />}>{element}</Suspense>
 );
 
 export const router = createBrowserRouter([
   {
-    path: "/",
+    path: '/',
     element: <AppLayout />,
     children: [
       {
@@ -34,49 +40,49 @@ export const router = createBrowserRouter([
         element: <HomePage />,
       },
       {
-        path: "courses",
-        element: withSuspense(<CoursesPage />, "课程加载中..."),
+        path: 'courses',
+        element: withSuspense(<CoursesPage />, '课程加载中...'),
       },
       {
-        path: "map",
-        element: withSuspense(<MapPage />, "地图加载中..."),
+        path: 'map',
+        element: withSuspense(<MapPage />, '地图加载中...'),
       },
       {
-        path: "works",
-        element: withSuspense(<WorksPage />, "作品加载中..."),
+        path: 'works',
+        element: withSuspense(<WorksPage />, '作品加载中...'),
       },
       {
-        path: "leaderboard",
-        element: withSuspense(<LeaderboardPage />, "排行榜加载中..."),
+        path: 'leaderboard',
+        element: withSuspense(<LeaderboardPage />, '排行榜加载中...'),
       },
       {
-        path: "rank",
-        element: withSuspense(<LeaderboardPage />, "排行榜加载中..."),
+        path: 'rank',
+        element: withSuspense(<LeaderboardPage />, '排行榜加载中...'),
       },
       {
-        path: "play/:levelId",
+        path: 'play/:levelId',
         element: <PlayPage />,
       },
       {
-        path: "settings",
-        element: withSuspense(<SettingsPage />, "设置加载中..."),
+        path: 'settings',
+        element: withSuspense(<SettingsPage />, '设置加载中...'),
       },
       {
-        path: "consents",
-        element: withSuspense(<ConsentsPage />, "授权信息加载中..."),
+        path: 'consents',
+        element: withSuspense(<ConsentsPage />, '授权信息加载中...'),
       },
       {
-        path: "my-classes",
-        element: withSuspense(<MyClassesPage />, "班级信息加载中..."),
+        path: 'my-classes',
+        element: withSuspense(<MyClassesPage />, '班级信息加载中...'),
       },
       {
-        path: "packages/:pkgId",
-        element: withSuspense(<PackagePage />, "课程包加载中..."),
+        path: 'packages/:pkgId',
+        element: withSuspense(<PackagePage />, '课程包加载中...'),
       },
     ],
   },
   {
-    path: "/hub/:lang/:game?",
+    path: '/hub/:lang/:game?',
     element: <HubPage />,
   },
 ]);

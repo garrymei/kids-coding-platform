@@ -32,7 +32,8 @@ export class AuthService {
   private async validateUser(email: string, password: string) {
     try {
       const user = await this.prisma.user.findUnique({
-        where: { email }});
+        where: { email },
+      });
       if (!user || !user.passwordHash) {
         throw new UnauthorizedException('Invalid credentials');
       }
@@ -43,7 +44,7 @@ export class AuthService {
       }
 
       return user;
-    } catch (error) {
+    } catch (_error) {
       // In development mode, provide mock user data if database is not available
       if (process.env.NODE_ENV !== 'production') {
         // Mock user data for development
@@ -51,24 +52,27 @@ export class AuthService {
           'parent@example.com': {
             id: '1',
             email: 'parent@example.com',
-            passwordHash: '$argon2i$v=19$m=4096,t=3,p=1$c2FsdHlfc2FsdHlfc2FsdHk$K4S0qXgD5zYJ2C9b7b9Z1a2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0', // password: password
+            passwordHash:
+              '$argon2i$v=19$m=4096,t=3,p=1$c2FsdHlfc2FsdHlfc2FsdHk$K4S0qXgD5zYJ2C9b7b9Z1a2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0', // password: password
             displayName: 'Parent User',
-            role: Role.Parent
+            role: Role.Parent,
           },
           'teacher@example.com': {
             id: '2',
             email: 'teacher@example.com',
-            passwordHash: '$argon2i$v=19$m=4096,t=3,p=1$c2FsdHlfc2FsdHlfc2FsdHk$K4S0qXgD5zYJ2C9b7b9Z1a2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0', // password: password
+            passwordHash:
+              '$argon2i$v=19$m=4096,t=3,p=1$c2FsdHlfc2FsdHlfc2FsdHk$K4S0qXgD5zYJ2C9b7b9Z1a2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0', // password: password
             displayName: 'Teacher User',
-            role: Role.Teacher
+            role: Role.Teacher,
           },
           'admin@example.com': {
             id: '3',
             email: 'admin@example.com',
-            passwordHash: '$argon2i$v=19$m=4096,t=3,p=1$c2FsdHlfc2FsdHlfc2FsdHk$K4S0qXgD5zYJ2C9b7b9Z1a2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0', // password: password
+            passwordHash:
+              '$argon2i$v=19$m=4096,t=3,p=1$c2FsdHlfc2FsdHlfc2FsdHk$K4S0qXgD5zYJ2C9b7b9Z1a2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0', // password: password
             displayName: 'Admin User',
-            role: Role.Admin
-          }
+            role: Role.Admin,
+          },
         };
 
         const mockUser = mockUsers[email];
@@ -76,14 +80,17 @@ export class AuthService {
           throw new UnauthorizedException('Invalid credentials');
         }
 
-        const passwordMatches = await argon2.verify(mockUser.passwordHash, password);
+        const passwordMatches = await argon2.verify(
+          mockUser.passwordHash,
+          password,
+        );
         if (!passwordMatches) {
           throw new UnauthorizedException('Invalid credentials');
         }
 
         return mockUser;
       }
-      
+
       throw new UnauthorizedException('Invalid credentials');
     }
   }
@@ -94,7 +101,8 @@ export class AuthService {
     const payload: JwtPayload = {
       sub: user.id,
       email: user.email,
-      role: user.role as Role};
+      role: user.role as Role,
+    };
 
     const accessToken = await this.jwtService.signAsync(payload);
 
@@ -102,7 +110,8 @@ export class AuthService {
     await this.auditLogger.logLogin(user.id, undefined, undefined, {
       email: user.email,
       role: user.role,
-      loginMethod: 'email/password'});
+      loginMethod: 'email/password',
+    });
 
     return {
       accessToken,
@@ -110,6 +119,8 @@ export class AuthService {
         id: user.id,
         email: user.email,
         displayName: user.displayName ?? null,
-        role: user.role as Role}};
+        role: user.role as Role,
+      },
+    };
   }
 }

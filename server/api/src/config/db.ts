@@ -1,4 +1,4 @@
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient, Prisma } from '@prisma/client';
 import { LoggerService } from '../common/services/logger.service';
 
 export interface DatabaseConfig {
@@ -49,12 +49,12 @@ class DatabaseManager {
     });
 
     // 监听Prisma错误事件
-    this.prisma.$on('error', (e) => {
-      this.logger.error('Database error', { error: e.message, target: e.target });
+    this.prisma.$on('error' as never, (event: Prisma.LogEvent) => {
+      this.logger.error('Database error', { error: event.message, target: event.target });
     });
 
-    this.prisma.$on('warn', (e) => {
-      this.logger.warn('Database warning', { warning: e.message, target: e.target });
+    this.prisma.$on('warn' as never, (event: Prisma.LogEvent) => {
+      this.logger.warn('Database warning', { warning: event.message, target: event.target });
     });
   }
 
@@ -64,9 +64,9 @@ class DatabaseManager {
   async connect(): Promise<boolean> {
     for (let attempt = 0; attempt < this.config.connectRetries; attempt++) {
       try {
-        this.logger.info('Attempting database connection', { 
-          attempt: attempt + 1, 
-          maxRetries: this.config.connectRetries 
+        this.logger.info('Attempting database connection', {
+          attempt: attempt + 1,
+          maxRetries: this.config.connectRetries,
         });
 
         // 设置连接超时
@@ -79,20 +79,19 @@ class DatabaseManager {
 
         // 连接成功，测试查询
         await this.prisma.$queryRaw`SELECT 1`;
-        
+
         this.status = {
           connected: true,
           retryCount: attempt,
           lastAttempt: new Date(),
         };
 
-        this.logger.info('Database connected successfully', { 
+        this.logger.info('Database connected successfully', {
           attempt: attempt + 1,
-          retryCount: this.status.retryCount 
+          retryCount: this.status.retryCount,
         });
 
         return true;
-
       } catch (error) {
         const errorMessage = error instanceof Error ? error.message : String(error);
         this.status = {
@@ -110,8 +109,10 @@ class DatabaseManager {
 
         // 如果不是最后一次尝试，等待后重试
         if (attempt < this.config.connectRetries - 1) {
-          const delay = this.config.retryDelays[attempt] || this.config.retryDelays[this.config.retryDelays.length - 1];
-          await new Promise(resolve => setTimeout(resolve, delay));
+          const delay =
+            this.config.retryDelays[attempt] ||
+            this.config.retryDelays[this.config.retryDelays.length - 1];
+          await new Promise((resolve) => setTimeout(resolve, delay));
         }
       }
     }
@@ -134,7 +135,7 @@ class DatabaseManager {
     }
 
     this.logger.info('Starting database reconnection loop');
-    
+
     const attemptReconnect = async () => {
       if (this.status.connected) {
         return;
@@ -199,7 +200,7 @@ class DatabaseManager {
    */
   async disconnect(): Promise<void> {
     this.stopReconnectLoop();
-    
+
     try {
       await this.prisma.$disconnect();
       this.logger.info('Database disconnected successfully');

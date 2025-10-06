@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, Badge, Progress, Button } from '@kids/ui-kit';
 import { httpClient } from '../services/http';
 
@@ -74,14 +74,16 @@ export function ChildDataPage({ childId }: ChildDataPageProps) {
       setError(null);
 
       // 检查访问权限
-      const hasAccess = await httpClient.get(`/relationships/check-access/${childId}?scope=progress:read`);
+      const hasAccess = await httpClient.get<{ hasAccess: boolean }>(
+        `/relationships/check-access/${childId}?scope=progress:read`,
+      );
       if (!hasAccess.hasAccess) {
         setError('您没有权限查看该孩子的数据');
         return;
       }
 
       // 获取孩子数据
-      const data = await httpClient.get(`/students/${childId}/data`);
+      const data = await httpClient.get<ChildData>(`/students/${childId}/data`);
       setChildData(data);
     } catch (err: any) {
       console.error('加载孩子数据失败:', err);
@@ -101,30 +103,44 @@ export function ChildDataPage({ childId }: ChildDataPageProps) {
 
   const getScopeLabel = (scope: string) => {
     switch (scope) {
-      case 'progress:read': return '学习进度';
-      case 'works:read': return '作品查看';
-      case 'badges:read': return '徽章查看';
-      case 'courses:read': return '课程查看';
-      default: return scope;
+      case 'progress:read':
+        return '学习进度';
+      case 'works:read':
+        return '作品查看';
+      case 'badges:read':
+        return '徽章查看';
+      case 'courses:read':
+        return '课程查看';
+      default:
+        return scope;
     }
   };
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'completed': return 'success';
-      case 'in_progress': return 'info';
-      case 'submitted': return 'warning';
-      case 'not_started': return 'info';
-      default: return 'info';
+      case 'completed':
+        return 'success';
+      case 'in_progress':
+        return 'info';
+      case 'submitted':
+        return 'warning';
+      case 'not_started':
+        return 'info';
+      default:
+        return 'info';
     }
   };
 
   const getDifficultyColor = (difficulty: string) => {
     switch (difficulty) {
-      case 'beginner': return 'success';
-      case 'intermediate': return 'warning';
-      case 'advanced': return 'danger';
-      default: return 'info';
+      case 'beginner':
+        return 'success';
+      case 'intermediate':
+        return 'warning';
+      case 'advanced':
+        return 'danger';
+      default:
+        return 'info';
     }
   };
 
@@ -157,9 +173,7 @@ export function ChildDataPage({ childId }: ChildDataPageProps) {
             {childData.avatar ? (
               <img src={childData.avatar} alt={childData.displayName} />
             ) : (
-              <div className="avatar-placeholder">
-                {childData.displayName.charAt(0)}
-              </div>
+              <div className="avatar-placeholder">{childData.displayName.charAt(0)}</div>
             )}
           </div>
           <div className="child-details">
@@ -227,23 +241,15 @@ export function ChildDataPage({ childId }: ChildDataPageProps) {
                 <h4>{course.title}</h4>
                 <p>{course.description}</p>
                 <div className="course-meta">
-                  <Badge
-                    text={course.difficulty}
-                    tone={getDifficultyColor(course.difficulty)}
-                  />
-                  <span className="course-duration">
-                    预计 {course.estimatedDuration} 分钟
-                  </span>
+                  <Badge text={course.difficulty} tone={getDifficultyColor(course.difficulty)} />
+                  <span className="course-duration">预计 {course.estimatedDuration} 分钟</span>
                 </div>
               </div>
               <div className="course-progress">
                 <Progress value={course.progress} label={`${course.progress}%`} />
                 <div className="progress-details">
                   <span>已完成 {course.actualDuration} 分钟</span>
-                  <Badge
-                    text={course.status}
-                    tone={getStatusColor(course.status)}
-                  />
+                  <Badge text={course.status} tone={getStatusColor(course.status)} />
                 </div>
               </div>
             </div>
@@ -277,16 +283,11 @@ export function ChildDataPage({ childId }: ChildDataPageProps) {
                 <p>{work.description}</p>
                 <div className="work-meta">
                   <span className="work-type">{work.type}</span>
-                  <span className="work-date">
-                    创建: {formatDateTime(work.createdAt)}
-                  </span>
+                  <span className="work-date">创建: {formatDateTime(work.createdAt)}</span>
                 </div>
               </div>
               <div className="work-status">
-                <Badge
-                  text={work.status}
-                  tone={getStatusColor(work.status)}
-                />
+                <Badge text={work.status} tone={getStatusColor(work.status)} />
               </div>
             </div>
           ))}
@@ -302,10 +303,7 @@ export function ChildDataPage({ childId }: ChildDataPageProps) {
                 {new Date(day.date).toLocaleDateString('zh-CN', { weekday: 'short' })}
               </div>
               <div className="activity-bar">
-                <div
-                  className="bar-fill"
-                  style={{ height: `${(day.studyTime / 120) * 100}%` }}
-                />
+                <div className="bar-fill" style={{ height: `${(day.studyTime / 120) * 100}%` }} />
               </div>
               <div className="day-stats">
                 <span>{day.studyTime}分钟</span>

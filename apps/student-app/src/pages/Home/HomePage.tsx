@@ -9,8 +9,8 @@ export default function HomePage() {
   const { snapshot, loading, fetchHome } = useProgressStore();
 
   useEffect(() => {
-    fetchHome(MOCK_STUDENT_ID).catch((error) => {
-      console.error('Failed to load student snapshot', error);
+    fetchHome(MOCK_STUDENT_ID).catch(() => {
+      /* noop: 进度数据加载失败时保持占位卡片 */
     });
   }, [fetchHome]);
 
@@ -108,7 +108,10 @@ export default function HomePage() {
                     {new Date(item.ts).toLocaleString()}
                   </div>
                 </div>
-                <span className="kc-tag" style={{ background: item.passed ? 'rgba(34,197,94,.3)' : 'rgba(239,68,68,.25)' }}>
+                <span
+                  className="kc-tag"
+                  style={{ background: item.passed ? 'rgba(34,197,94,.3)' : 'rgba(239,68,68,.25)' }}
+                >
                   {item.passed ? '通过' : '未通过'}
                 </span>
               </div>
@@ -135,4 +138,3 @@ export default function HomePage() {
     </div>
   );
 }
-

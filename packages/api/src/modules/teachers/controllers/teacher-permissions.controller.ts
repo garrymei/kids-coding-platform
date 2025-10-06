@@ -1,18 +1,26 @@
-import { 
-  Controller, 
-  Get, 
+import {
+  Controller,
+  Get,
   Post,
   Put,
-  Body, 
-  Param, 
+  Body,
+  Param,
   UseGuards,
   Request,
   Query,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiBearerAuth,
+} from '@nestjs/swagger';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { PermissionsGuard } from '../../auth/guards/permissions.guard';
-import { RequirePermissions, Permission } from '../../auth/decorators/permissions.decorator';
+import {
+  RequirePermissions,
+  PermissionType,
+} from '../../auth/decorators/permissions.decorator';
 import { VisibilityService } from '../../auth/services/visibility.service';
 import { PrismaService } from '../../../prisma/prisma.service';
 
@@ -27,7 +35,7 @@ export class TeacherPermissionsController {
   ) {}
 
   @Get('my-classes')
-  @RequirePermissions(Permission.MANAGE_CLASS)
+  @RequirePermissions(PermissionType.MANAGE_CLASS)
   @ApiOperation({ summary: '获取我的班级列表' })
   @ApiResponse({ status: 200, description: '获取成功' })
   async getMyClasses(@Request() req) {
@@ -57,20 +65,20 @@ export class TeacherPermissionsController {
       orderBy: { createdAt: 'desc' },
     });
 
-    return classes.map(cls => ({
+    return classes.map((cls) => ({
       id: cls.id,
       name: cls.name,
       description: cls.description,
       code: cls.code,
       status: cls.status,
       studentCount: cls.enrollments.length,
-      students: cls.enrollments.map(enrollment => enrollment.student),
+      students: cls.enrollments.map((enrollment) => enrollment.student),
       createdAt: cls.createdAt,
     }));
   }
 
   @Get('class-students/:classId')
-  @RequirePermissions(Permission.VIEW_CLASS_STUDENT_DATA)
+  @RequirePermissions(PermissionType.VIEW_CLASS_STUDENT_DATA)
   @ApiOperation({ summary: '获取班级学生列表' })
   @ApiResponse({ status: 200, description: '获取成功' })
   async getClassStudents(@Request() req, @Param('classId') classId: string) {
@@ -110,27 +118,35 @@ export class TeacherPermissionsController {
     return {
       classId,
       className: classInfo.name,
-      students: enrollments.map(enrollment => enrollment.student),
+      students: enrollments.map((enrollment) => enrollment.student),
       studentCount: enrollments.length,
     };
   }
 
   @Get('student-data/:studentId')
-  @RequirePermissions(Permission.VIEW_CLASS_STUDENT_DATA)
+  @RequirePermissions(PermissionType.VIEW_CLASS_STUDENT_DATA)
   @ApiOperation({ summary: '查看班级内学生的教学数据' })
   @ApiResponse({ status: 200, description: '获取成功' })
   async getStudentData(@Request() req, @Param('studentId') studentId: string) {
     const teacherId = req.user.userId;
 
     // 检查是否有班级关系
-    const hasClassAccess = await this.visibilityService.hasDataAccess(teacherId, studentId, 'progress:read');
+    const hasClassAccess = await this.visibilityService.hasDataAccess(
+      teacherId,
+      studentId,
+      'progress:read',
+    );
     if (!hasClassAccess) {
       throw new Error('该学生不在您的班级中');
     }
 
     // 获取过滤后的学生数据
-    const studentData = await this.visibilityService.filterStudentData(studentId, teacherId, 'teacher');
-    
+    const studentData = await this.visibilityService.filterStudentData(
+      studentId,
+      teacherId,
+      'teacher',
+    );
+
     if (!studentData) {
       throw new Error('学生数据不存在或无访问权限');
     }
@@ -153,10 +169,13 @@ export class TeacherPermissionsController {
   }
 
   @Get('student-progress/:studentId')
-  @RequirePermissions(Permission.VIEW_CLASS_STUDENT_DATA)
+  @RequirePermissions(PermissionType.VIEW_CLASS_STUDENT_DATA)
   @ApiOperation({ summary: '查看学生学习进度' })
   @ApiResponse({ status: 200, description: '获取成功' })
-  async getStudentProgress(@Request() req, @Param('studentId') studentId: string) {
+  async getStudentProgress(
+    @Request() req,
+    @Param('studentId') studentId: string,
+  ) {
     const teacherId = req.user.userId;
 
     // 检查班级关系
@@ -199,7 +218,7 @@ export class TeacherPermissionsController {
     return {
       studentId,
       classId: classAccess.classId,
-      progressData: progressData.map(snapshot => ({
+      progressData: progressData.map((snapshot) => ({
         date: snapshot.date,
         chapterId: snapshot.chapterId,
         tasksDone: snapshot.tasksDone,
@@ -212,16 +231,18 @@ export class TeacherPermissionsController {
         totalTasks: progressData.reduce((sum, s) => sum + s.tasksDone, 0),
         totalTime: progressData.reduce((sum, s) => sum + s.timeSpentMin, 0),
         totalXP: progressData.reduce((sum, s) => sum + s.xpGained, 0),
-        averageAccuracy: progressData.length > 0 
-          ? progressData.reduce((sum, s) => sum + s.accuracy, 0) / progressData.length 
-          : 0,
+        averageAccuracy:
+          progressData.length > 0
+            ? progressData.reduce((sum, s) => sum + s.accuracy, 0) /
+              progressData.length
+            : 0,
         currentStreak: progressData.length > 0 ? progressData[0].streakDays : 0,
       },
     };
   }
 
   @Get('student-works/:studentId')
-  @RequirePermissions(Permission.VIEW_CLASS_STUDENT_DATA)
+  @RequirePermissions(PermissionType.VIEW_CLASS_STUDENT_DATA)
   @ApiOperation({ summary: '查看学生作品（教学相关）' })
   @ApiResponse({ status: 200, description: '获取成功' })
   async getStudentWorks(@Request() req, @Param('studentId') studentId: string) {
@@ -264,7 +285,7 @@ export class TeacherPermissionsController {
     return {
       studentId,
       classId: classAccess.classId,
-      works: works.map(work => ({
+      works: works.map((work) => ({
         id: work.id,
         title: work.title,
         description: work.description,
@@ -277,13 +298,13 @@ export class TeacherPermissionsController {
   }
 
   @Post('comment-work/:workId')
-  @RequirePermissions(Permission.COMMENT_ON_WORKS)
+  @RequirePermissions(PermissionType.COMMENT_ON_WORKS)
   @ApiOperation({ summary: '点评学生作品' })
   @ApiResponse({ status: 201, description: '点评成功' })
   async commentOnWork(
     @Request() req,
     @Param('workId') workId: string,
-    @Body() commentData: { content: string; rating?: number }
+    @Body() commentData: { content: string; rating?: number },
   ) {
     const teacherId = req.user.userId;
 
@@ -321,7 +342,7 @@ export class TeacherPermissionsController {
   }
 
   @Post('assign-task')
-  @RequirePermissions(Permission.ASSIGN_TASKS)
+  @RequirePermissions(PermissionType.ASSIGN_TASKS)
   @ApiOperation({ summary: '下发任务' })
   @ApiResponse({ status: 201, description: '任务下发成功' })
   async assignTask(@Request() req, @Body() taskData: any) {
@@ -375,7 +396,7 @@ export class TeacherPermissionsController {
   }
 
   @Get('class-analytics/:classId')
-  @RequirePermissions(Permission.VIEW_CLASS_STUDENT_DATA)
+  @RequirePermissions(PermissionType.VIEW_CLASS_STUDENT_DATA)
   @ApiOperation({ summary: '获取班级分析数据' })
   @ApiResponse({ status: 200, description: '获取成功' })
   async getClassAnalytics(@Request() req, @Param('classId') classId: string) {
@@ -421,20 +442,23 @@ export class TeacherPermissionsController {
       totalTime: 0,
       totalXP: 0,
       averageAccuracy: 0,
-      students: enrollments.map(enrollment => {
+      students: enrollments.map((enrollment) => {
         const student = enrollment.student;
         const recentMetrics = student.metricsSnapshots;
-        
+
         const studentStats = {
           id: student.id,
           displayName: student.displayName,
           totalTasks: recentMetrics.reduce((sum, s) => sum + s.tasksDone, 0),
           totalTime: recentMetrics.reduce((sum, s) => sum + s.timeSpentMin, 0),
           totalXP: recentMetrics.reduce((sum, s) => sum + s.xpGained, 0),
-          averageAccuracy: recentMetrics.length > 0 
-            ? recentMetrics.reduce((sum, s) => sum + s.accuracy, 0) / recentMetrics.length 
-            : 0,
-          currentStreak: recentMetrics.length > 0 ? recentMetrics[0].streakDays : 0,
+          averageAccuracy:
+            recentMetrics.length > 0
+              ? recentMetrics.reduce((sum, s) => sum + s.accuracy, 0) /
+                recentMetrics.length
+              : 0,
+          currentStreak:
+            recentMetrics.length > 0 ? recentMetrics[0].streakDays : 0,
         };
 
         // 累加到班级总计
@@ -448,7 +472,9 @@ export class TeacherPermissionsController {
 
     // 计算班级平均准确率
     if (analytics.students.length > 0) {
-      analytics.averageAccuracy = analytics.students.reduce((sum, s) => sum + s.averageAccuracy, 0) / analytics.students.length;
+      analytics.averageAccuracy =
+        analytics.students.reduce((sum, s) => sum + s.averageAccuracy, 0) /
+        analytics.students.length;
     }
 
     // 记录访问日志

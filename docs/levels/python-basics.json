@@ -1,0 +1,88 @@
+[
+  {
+    "id": "loops-1",
+    "title": "循环练习1",
+    "type": "pixel",
+    "description": "学习基本的 for 循环，绘制一个简单的图案",
+    "difficulty": 1,
+    "starter": {
+      "code": "# 使用 for 循环绘制一行像素\nfor i in range(5):\n    pixel(i, 0, 1)",
+      "hints": ["使用 for i in range(5) 来循环 5 次", "在循环内调用 pixel(i, 0, 1) 来设置像素"]
+    },
+    "judge": {
+      "strategy": "pixel_matrix",
+      "expected": {
+        "pixelMatrix": [
+          [1, 1, 1, 1, 1],
+          [0, 0, 0, 0, 0],
+          [0, 0, 0, 0, 0],
+          [0, 0, 0, 0, 0],
+          [0, 0, 0, 0, 0]
+        ]
+      },
+      "timeout": 5000
+    },
+    "metadata": {
+      "tags": ["循环", "基础", "像素"],
+      "estimatedTime": 300,
+      "prerequisites": []
+    }
+  },
+  {
+    "id": "loops-2",
+    "title": "循环练习2",
+    "type": "pixel",
+    "description": "学习嵌套循环，绘制一个矩形",
+    "difficulty": 2,
+    "starter": {
+      "code": "# 使用嵌套循环绘制一个 3x3 的矩形\nfor x in range(3):\n    for y in range(3):\n        pixel(x, y, 1)",
+      "hints": ["使用两个嵌套的 for 循环", "外层循环控制 x 坐标，内层循环控制 y 坐标"]
+    },
+    "judge": {
+      "strategy": "pixel_matrix",
+      "expected": {
+        "pixelMatrix": [
+          [1, 1, 1],
+          [1, 1, 1],
+          [1, 1, 1]
+        ]
+      },
+      "timeout": 5000
+    },
+    "metadata": {
+      "tags": ["循环", "嵌套", "矩形"],
+      "estimatedTime": 600,
+      "prerequisites": ["loops-1"]
+    }
+  },
+  {
+    "id": "music-1",
+    "title": "音乐基础",
+    "type": "music",
+    "description": "学习基本的音符播放",
+    "difficulty": 1,
+    "starter": {
+      "code": "# 播放一个简单的音符序列\nplay_note(60, 500)  # C4 音符，持续 500ms\nplay_note(62, 500)  # D4 音符\nplay_note(64, 500)  # E4 音符",
+      "hints": [
+        "使用 play_note(pitch, duration) 来播放音符",
+        "pitch 是音符的音高，duration 是持续时间（毫秒）"
+      ]
+    },
+    "judge": {
+      "strategy": "music_sequence",
+      "expected": {
+        "musicSeq": [
+          { "pitch": 60, "duration": 500 },
+          { "pitch": 62, "duration": 500 },
+          { "pitch": 64, "duration": 500 }
+        ]
+      },
+      "timeout": 5000
+    },
+    "metadata": {
+      "tags": ["音乐", "基础", "音符"],
+      "estimatedTime": 400,
+      "prerequisites": []
+    }
+  }
+]

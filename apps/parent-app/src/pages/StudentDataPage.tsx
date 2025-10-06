@@ -58,8 +58,10 @@ const StudentDataPage: React.FC = () => {
   // 获取学生摘要
   const fetchStudentSummary = async (studentId: string) => {
     try {
-      const response = await httpClient.get(`/metrics/students/${studentId}/summary`);
-      setSummary(response as any);
+      const response = await httpClient.get<StudentSummary>(
+        `/metrics/students/${studentId}/summary`,
+      );
+      setSummary(response);
     } catch (error) {
       message.error('获取学生摘要失败');
     }
@@ -74,10 +76,10 @@ const StudentDataPage: React.FC = () => {
   ) => {
     setLoading(true);
     try {
-      const response = await httpClient.get(`/metrics/students/${studentId}/trend`, {
-        query: { from, to, granularity }
+      const response = await httpClient.get<TrendData[]>(`/metrics/students/${studentId}/trend`, {
+        query: { from, to, granularity },
       });
-      setTrendData(response as any);
+      setTrendData(response);
     } catch (error) {
       message.error('获取趋势数据失败');
       // Fallback to mock data on error
@@ -107,14 +109,14 @@ const StudentDataPage: React.FC = () => {
   // 获取对比数据
   const fetchComparisonData = async (studentId: string) => {
     try {
-      const response = await httpClient.post('/metrics/compare', {
+      const response = await httpClient.post<ComparisonData[]>('/metrics/compare', {
         body: {
           studentIds: [studentId],
           metrics: ['accuracy', 'tasks_done', 'time_spent_min'],
-          window: 'last_14d'
-        }
+          window: 'last_14d',
+        },
       });
-      setComparisonData(response as any);
+      setComparisonData(response);
     } catch (error) {
       message.error('获取对比数据失败');
       // Fallback to mock data on error

@@ -1,6 +1,6 @@
 ﻿import { NavLink } from 'react-router-dom';
 
-const NAV_ITEMS = [
+export const NAV_ITEMS = [
   { href: '/', label: '首页' },
   { href: '/courses', label: '课程' },
   { href: '/map', label: '课程地图' },
@@ -8,11 +8,23 @@ const NAV_ITEMS = [
   { href: '/rank', label: '排行榜' },
 ];
 
-export function AppHeader() {
+interface AppHeaderProps {
+  onToggleSidebar?: () => void;
+}
+
+export function AppHeader({ onToggleSidebar }: AppHeaderProps) {
   return (
     <header className="kc-header">
       <div className="kc-container kc-header-row">
         <div className="kc-brand">
+          <button
+            type="button"
+            className="kc-menu-btn"
+            aria-label="打开导航"
+            onClick={onToggleSidebar}
+          >
+            ☰
+          </button>
           <img src="/logo.svg" alt="Kids Coding" height={26} />
           <span>Kids Coding</span>
         </div>

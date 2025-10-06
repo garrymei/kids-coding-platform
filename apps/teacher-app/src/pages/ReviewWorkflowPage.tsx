@@ -87,7 +87,7 @@ export function ReviewWorkflowPage() {
   const loadWorks = async () => {
     try {
       setLoading(true);
-      const response = await httpClient.get('/teachers/works', {
+      const response = await httpClient.get<StudentWork[]>('/teachers/works', {
         query: {
           filter,
           classId: selectedClass === 'all' ? undefined : selectedClass,
@@ -118,8 +118,10 @@ export function ReviewWorkflowPage() {
 
     try {
       await httpClient.post(`/teachers/works/${selectedWork.id}/review`, {
-        ...data,
-        workId: selectedWork.id,
+        body: {
+          ...data,
+          workId: selectedWork.id,
+        },
       });
 
       setShowReviewForm(false);
@@ -158,35 +160,54 @@ export function ReviewWorkflowPage() {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'submitted': return 'info';
-      case 'in_progress': return 'warning';
-      case 'completed': return 'success';
-      case 'approved': return 'success';
-      case 'needs_revision': return 'warning';
-      case 'rejected': return 'danger';
-      default: return 'info';
+      case 'submitted':
+        return 'info';
+      case 'in_progress':
+        return 'warning';
+      case 'completed':
+        return 'success';
+      case 'approved':
+        return 'success';
+      case 'needs_revision':
+        return 'warning';
+      case 'rejected':
+        return 'danger';
+      default:
+        return 'info';
     }
   };
 
   const getStatusText = (status: string) => {
     switch (status) {
-      case 'submitted': return '已提交';
-      case 'in_progress': return '进行中';
-      case 'completed': return '已完成';
-      case 'approved': return '已批准';
-      case 'needs_revision': return '需要修改';
-      case 'rejected': return '已拒绝';
-      default: return status;
+      case 'submitted':
+        return '已提交';
+      case 'in_progress':
+        return '进行中';
+      case 'completed':
+        return '已完成';
+      case 'approved':
+        return '已批准';
+      case 'needs_revision':
+        return '需要修改';
+      case 'rejected':
+        return '已拒绝';
+      default:
+        return status;
     }
   };
 
   const getTypeText = (type: string) => {
     switch (type) {
-      case 'project': return '项目';
-      case 'assignment': return '作业';
-      case 'exercise': return '练习';
-      case 'classwork': return '课堂作品';
-      default: return type;
+      case 'project':
+        return '项目';
+      case 'assignment':
+        return '作业';
+      case 'exercise':
+        return '练习';
+      case 'classwork':
+        return '课堂作品';
+      default:
+        return type;
     }
   };
 
@@ -235,23 +256,14 @@ export function ReviewWorkflowPage() {
                 <div className="work-meta">
                   <Badge text={getTypeText(work.type)} tone="info" />
                   <Badge text={getStatusText(work.status)} tone={getStatusColor(work.status)} />
-                  <span className="work-date">
-                    提交时间: {formatDateTime(work.submittedAt)}
-                  </span>
+                  <span className="work-date">提交时间: {formatDateTime(work.submittedAt)}</span>
                 </div>
               </div>
               <div className="work-actions">
-                <Button
-                  variant="primary"
-                  onClick={() => handleReviewWork(work)}
-                >
+                <Button variant="primary" onClick={() => handleReviewWork(work)}>
                   点评
                 </Button>
-                <Button
-                  variant="ghost"
-                >
-                  查看详情
-                </Button>
+                <Button variant="ghost">查看详情</Button>
               </div>
             </div>
 
@@ -261,9 +273,7 @@ export function ReviewWorkflowPage() {
                   {work.student.avatar ? (
                     <img src={work.student.avatar} alt={work.student.displayName} />
                   ) : (
-                    <div className="avatar-placeholder">
-                      {work.student.displayName.charAt(0)}
-                    </div>
+                    <div className="avatar-placeholder">{work.student.displayName.charAt(0)}</div>
                   )}
                 </div>
                 <div className="student-details">
@@ -276,10 +286,9 @@ export function ReviewWorkflowPage() {
               <div className="work-preview">
                 <h4>作品内容</h4>
                 <div className="content-preview">
-                  {work.content.length > 200 
-                    ? `${work.content.substring(0, 200)}...` 
-                    : work.content
-                  }
+                  {work.content.length > 200
+                    ? `${work.content.substring(0, 200)}...`
+                    : work.content}
                 </div>
                 {work.attachments.length > 0 && (
                   <div className="attachments">
@@ -303,13 +312,9 @@ export function ReviewWorkflowPage() {
                   <h4>历史评价</h4>
                   {work.previousReviews.map((review) => (
                     <div key={review.id} className="review-item">
-                      <div className="review-rating">
-                        {getRatingStars(review.rating)}
-                      </div>
+                      <div className="review-rating">{getRatingStars(review.rating)}</div>
                       <div className="review-comment">{review.comment}</div>
-                      <div className="review-date">
-                        {formatDateTime(review.createdAt)}
-                      </div>
+                      <div className="review-date">{formatDateTime(review.createdAt)}</div>
                     </div>
                   ))}
                 </div>
@@ -324,13 +329,13 @@ export function ReviewWorkflowPage() {
         <div className="modal-overlay">
           <div className="modal large">
             <h2>点评作品: {selectedWork.title}</h2>
-            <p>学生: {selectedWork.student.displayName} | 班级: {selectedWork.class.name}</p>
-            
+            <p>
+              学生: {selectedWork.student.displayName} | 班级: {selectedWork.class.name}
+            </p>
+
             <div className="work-content-display">
               <h3>作品内容</h3>
-              <div className="content-full">
-                {selectedWork.content}
-              </div>
+              <div className="content-full">{selectedWork.content}</div>
               {selectedWork.attachments.length > 0 && (
                 <div className="attachments">
                   <h4>附件:</h4>
@@ -349,12 +354,7 @@ export function ReviewWorkflowPage() {
             </div>
 
             <form onSubmit={handleSubmit(onSubmitReview)}>
-              <FormField
-                label="评分"
-                error={errors.rating}
-                required
-                helpText="1-5星评分"
-              >
+              <FormField label="评分" error={errors.rating} required helpText="1-5星评分">
                 <FormSelect
                   {...register('rating')}
                   options={[
@@ -385,18 +385,10 @@ export function ReviewWorkflowPage() {
                 error={errors.suggestions}
                 helpText="可选，提供具体的改进建议"
               >
-                <FormTextarea
-                  {...register('suggestions')}
-                  placeholder="提供改进建议..."
-                  rows={3}
-                />
+                <FormTextarea {...register('suggestions')} placeholder="提供改进建议..." rows={3} />
               </FormField>
 
-              <FormField
-                label="处理状态"
-                error={errors.status}
-                required
-              >
+              <FormField label="处理状态" error={errors.status} required>
                 <FormSelect
                   {...register('status')}
                   options={[
@@ -422,18 +414,10 @@ export function ReviewWorkflowPage() {
               )}
 
               <div className="form-actions">
-                <Button
-                  type="button"
-                  variant="ghost"
-                  onClick={() => setShowReviewForm(false)}
-                >
+                <Button type="button" variant="ghost" onClick={() => setShowReviewForm(false)}>
                   取消
                 </Button>
-                <Button
-                  type="submit"
-                  variant="primary"
-                  disabled={isSubmitting}
-                >
+                <Button type="submit" variant="primary" disabled={isSubmitting}>
                   {isSubmitting ? '提交中...' : '提交评价'}
                 </Button>
               </div>

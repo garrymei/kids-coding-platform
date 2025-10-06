@@ -1,0 +1,26 @@
+﻿{
+  "id": "loops-1",
+  "title": "循环练习 1",
+  "lang": "python",
+  "gameType": "io",
+  "difficulty": 1,
+  "story": "使用 for 循环从 1 开始计数，熟悉循环的打印形式。",
+  "goals": ["打印 1 到 5，每个数字单独占一行"],
+  "starter": {
+    "blockly": "<xml/>",
+    "code": "# TODO: 使用 for 循环打印 1 到 5\nfor i in range(1, 6):\n    pass\n"
+  },
+  "grader": {
+    "mode": "io",
+    "io": {
+      "cases": [{ "in": "", "out": "1\\n2\\n3\\n4\\n5\\n" }],
+      "match": "exact"
+    }
+  },
+  "rewards": {
+    "xp": 25,
+    "coins": 10,
+    "badges": ["循环起步"]
+  },
+  "hints": ["使用 range(1, 6) 可以生成 1 到 5", "记得在循环体内 print(i)"]
+}

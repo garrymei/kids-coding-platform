@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import { useEffect } from 'react';
 import { Tabs, List, Avatar, Tag, Spin } from 'antd';
 import { useRequestStore } from '../stores/request';
 
@@ -12,7 +12,11 @@ function RequestList({ status }: { status: 'pending' | 'approved' | 'rejected' }
   }, [status, fetchRequests]);
 
   if (loading) {
-    return <Spin tip="Loading..."><div style={{ height: 200 }} /></Spin>;
+    return (
+      <Spin tip="Loading...">
+        <div style={{ height: 200 }} />
+      </Spin>
+    );
   }
 
   if (error) {
@@ -23,7 +27,7 @@ function RequestList({ status }: { status: 'pending' | 'approved' | 'rejected' }
     <List
       itemLayout="horizontal"
       dataSource={requests}
-      renderItem={item => (
+      renderItem={(item) => (
         <List.Item>
           <List.Item.Meta
             avatar={<Avatar src={`https://joeschmoe.io/api/v1/random?u=${item.studentId}`} />}

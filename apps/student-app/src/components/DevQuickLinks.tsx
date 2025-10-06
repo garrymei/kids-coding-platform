@@ -2,7 +2,7 @@
 
 const containerStyle: CSSProperties = {
   position: 'fixed',
-  left: 12,
+  left: 260,
   top: 88,
   zIndex: 60,
   background: 'rgba(17,24,39,.85)',

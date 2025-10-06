@@ -77,7 +77,7 @@ export function TeachingDashboard() {
   const loadDashboardData = async () => {
     try {
       setLoading(true);
-      const response = await httpClient.get('/teachers/dashboard', {
+      const response = await httpClient.get<DashboardData>('/teachers/dashboard', {
         query: {
           classId: selectedClass,
           timeRange,
@@ -101,20 +101,29 @@ export function TeachingDashboard() {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'completed': return 'success';
-      case 'in_progress': return 'info';
-      case 'submitted': return 'warning';
-      case 'not_started': return 'info';
-      default: return 'info';
+      case 'completed':
+        return 'success';
+      case 'in_progress':
+        return 'info';
+      case 'submitted':
+        return 'warning';
+      case 'not_started':
+        return 'info';
+      default:
+        return 'info';
     }
   };
 
   const getDifficultyColor = (difficulty: string) => {
     switch (difficulty) {
-      case 'beginner': return 'success';
-      case 'intermediate': return 'warning';
-      case 'advanced': return 'danger';
-      default: return 'info';
+      case 'beginner':
+        return 'success';
+      case 'intermediate':
+        return 'warning';
+      case 'advanced':
+        return 'danger';
+      default:
+        return 'info';
     }
   };
 
@@ -211,7 +220,10 @@ export function TeachingDashboard() {
                 <p>{classItem.studentCount} 名学生</p>
               </div>
               <div className="class-progress">
-                <Progress value={classItem.averageProgress} label={`${classItem.averageProgress}%`} />
+                <Progress
+                  value={classItem.averageProgress}
+                  label={`${classItem.averageProgress}%`}
+                />
               </div>
             </div>
           ))}
@@ -228,9 +240,7 @@ export function TeachingDashboard() {
                   {student.avatar ? (
                     <img src={student.avatar} alt={student.displayName} />
                   ) : (
-                    <div className="avatar-placeholder">
-                      {student.displayName.charAt(0)}
-                    </div>
+                    <div className="avatar-placeholder">{student.displayName.charAt(0)}</div>
                   )}
                 </div>
                 <div className="student-details">
@@ -243,19 +253,23 @@ export function TeachingDashboard() {
                   </div>
                 </div>
               </div>
-              
+
               <div className="student-progress">
                 <div className="progress-item">
                   <span>课程进度</span>
-                  <Progress 
-                    value={Math.round((student.progress.completedCourses / student.progress.totalCourses) * 100)} 
+                  <Progress
+                    value={Math.round(
+                      (student.progress.completedCourses / student.progress.totalCourses) * 100,
+                    )}
                     label={`${student.progress.completedCourses}/${student.progress.totalCourses}`}
                   />
                 </div>
                 <div className="progress-item">
                   <span>课时进度</span>
-                  <Progress 
-                    value={Math.round((student.progress.completedLessons / student.progress.totalLessons) * 100)} 
+                  <Progress
+                    value={Math.round(
+                      (student.progress.completedLessons / student.progress.totalLessons) * 100,
+                    )}
                     label={`${student.progress.completedLessons}/${student.progress.totalLessons}`}
                   />
                 </div>
@@ -277,12 +291,8 @@ export function TeachingDashboard() {
               </div>
 
               <div className="student-actions">
-                <Button variant="ghost">
-                  查看详情
-                </Button>
-                <Button variant="ghost">
-                  点评作品
-                </Button>
+                <Button variant="ghost">查看详情</Button>
+                <Button variant="ghost">点评作品</Button>
               </div>
             </div>
           ))}
@@ -295,9 +305,13 @@ export function TeachingDashboard() {
           {dashboardData.recentActivity.map((activity) => (
             <div key={activity.id} className="activity-item">
               <div className="activity-icon">
-                {activity.action.includes('完成') ? '✅' : 
-                 activity.action.includes('开始') ? '🚀' : 
-                 activity.action.includes('提交') ? '📝' : '📊'}
+                {activity.action.includes('完成')
+                  ? '✅'
+                  : activity.action.includes('开始')
+                    ? '🚀'
+                    : activity.action.includes('提交')
+                      ? '📝'
+                      : '📊'}
               </div>
               <div className="activity-content">
                 <div className="activity-text">
@@ -314,58 +328,73 @@ export function TeachingDashboard() {
       {/* 课程进度分析 */}
       <Card heading="课程进度分析" className="course-analysis">
         <div className="course-stats">
-          {dashboardData.students.flatMap(s => s.courses).reduce((acc, course) => {
-            const key = course.title;
-            if (!acc[key]) {
-              acc[key] = {
-                title: course.title,
-                difficulty: course.difficulty,
-                totalStudents: 0,
-                completedStudents: 0,
-                averageProgress: 0,
-                progressSum: 0,
-              };
-            }
-            acc[key].totalStudents++;
-            if (course.status === 'completed') {
-              acc[key].completedStudents++;
-            }
-            acc[key].progressSum += course.progress;
-            acc[key].averageProgress = Math.round(acc[key].progressSum / acc[key].totalStudents);
-            return acc;
-          }, {} as Record<string, any>)}
-          {Object.values(dashboardData.students.flatMap(s => s.courses).reduce((acc, course) => {
-            const key = course.title;
-            if (!acc[key]) {
-              acc[key] = {
-                title: course.title,
-                difficulty: course.difficulty,
-                totalStudents: 0,
-                completedStudents: 0,
-                averageProgress: 0,
-                progressSum: 0,
-              };
-            }
-            acc[key].totalStudents++;
-            if (course.status === 'completed') {
-              acc[key].completedStudents++;
-            }
-            acc[key].progressSum += course.progress;
-            acc[key].averageProgress = Math.round(acc[key].progressSum / acc[key].totalStudents);
-            return acc;
-          }, {} as Record<string, any>)).map((course: any) => (
+          {dashboardData.students
+            .flatMap((s) => s.courses)
+            .reduce(
+              (acc, course) => {
+                const key = course.title;
+                if (!acc[key]) {
+                  acc[key] = {
+                    title: course.title,
+                    difficulty: course.difficulty,
+                    totalStudents: 0,
+                    completedStudents: 0,
+                    averageProgress: 0,
+                    progressSum: 0,
+                  };
+                }
+                acc[key].totalStudents++;
+                if (course.status === 'completed') {
+                  acc[key].completedStudents++;
+                }
+                acc[key].progressSum += course.progress;
+                acc[key].averageProgress = Math.round(
+                  acc[key].progressSum / acc[key].totalStudents,
+                );
+                return acc;
+              },
+              {} as Record<string, any>,
+            )}
+          {Object.values(
+            dashboardData.students
+              .flatMap((s) => s.courses)
+              .reduce(
+                (acc, course) => {
+                  const key = course.title;
+                  if (!acc[key]) {
+                    acc[key] = {
+                      title: course.title,
+                      difficulty: course.difficulty,
+                      totalStudents: 0,
+                      completedStudents: 0,
+                      averageProgress: 0,
+                      progressSum: 0,
+                    };
+                  }
+                  acc[key].totalStudents++;
+                  if (course.status === 'completed') {
+                    acc[key].completedStudents++;
+                  }
+                  acc[key].progressSum += course.progress;
+                  acc[key].averageProgress = Math.round(
+                    acc[key].progressSum / acc[key].totalStudents,
+                  );
+                  return acc;
+                },
+                {} as Record<string, any>,
+              ),
+          ).map((course: any) => (
             <div key={course.title} className="course-stat-item">
               <div className="course-info">
                 <h4>{course.title}</h4>
-                <Badge
-                  text={course.difficulty}
-                  tone={getDifficultyColor(course.difficulty)}
-                />
+                <Badge text={course.difficulty} tone={getDifficultyColor(course.difficulty)} />
               </div>
               <div className="course-progress">
                 <Progress value={course.averageProgress} label={`${course.averageProgress}%`} />
                 <div className="progress-details">
-                  <span>{course.completedStudents}/{course.totalStudents} 学生完成</span>
+                  <span>
+                    {course.completedStudents}/{course.totalStudents} 学生完成
+                  </span>
                 </div>
               </div>
             </div>

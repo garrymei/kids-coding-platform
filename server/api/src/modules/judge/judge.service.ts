@@ -5,8 +5,7 @@ import { judgeEventSeq } from './strategies/event-seq.strategy';
 import { judgeLEDStrategy } from './strategies/led.strategy';
 import { EventBridgeService } from '../execute/event-bridge.service';
 import { ExecutionEvent, extractArtifacts } from '../execute/eventParser';
-import { StrategyFactory } from '@kids/judge-stub/strategies/strategy-factory';
-import { JudgeInput, JudgeResult as NewJudgeResult } from '@kids/judge-stub/strategies/judge-strategy.interface';
+import { StrategyFactory, JudgeInput, JudgeResult as NewJudgeResult } from '@kids/judge-stub';
 
 type JudgeStrategy = 'stdout' | 'pixel' | 'music' | 'maze';
 
@@ -32,7 +31,7 @@ export class JudgeService {
         const res = judgeLEDStrategy({
           code: dto.actual.code || '',
           grader: dto.expected,
-          assets: dto.actual.assets
+          assets: dto.actual.assets,
         });
         ok = res.ok;
         details = res;
@@ -74,7 +73,7 @@ export class JudgeService {
       if (judgeStrategy) {
         // 提取执行产物
         const artifacts = extractArtifacts(output.stdout, output.events);
-        
+
         const judgeInput: JudgeInput = {
           strategy,
           expected,
@@ -88,7 +87,7 @@ export class JudgeService {
         };
 
         const result: NewJudgeResult = judgeStrategy.judge(judgeInput);
-        
+
         return {
           ok: result.passed,
           details: {
@@ -145,7 +144,9 @@ export class JudgeService {
       case 'music': {
         const expectedSeq = this.normalizeExpectedSequence(expected);
         const actualSeq = this.eventBridge.toJudgeSequence(output.events, 'music');
-        const ok = expectedSeq.length === actualSeq.length && expectedSeq.every((v, i) => v === actualSeq[i]);
+        const ok =
+          expectedSeq.length === actualSeq.length &&
+          expectedSeq.every((v, i) => v === actualSeq[i]);
         return ok
           ? { ok: true }
           : { ok: false, details: { expected: expectedSeq, actual: actualSeq } };

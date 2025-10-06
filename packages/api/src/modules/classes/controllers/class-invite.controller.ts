@@ -2,7 +2,6 @@ import {
   Controller,
   Get,
   Post,
-  Body,
   Param,
   UseGuards,
   Request,
@@ -17,7 +16,7 @@ import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { PermissionsGuard } from '../../auth/guards/permissions.guard';
 import {
   RequirePermissions,
-  Permission,
+  PermissionType,
 } from '../../auth/decorators/permissions.decorator';
 import { ClassManagementService } from '../services/class-management.service';
 import { PrismaService } from '../../../prisma/prisma.service';
@@ -77,7 +76,7 @@ export class ClassInviteController {
   }
 
   @Post('join/:code')
-  @RequirePermissions(Permission.VIEW_OWN_AUDIT) // 学生权限
+  @RequirePermissions(PermissionType.VIEW_OWN_AUDIT) // 学生权限
   @ApiOperation({ summary: '通过邀请码加入班级' })
   @ApiResponse({ status: 201, description: '入班申请已提交' })
   async joinClassByCode(@Request() req, @Param('code') code: string) {
@@ -86,7 +85,7 @@ export class ClassInviteController {
   }
 
   @Get('my-invites')
-  @RequirePermissions(Permission.MANAGE_CLASS)
+  @RequirePermissions(PermissionType.MANAGE_CLASS)
   @ApiOperation({ summary: '获取我的班级邀请码' })
   @ApiResponse({ status: 200, description: '获取成功' })
   async getMyInvites(@Request() req) {
@@ -127,7 +126,7 @@ export class ClassInviteController {
   }
 
   @Post(':classId/regenerate-code')
-  @RequirePermissions(Permission.MANAGE_CLASS)
+  @RequirePermissions(PermissionType.MANAGE_CLASS)
   @ApiOperation({ summary: '重新生成班级邀请码' })
   @ApiResponse({ status: 200, description: '邀请码已重新生成' })
   async regenerateInviteCode(

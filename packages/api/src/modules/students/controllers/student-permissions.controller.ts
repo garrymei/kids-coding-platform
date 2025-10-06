@@ -1,19 +1,27 @@
-import { 
-  Controller, 
-  Get, 
-  Post, 
-  Put, 
+import {
+  Controller,
+  Get,
+  Post,
+  Put,
   Delete,
-  Body, 
-  Param, 
+  Body,
+  Param,
   UseGuards,
   Request,
   Query,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiBearerAuth,
+} from '@nestjs/swagger';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { PermissionsGuard } from '../../auth/guards/permissions.guard';
-import { RequirePermissions, Permission } from '../../auth/decorators/permissions.decorator';
+import {
+  RequirePermissions,
+  PermissionType,
+} from '../../auth/decorators/permissions.decorator';
 import { StudentsService } from '../students.service';
 import { VisibilityService } from '../../auth/services/visibility.service';
 import { PrismaService } from '../../../prisma/prisma.service';
@@ -30,16 +38,20 @@ export class StudentPermissionsController {
   ) {}
 
   @Get('my-data')
-  @RequirePermissions(Permission.MANAGE_OWN_VISIBILITY)
+  @RequirePermissions(PermissionType.MANAGE_OWN_VISIBILITY)
   @ApiOperation({ summary: '查看自己的完整数据' })
   @ApiResponse({ status: 200, description: '获取成功' })
   async getMyData(@Request() req) {
     const studentId = req.user.userId;
-    return this.visibilityService.filterStudentData(studentId, studentId, 'student');
+    return this.visibilityService.filterStudentData(
+      studentId,
+      studentId,
+      'student',
+    );
   }
 
   @Get('visibility-settings')
-  @RequirePermissions(Permission.MANAGE_OWN_VISIBILITY)
+  @RequirePermissions(PermissionType.MANAGE_OWN_VISIBILITY)
   @ApiOperation({ summary: '获取可见性设置' })
   @ApiResponse({ status: 200, description: '获取成功' })
   async getVisibilitySettings(@Request() req) {
@@ -48,7 +60,7 @@ export class StudentPermissionsController {
   }
 
   @Put('visibility-settings')
-  @RequirePermissions(Permission.MANAGE_OWN_VISIBILITY)
+  @RequirePermissions(PermissionType.MANAGE_OWN_VISIBILITY)
   @ApiOperation({ summary: '更新可见性设置' })
   @ApiResponse({ status: 200, description: '更新成功' })
   async updateVisibilitySettings(@Request() req, @Body() settings: any) {
@@ -57,12 +69,12 @@ export class StudentPermissionsController {
   }
 
   @Get('pending-requests')
-  @RequirePermissions(Permission.APPROVE_RELATIONSHIPS)
+  @RequirePermissions(PermissionType.APPROVE_RELATIONSHIPS)
   @ApiOperation({ summary: '获取待处理的关注请求' })
   @ApiResponse({ status: 200, description: '获取成功' })
   async getPendingRequests(@Request() req) {
     const studentId = req.user.userId;
-    
+
     const pendingRequests = await this.prisma.consent.findMany({
       where: {
         studentId,
@@ -74,8 +86,8 @@ export class StudentPermissionsController {
             id: true,
             displayName: true,
             email: true,
-            role: true
-          }
+            role: true,
+          },
         },
       },
       orderBy: { createdAt: 'desc' },
@@ -85,13 +97,13 @@ export class StudentPermissionsController {
   }
 
   @Post('approve-request/:consentId')
-  @RequirePermissions(Permission.APPROVE_RELATIONSHIPS)
+  @RequirePermissions(PermissionType.APPROVE_RELATIONSHIPS)
   @ApiOperation({ summary: '批准关注请求' })
   @ApiResponse({ status: 200, description: '批准成功' })
   async approveRequest(
     @Request() req,
     @Param('consentId') consentId: string,
-    @Body() approvalData: { scopes?: string[]; expiresAt?: string }
+    @Body() approvalData: { scopes?: string[]; expiresAt?: string },
   ) {
     const studentId = req.user.userId;
 
@@ -114,7 +126,9 @@ export class StudentPermissionsController {
       data: {
         status: 'APPROVED',
         scope: approvalData.scopes || consent.scope,
-        expiresAt: approvalData.expiresAt ? new Date(approvalData.expiresAt) : consent.expiresAt,
+        expiresAt: approvalData.expiresAt
+          ? new Date(approvalData.expiresAt)
+          : consent.expiresAt,
       },
     });
 
@@ -136,7 +150,9 @@ export class StudentPermissionsController {
         studentId,
         scope: approvalData.scopes || consent.scope,
         status: 'ACTIVE',
-        expiresAt: approvalData.expiresAt ? new Date(approvalData.expiresAt) : consent.expiresAt,
+        expiresAt: approvalData.expiresAt
+          ? new Date(approvalData.expiresAt)
+          : consent.expiresAt,
         relationshipId: relationship.id,
       },
     });
@@ -160,7 +176,7 @@ export class StudentPermissionsController {
   }
 
   @Post('reject-request/:consentId')
-  @RequirePermissions(Permission.APPROVE_RELATIONSHIPS)
+  @RequirePermissions(PermissionType.APPROVE_RELATIONSHIPS)
   @ApiOperation({ summary: '拒绝关注请求' })
   @ApiResponse({ status: 200, description: '拒绝成功' })
   async rejectRequest(@Request() req, @Param('consentId') consentId: string) {
@@ -201,7 +217,7 @@ export class StudentPermissionsController {
   }
 
   @Get('my-relationships')
-  @RequirePermissions(Permission.REVOKE_RELATIONSHIPS)
+  @RequirePermissions(PermissionType.REVOKE_RELATIONSHIPS)
   @ApiOperation({ summary: '获取我的关系列表' })
   @ApiResponse({ status: 200, description: '获取成功' })
   async getMyRelationships(@Request() req) {
@@ -215,8 +231,8 @@ export class StudentPermissionsController {
             id: true,
             displayName: true,
             email: true,
-            role: true
-          }
+            role: true,
+          },
         },
         accessGrants: {
           where: { status: 'ACTIVE' },
@@ -235,10 +251,13 @@ export class StudentPermissionsController {
   }
 
   @Delete('revoke-relationship/:relationshipId')
-  @RequirePermissions(Permission.REVOKE_RELATIONSHIPS)
+  @RequirePermissions(PermissionType.REVOKE_RELATIONSHIPS)
   @ApiOperation({ summary: '撤销关系' })
   @ApiResponse({ status: 200, description: '撤销成功' })
-  async revokeRelationship(@Request() req, @Param('relationshipId') relationshipId: string) {
+  async revokeRelationship(
+    @Request() req,
+    @Param('relationshipId') relationshipId: string,
+  ) {
     const studentId = req.user.userId;
 
     const relationship = await this.prisma.relationship.findFirst({
@@ -285,7 +304,7 @@ export class StudentPermissionsController {
   }
 
   @Get('audit-summary')
-  @RequirePermissions(Permission.VIEW_OWN_AUDIT)
+  @RequirePermissions(PermissionType.VIEW_OWN_AUDIT)
   @ApiOperation({ summary: '查看审计摘要' })
   @ApiResponse({ status: 200, description: '获取成功' })
   async getAuditSummary(@Request() req, @Query() query: any) {

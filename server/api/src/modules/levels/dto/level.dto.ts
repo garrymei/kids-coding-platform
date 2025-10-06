@@ -1,4 +1,12 @@
-import { IsString, IsOptional, IsNumber, IsArray, IsObject, IsBoolean, IsIn } from 'class-validator';
+import {
+  IsString,
+  IsOptional,
+  IsNumber,
+  IsArray,
+  IsObject,
+  IsBoolean,
+  IsIn,
+} from 'class-validator';
 import { Type } from 'class-transformer';
 
 export class LevelListQueryDto {
@@ -22,7 +30,7 @@ export class LevelListQueryDto {
   lang?: string;
 }
 
-export class LevelPreviewDto {
+export interface LevelPreviewDto {
   id: string;
   title: string;
   chapter: string;
@@ -38,7 +46,7 @@ export class LevelPreviewDto {
   };
 }
 
-export class LevelDetailDto {
+export interface LevelDetailDto {
   id: string;
   title: string;
   chapter: string;
@@ -70,7 +78,7 @@ export class LevelDetailDto {
   assets?: any;
 }
 
-export class LevelListResponseDto {
+export interface LevelListResponseDto {
   items: LevelPreviewDto[];
   total: number;
   page: number;

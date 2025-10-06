@@ -1,20 +1,28 @@
-import { 
-  Controller, 
-  Get, 
-  Post, 
+import {
+  Controller,
+  Get,
+  Post,
   Put,
   Delete,
-  Body, 
-  Param, 
+  Body,
+  Param,
   UseGuards,
   Request,
   NotFoundException,
   ForbiddenException,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiBearerAuth,
+} from '@nestjs/swagger';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { PermissionsGuard } from '../../auth/guards/permissions.guard';
-import { RequirePermissions, Permission } from '../../auth/decorators/permissions.decorator';
+import {
+  RequirePermissions,
+  PermissionType,
+} from '../../auth/decorators/permissions.decorator';
 import { PrismaService } from '../../../prisma/prisma.service';
 
 @ApiTags('access-grants')
@@ -25,7 +33,7 @@ export class AccessGrantsController {
   constructor(private readonly prisma: PrismaService) {}
 
   @Get('my-grants')
-  @RequirePermissions(Permission.VIEW_AUTHORIZED_STUDENT_DATA)
+  @RequirePermissions(PermissionType.VIEW_AUTHORIZED_STUDENT_DATA)
   @ApiOperation({ summary: '获取我的访问授权' })
   @ApiResponse({ status: 200, description: '获取成功' })
   async getMyGrants(@Request() req) {
@@ -54,7 +62,7 @@ export class AccessGrantsController {
       orderBy: { createdAt: 'desc' },
     });
 
-    return grants.map(grant => ({
+    return grants.map((grant) => ({
       id: grant.id,
       student: grant.student,
       scope: grant.scope,
@@ -67,10 +75,13 @@ export class AccessGrantsController {
   }
 
   @Get('student-grants/:studentId')
-  @RequirePermissions(Permission.REVOKE_RELATIONSHIPS)
+  @RequirePermissions(PermissionType.REVOKE_RELATIONSHIPS)
   @ApiOperation({ summary: '获取学生对我的授权' })
   @ApiResponse({ status: 200, description: '获取成功' })
-  async getStudentGrants(@Request() req, @Param('studentId') studentId: string) {
+  async getStudentGrants(
+    @Request() req,
+    @Param('studentId') studentId: string,
+  ) {
     const studentIdFromToken = req.user.userId;
 
     // 验证学生身份
@@ -86,8 +97,8 @@ export class AccessGrantsController {
             id: true,
             displayName: true,
             email: true,
-            role: true
-          }
+            role: true,
+          },
         },
         relationship: {
           select: {
@@ -100,7 +111,7 @@ export class AccessGrantsController {
       orderBy: { createdAt: 'desc' },
     });
 
-    return grants.map(grant => ({
+    return grants.map((grant) => ({
       id: grant.id,
       grantee: grant.grantee,
       scope: grant.scope,
@@ -113,16 +124,17 @@ export class AccessGrantsController {
   }
 
   @Put('grants/:grantId')
-  @RequirePermissions(Permission.REVOKE_RELATIONSHIPS)
+  @RequirePermissions(PermissionType.REVOKE_RELATIONSHIPS)
   @ApiOperation({ summary: '更新访问授权' })
   @ApiResponse({ status: 200, description: '更新成功' })
   async updateGrant(
     @Request() req,
     @Param('grantId') grantId: string,
-    @Body() updateData: {
+    @Body()
+    updateData: {
       scope?: string[];
       expiresAt?: string;
-    }
+    },
   ) {
     const studentId = req.user.userId;
 
@@ -143,7 +155,9 @@ export class AccessGrantsController {
       where: { id: grantId },
       data: {
         scope: updateData.scope || grant.scope,
-        expiresAt: updateData.expiresAt ? new Date(updateData.expiresAt) : grant.expiresAt,
+        expiresAt: updateData.expiresAt
+          ? new Date(updateData.expiresAt)
+          : grant.expiresAt,
       },
     });
 
@@ -159,7 +173,9 @@ export class AccessGrantsController {
           oldScope: grant.scope,
           newScope: updateData.scope || grant.scope,
           oldExpiresAt: grant.expiresAt,
-          newExpiresAt: updateData.expiresAt ? new Date(updateData.expiresAt) : grant.expiresAt,
+          newExpiresAt: updateData.expiresAt
+            ? new Date(updateData.expiresAt)
+            : grant.expiresAt,
         },
       },
     });
@@ -171,13 +187,13 @@ export class AccessGrantsController {
   }
 
   @Post('grants/:grantId/revoke')
-  @RequirePermissions(Permission.REVOKE_RELATIONSHIPS)
+  @RequirePermissions(PermissionType.REVOKE_RELATIONSHIPS)
   @ApiOperation({ summary: '撤销访问授权' })
   @ApiResponse({ status: 200, description: '撤销成功' })
   async revokeGrant(
     @Request() req,
     @Param('grantId') grantId: string,
-    @Body() revocationData: { reason?: string }
+    @Body() revocationData: { reason?: string },
   ) {
     const actorId = req.user.userId;
 
@@ -248,13 +264,13 @@ export class AccessGrantsController {
   }
 
   @Get('check-access/:studentId')
-  @RequirePermissions(Permission.VIEW_AUTHORIZED_STUDENT_DATA)
+  @RequirePermissions(PermissionType.VIEW_AUTHORIZED_STUDENT_DATA)
   @ApiOperation({ summary: '检查访问权限' })
   @ApiResponse({ status: 200, description: '检查成功' })
   async checkAccess(
     @Request() req,
     @Param('studentId') studentId: string,
-    @Body() checkData: { scope: string }
+    @Body() checkData: { scope: string },
   ) {
     const granteeId = req.user.userId;
 
@@ -264,10 +280,7 @@ export class AccessGrantsController {
         studentId,
         scope: { has: checkData.scope },
         status: 'ACTIVE',
-        OR: [
-          { expiresAt: null },
-          { expiresAt: { gt: new Date() } },
-        ],
+        OR: [{ expiresAt: null }, { expiresAt: { gt: new Date() } }],
       },
     });
 
@@ -281,13 +294,14 @@ export class AccessGrantsController {
   }
 
   @Get('access-history/:studentId')
-  @RequirePermissions(Permission.VIEW_AUTHORIZED_STUDENT_DATA)
+  @RequirePermissions(PermissionType.VIEW_AUTHORIZED_STUDENT_DATA)
   @ApiOperation({ summary: '获取访问历史' })
   @ApiResponse({ status: 200, description: '获取成功' })
   async getAccessHistory(
     @Request() req,
     @Param('studentId') studentId: string,
-    @Body() historyData: { startDate?: string; endDate?: string; limit?: number }
+    @Body()
+    historyData: { startDate?: string; endDate?: string; limit?: number },
   ) {
     const granteeId = req.user.userId;
 
@@ -297,10 +311,7 @@ export class AccessGrantsController {
         granteeId,
         studentId,
         status: 'ACTIVE',
-        OR: [
-          { expiresAt: null },
-          { expiresAt: { gt: new Date() } },
-        ],
+        OR: [{ expiresAt: null }, { expiresAt: { gt: new Date() } }],
       },
     });
 
@@ -313,7 +324,13 @@ export class AccessGrantsController {
       actorId: granteeId,
       targetType: 'student',
       targetId: studentId,
-      action: { in: ['view_student_data', 'view_student_progress', 'view_student_works'] },
+      action: {
+        in: [
+          'view_student_data',
+          'view_student_progress',
+          'view_student_works',
+        ],
+      },
     };
 
     if (historyData.startDate) {
@@ -332,7 +349,7 @@ export class AccessGrantsController {
     return {
       studentId,
       granteeId,
-      history: history.map(record => ({
+      history: history.map((record) => ({
         action: record.action,
         timestamp: record.ts,
         metadata: record.metadata,

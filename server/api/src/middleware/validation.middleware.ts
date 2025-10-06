@@ -10,6 +10,19 @@ interface ValidationConfig {
   allowedMimeTypes?: string[];
 }
 
+interface FileUpload {
+  fieldname: string;
+  originalname: string;
+  encoding: string;
+  mimetype: string;
+  size: number;
+  buffer?: Buffer;
+}
+
+interface RequestWithFiles extends Request {
+  files?: FileUpload[] | { [fieldname: string]: FileUpload[] };
+}
+
 @Injectable()
 export class ValidationMiddleware implements NestMiddleware {
   private readonly configs: Map<string, ValidationConfig> = new Map();
@@ -33,14 +46,9 @@ export class ValidationMiddleware implements NestMiddleware {
 
     // 文件上传验证
     this.configs.set('/upload', {
+      maxLength: 10000,
       maxFileSize: 5 * 1024 * 1024, // 5MB
-      allowedMimeTypes: [
-        'image/jpeg',
-        'image/png',
-        'image/gif',
-        'text/plain',
-        'application/json',
-      ],
+      allowedMimeTypes: ['image/jpeg', 'image/png', 'image/gif', 'text/plain', 'application/json'],
     });
 
     // 评论和反馈验证
@@ -51,7 +59,7 @@ export class ValidationMiddleware implements NestMiddleware {
     });
   }
 
-  use(req: Request, res: Response, next: NextFunction) {
+  use(req: RequestWithFiles, res: Response, next: NextFunction) {
     try {
       // 验证请求体
       if (req.body && Object.keys(req.body).length > 0) {
@@ -179,14 +187,14 @@ export class ValidationMiddleware implements NestMiddleware {
     }
   }
 
-  private validateFileUpload(req: Request): void {
+  private validateFileUpload(req: RequestWithFiles): void {
     const config = this.getConfigForRoute(req.path);
     if (!config || !config.maxFileSize || !config.allowedMimeTypes) {
       return;
     }
 
-    const files = Array.isArray(req.files) ? req.files : Object.values(req.files).flat();
-    
+    const files = Array.isArray(req.files) ? req.files : Object.values(req.files || {}).flat();
+
     for (const file of files) {
       // 检查文件大小
       if (file.size > config.maxFileSize) {
@@ -194,10 +202,10 @@ export class ValidationMiddleware implements NestMiddleware {
           code: 'VALIDATION_ERROR',
           message: `File '${file.originalname}' exceeds maximum size`,
           cid: this.generateCorrelationId(),
-          details: { 
+          details: {
             filename: file.originalname,
             maxSize: config.maxFileSize,
-            actualSize: file.size 
+            actualSize: file.size,
           },
         });
       }
@@ -208,10 +216,10 @@ export class ValidationMiddleware implements NestMiddleware {
           code: 'VALIDATION_ERROR',
           message: `File '${file.originalname}' has unsupported type`,
           cid: this.generateCorrelationId(),
-          details: { 
+          details: {
             filename: file.originalname,
             allowedTypes: config.allowedMimeTypes,
-            actualType: file.mimetype 
+            actualType: file.mimetype,
           },
         });
       }
@@ -231,7 +239,7 @@ export class ValidationMiddleware implements NestMiddleware {
   private validateNestedObject(obj: any, path: string, config: ValidationConfig): void {
     for (const [key, value] of Object.entries(obj)) {
       const currentPath = `${path}.${key}`;
-      
+
       if (typeof value === 'string') {
         if (config.maxLength && value.length > config.maxLength) {
           throw new BadRequestException({
@@ -251,16 +259,17 @@ export class ValidationMiddleware implements NestMiddleware {
 
   private sanitizeHtml(html: string, config: ValidationConfig): string {
     const options: any = {};
-    
+
     if (config.allowedTags) {
       options.ALLOWED_TAGS = config.allowedTags;
     }
-    
+
     if (config.allowedAttributes) {
       options.ALLOWED_ATTR = config.allowedAttributes;
     }
 
-    return DOMPurify.sanitize(html, options);
+    const sanitized = DOMPurify.sanitize(html, options);
+    return String(sanitized);
   }
 
   private containsMaliciousContent(content: string): boolean {
@@ -277,7 +286,7 @@ export class ValidationMiddleware implements NestMiddleware {
       /\.\.\\/g, // Windows路径遍历
     ];
 
-    return maliciousPatterns.some(pattern => pattern.test(content));
+    return maliciousPatterns.some((pattern) => pattern.test(content));
   }
 
   private getConfigForRoute(path: string): ValidationConfig | null {

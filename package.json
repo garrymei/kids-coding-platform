@@ -14,6 +14,9 @@
     "format": "prettier --write .",
     "prepare": "husky",
     "levels:build": "tsx scripts/build-level-manifest.mts",
+    "levels:check": "node tools/levels-check.mjs",
+    "assets:check": "node tools/assets-check.mjs",
+    "check:all": "node tools/check-all.mjs",
     "db:migrate": "pnpm --filter @kids/api exec prisma migrate deploy",
     "db:migrate:dev": "pnpm --filter @kids/api exec prisma migrate dev"
   },

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useFormValidation, FormField, FormInput, FormTextarea, FormSelect } from '@kids/forms';
 import { Button, Card } from '@kids/ui-kit';
 import { httpClient } from '../services/http';
@@ -63,24 +63,29 @@ export function RequestAccessForm({ onSuccess, onCancel }: RequestAccessFormProp
       setSubmitStatus('idle');
 
       // 计算过期时间
-      const expiresAt = data.duration === 'permanent' 
-        ? null 
-        : new Date(Date.now() + getDurationMs(data.duration)).toISOString();
+      const expiresAt =
+        data.duration === 'permanent'
+          ? null
+          : new Date(Date.now() + getDurationMs(data.duration)).toISOString();
 
-      await httpClient.post('/relationships/request-parent-access', {
-        studentEmail: data.studentEmail,
-        purpose: data.purpose,
-        reason: data.reason,
-        expiresAt,
+      await httpClient.post<
+        void,
+        { studentEmail: string; purpose: string; reason: string; expiresAt: string | null }
+      >('/relationships/request-parent-access', {
+        body: {
+          studentEmail: data.studentEmail,
+          purpose: data.purpose,
+          reason: data.reason,
+          expiresAt,
+        },
       });
 
       setSubmitStatus('success');
-      
+
       // 延迟调用成功回调
       setTimeout(() => {
         onSuccess?.();
       }, 2000);
-
     } catch (error: any) {
       console.error('提交申请失败:', error);
       setSubmitStatus('error');
@@ -92,12 +97,18 @@ export function RequestAccessForm({ onSuccess, onCancel }: RequestAccessFormProp
   const getDurationMs = (duration: string) => {
     const now = Date.now();
     switch (duration) {
-      case '1w': return 7 * 24 * 60 * 60 * 1000;
-      case '1m': return 30 * 24 * 60 * 60 * 1000;
-      case '3m': return 90 * 24 * 60 * 60 * 1000;
-      case '6m': return 180 * 24 * 60 * 60 * 1000;
-      case '1y': return 365 * 24 * 60 * 60 * 1000;
-      default: return 0;
+      case '1w':
+        return 7 * 24 * 60 * 60 * 1000;
+      case '1m':
+        return 30 * 24 * 60 * 60 * 1000;
+      case '3m':
+        return 90 * 24 * 60 * 60 * 1000;
+      case '6m':
+        return 180 * 24 * 60 * 60 * 1000;
+      case '1y':
+        return 365 * 24 * 60 * 60 * 1000;
+      default:
+        return 0;
     }
   };
 
@@ -203,19 +214,10 @@ export function RequestAccessForm({ onSuccess, onCancel }: RequestAccessFormProp
         )}
 
         <div className="form-actions">
-          <Button
-            type="button"
-            variant="ghost"
-            onClick={onCancel}
-            disabled={isSubmitting}
-          >
+          <Button type="button" variant="ghost" onClick={onCancel} disabled={isSubmitting}>
             取消
           </Button>
-          <Button
-            type="submit"
-            variant="primary"
-            disabled={isSubmitting}
-          >
+          <Button type="submit" variant="primary" disabled={isSubmitting}>
             {isSubmitting ? '提交中...' : '提交申请'}
           </Button>
         </div>

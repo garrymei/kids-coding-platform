@@ -56,13 +56,37 @@ const StudentComparisonPage: React.FC = () => {
       // const response = await api.get('/classes/my-classes');
       // const students = response.data.flatMap(cls => cls.students);
       // setStudents(students);
-      
+
       // For now, using mock data but with real API structure
       const mockStudents: Student[] = [
-        { id: 'student-1', displayName: '小明', nickname: 'Ming', school: '第一小学', className: '三年级一班' },
-        { id: 'student-2', displayName: '小红', nickname: 'Hong', school: '第一小学', className: '三年级一班' },
-        { id: 'student-3', displayName: '小刚', nickname: 'Gang', school: '第一小学', className: '三年级一班' },
-        { id: 'student-4', displayName: '小丽', nickname: 'Li', school: '第一小学', className: '三年级一班' },
+        {
+          id: 'student-1',
+          displayName: '小明',
+          nickname: 'Ming',
+          school: '第一小学',
+          className: '三年级一班',
+        },
+        {
+          id: 'student-2',
+          displayName: '小红',
+          nickname: 'Hong',
+          school: '第一小学',
+          className: '三年级一班',
+        },
+        {
+          id: 'student-3',
+          displayName: '小刚',
+          nickname: 'Gang',
+          school: '第一小学',
+          className: '三年级一班',
+        },
+        {
+          id: 'student-4',
+          displayName: '小丽',
+          nickname: 'Li',
+          school: '第一小学',
+          className: '三年级一班',
+        },
       ];
       setStudents(mockStudents);
     } catch (error) {
@@ -76,14 +100,14 @@ const StudentComparisonPage: React.FC = () => {
 
     setLoading(true);
     try {
-      const response = await httpClient.post('/metrics/compare', {
+      const response = await httpClient.post<ComparisonData[]>('/metrics/compare', {
         body: {
           studentIds: selectedStudents,
           metrics: selectedMetrics,
-          window: timeWindow
-        }
+          window: timeWindow,
+        },
       });
-      setComparisonData(response as any);
+      setComparisonData(response);
     } catch (error) {
       message.error('获取对比数据失败');
     } finally {
@@ -94,14 +118,14 @@ const StudentComparisonPage: React.FC = () => {
   // 获取学生趋势数据
   const fetchStudentTrend = async (studentId: string) => {
     try {
-      const response = await httpClient.get(`/metrics/students/${studentId}/trend`, {
+      const response = await httpClient.get<TrendData[]>(`/metrics/students/${studentId}/trend`, {
         query: {
           from: dayjs().subtract(14, 'day').format('YYYY-MM-DD'),
           to: dayjs().format('YYYY-MM-DD'),
-          granularity: 'day'
-        }
+          granularity: 'day',
+        },
       });
-      setTrendData(prev => ({ ...prev, [studentId]: response as any }));
+      setTrendData((prev) => ({ ...prev, [studentId]: response }));
     } catch (error) {
       message.error('获取趋势数据失败');
     }
