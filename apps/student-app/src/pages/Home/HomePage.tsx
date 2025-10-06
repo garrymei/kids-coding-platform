@@ -1,8 +1,34 @@
 ﻿import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useProgressStore } from '../../stores/progress';
+import { DailyTaskCard } from './DailyTaskCard';
+import { AchievementsCard } from './AchievementsCard';
+import { RecommendedNextLevel } from './RecommendedNextLevel';
 
 const MOCK_STUDENT_ID = 'stu_1';
+
+// Mock data for new features
+const mockDailyTasks = [
+  { id: 1, title: '完成2个循环关卡', xp: 50, status: 'done' as const },
+  { id: 2, title: '连续登录3天', xp: 30, status: 'pending' as const },
+  { id: 3, title: '解锁一个新成就', xp: 25, status: 'pending' as const },
+];
+
+const mockAchievements = [
+  { id: 'streak-7', title: '坚持7天', icon: '🔥', unlockedAt: new Date().toISOString() },
+  { id: 'maze-5', title: '迷宫大师', icon: '🏆' },
+  { id: 'loop-master', title: '循环达人', icon: '🎯' },
+  { id: 'pixel-artist', title: '像素艺术家', icon: '🎨' },
+];
+
+const mockNextLevel = {
+  id: 'loops-3',
+  title: '嵌套循环挑战',
+  type: 'pixel' as const,
+  difficulty: 3,
+  xp: 50,
+  story: '学会使用嵌套循环绘制复杂的像素图案',
+};
 
 export default function HomePage() {
   const navigate = useNavigate();
@@ -46,21 +72,16 @@ export default function HomePage() {
         </article>
       </section>
 
-      {nextLesson && (
-        <section className="card" style={{ padding: 24 }}>
-          <div className="kc-home__cta">
-            <div>
-              <h2 className="kc-section-title" style={{ marginBottom: 6 }}>
-                🚀 继续挑战：{nextLesson.title}
-              </h2>
-              <div className="kc-tag">{nextLesson.pkgId}</div>
-            </div>
-            <button className="btn btn-cta" onClick={() => navigate(`/play/${nextLesson.levelId}`)}>
-              开始学习
-            </button>
-          </div>
-        </section>
-      )}
+      {/* New: 推荐下一关 */}
+      <section>
+        <RecommendedNextLevel nextLevel={nextLesson ? mockNextLevel : null} />
+      </section>
+
+      {/* New: 今日任务和成就 */}
+      <section className="grid duo">
+        <DailyTaskCard tasks={mockDailyTasks} />
+        <AchievementsCard achievements={mockAchievements} totalAchievements={20} />
+      </section>
 
       <section className="card" style={{ padding: 24 }}>
         <div className="kc-section-title">课程包进度</div>

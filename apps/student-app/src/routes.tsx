@@ -25,6 +25,8 @@ const MyClassesPage = lazy(() =>
 );
 const PackagePage = lazy(() => import('./pages/PackagePage'));
 const MapPage = lazy(() => import('./pages/MapPage'));
+const TasksPage = lazy(() => import('./pages/Tasks/TasksPage'));
+const AchievementsPage = lazy(() => import('./pages/Achievements/AchievementsPage'));
 
 const withSuspense = (element: React.JSX.Element, text: string) => (
   <Suspense fallback={<LoadingSpinner text={text} />}>{element}</Suspense>
@@ -50,6 +52,14 @@ export const router = createBrowserRouter([
       {
         path: 'works',
         element: withSuspense(<WorksPage />, '作品加载中...'),
+      },
+      {
+        path: 'tasks',
+        element: withSuspense(<TasksPage />, '任务加载中...'),
+      },
+      {
+        path: 'achievements',
+        element: withSuspense(<AchievementsPage />, '成就加载中...'),
       },
       {
         path: 'leaderboard',
