@@ -15,18 +15,36 @@ const leaderboardData = [
 export default function LeaderboardPage() {
   return (
     <div style={{ padding: '2rem', maxWidth: '600px', margin: '0 auto' }}>
-      <Title level={2} style={{ textAlign: 'center', marginBottom: '2rem' }}>
+      <Title level={2} style={{ textAlign: 'center', marginBottom: '2rem', color: '#58a6ff' }}>
         🏆 经验值排行榜 🏆
       </Title>
       <List
         itemLayout="horizontal"
         dataSource={leaderboardData}
-        renderItem={item => (
-          <List.Item>
+        renderItem={(item) => (
+          <List.Item
+            style={{
+              borderBottom: '1px solid rgba(148,163,184,.2)',
+              padding: '1rem 0',
+              transition: 'background .2s ease',
+            }}
+          >
             <List.Item.Meta
               avatar={<Avatar src={`${item.avatar}?u=${item.rank}`} />}
-              title={<a href="#">{`${item.rank}. ${item.name}`}</a>}
-              description={`${item.xp} XP`}
+              title={
+                <span
+                  style={{
+                    color: '#e6edf3',
+                    fontSize: '1rem',
+                    fontWeight: 600,
+                  }}
+                >
+                  {item.rank}. {item.name}
+                </span>
+              }
+              description={
+                <span style={{ color: '#8b949e', fontSize: '0.875rem' }}>{item.xp} XP</span>
+              }
             />
           </List.Item>
         )}

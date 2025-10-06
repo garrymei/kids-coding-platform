@@ -8,6 +8,7 @@ export default defineConfig({
   plugins: [react()],
   resolve: {
     alias: {
+      '@': path.resolve(__dirname, './src'),
       '@kids/config': path.resolve(
         fileURLToPath(new URL('.', import.meta.url)),
         '../../packages/config/src',

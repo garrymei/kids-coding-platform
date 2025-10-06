@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&display=swap');
+
 :root {
   --bg: #0b1020;
   --grid: rgba(255, 255, 255, 0.04);
@@ -13,6 +15,13 @@
   --border: rgba(255, 255, 255, 0.08);
   --shadow: 0 18px 48px rgba(10, 16, 32, 0.45);
   --grad-cta: linear-gradient(90deg, #5da8ff, #a78bfa);
+
+  /* Enhanced dark theme colors */
+  --bg-primary: #0d1117;
+  --bg-secondary: #161b22;
+  --text-primary: #e6edf3;
+  --text-secondary: #8b949e;
+  --accent-primary: #58a6ff;
 }
 
 * {
@@ -22,7 +31,7 @@
 html,
 body {
   margin: 0;
-  font-family: 'Inter', 'HarmonyOS Sans', 'Segoe UI', sans-serif;
+  font-family: 'Orbitron', 'Inter', 'HarmonyOS Sans', 'Segoe UI', sans-serif;
   background: var(--bg);
   color: var(--text);
   min-height: 100%;
