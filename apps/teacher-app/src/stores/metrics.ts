@@ -1,5 +1,6 @@
 import { create } from 'zustand';
-import { getStudentTrend, postClassCompare, Dim, Period } from '@kids/utils';
+import { getStudentTrend, postClassCompare } from '@kids/utils';
+import type { Dim, Period } from '@kids/utils';
 
 interface TrendDataPoint {
   t: Date;
@@ -18,7 +19,12 @@ interface MetricsState {
   error?: string;
   trendSeries: TrendDataPoint[];
   compareRows: ComparisonRow[];
-  fetchTrend(studentId: string, dims: Dim[], period: Period, range?: { from?: string; to?: string }): Promise<void>;
+  fetchTrend(
+    studentId: string,
+    dims: Dim[],
+    period: Period,
+    range?: { from?: string; to?: string },
+  ): Promise<void>;
   fetchCompare(classId: string, dims: Dim[], period: Period, bucketISO: string): Promise<void>;
 }
 

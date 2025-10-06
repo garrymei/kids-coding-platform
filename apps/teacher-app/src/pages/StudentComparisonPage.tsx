@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Card, Row, Col, Select, Button, message, Table, Tag, Space, Modal } from 'antd';
-import { BarChartOutlined, LineChartOutlined, UserOutlined } from '@ant-design/icons';
+import { BarChartOutlined, LineChartOutlined } from '@ant-design/icons';
 import { StudentTrendChart, StudentComparisonChart } from '@kids/ui-kit';
 import { httpClient } from '../services/http';
 import dayjs from 'dayjs';
@@ -89,7 +89,7 @@ const StudentComparisonPage: React.FC = () => {
         },
       ];
       setStudents(mockStudents);
-    } catch (error) {
+    } catch {
       message.error('获取学生列表失败');
     }
   };
@@ -108,7 +108,7 @@ const StudentComparisonPage: React.FC = () => {
         },
       });
       setComparisonData(response);
-    } catch (error) {
+    } catch {
       message.error('获取对比数据失败');
     } finally {
       setLoading(false);
@@ -126,7 +126,7 @@ const StudentComparisonPage: React.FC = () => {
         },
       });
       setTrendData((prev) => ({ ...prev, [studentId]: response }));
-    } catch (error) {
+    } catch {
       message.error('获取趋势数据失败');
     }
   };
@@ -183,7 +183,7 @@ const StudentComparisonPage: React.FC = () => {
     {
       title: '操作',
       key: 'actions',
-      render: (_: any, record: Student) => (
+      render: (_: unknown, record: Student) => (
         <Space>
           <Button
             type="link"

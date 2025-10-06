@@ -34,6 +34,9 @@ const durationOptions = [
   { value: 'permanent', label: '永久' },
 ];
 
+type DurationValue = (typeof durationOptions)[number]['value'];
+const DEFAULT_DURATION: DurationValue = '3m';
+
 export function RequestAccessForm({ onSuccess, onCancel }: RequestAccessFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitStatus, setSubmitStatus] = useState<'idle' | 'success' | 'error'>('idle');
@@ -43,7 +46,6 @@ export function RequestAccessForm({ onSuccess, onCancel }: RequestAccessFormProp
     handleSubmit,
     formState: { errors },
     watch,
-    setValue,
   } = useFormValidation<RequestAccessData>({
     schema: requestAccessSchema,
     defaultValues: {
@@ -55,7 +57,6 @@ export function RequestAccessForm({ onSuccess, onCancel }: RequestAccessFormProp
   });
 
   const selectedPurpose = watch('purpose');
-  const selectedDuration = watch('duration');
 
   const onSubmit = async (data: RequestAccessData) => {
     try {
@@ -63,10 +64,12 @@ export function RequestAccessForm({ onSuccess, onCancel }: RequestAccessFormProp
       setSubmitStatus('idle');
 
       // 计算过期时间
+      const duration = data.duration ?? DEFAULT_DURATION;
+
       const expiresAt =
-        data.duration === 'permanent'
+        duration === 'permanent'
           ? null
-          : new Date(Date.now() + getDurationMs(data.duration)).toISOString();
+          : new Date(Date.now() + getDurationMs(duration)).toISOString();
 
       await httpClient.post<
         void,
@@ -86,7 +89,8 @@ export function RequestAccessForm({ onSuccess, onCancel }: RequestAccessFormProp
       setTimeout(() => {
         onSuccess?.();
       }, 2000);
-    } catch (error: any) {
+    } catch (error) {
+      // eslint-disable-next-line no-console
       console.error('提交申请失败:', error);
       setSubmitStatus('error');
     } finally {
@@ -94,8 +98,7 @@ export function RequestAccessForm({ onSuccess, onCancel }: RequestAccessFormProp
     }
   };
 
-  const getDurationMs = (duration: string) => {
-    const now = Date.now();
+  const getDurationMs = (duration: DurationValue): number => {
     switch (duration) {
       case '1w':
         return 7 * 24 * 60 * 60 * 1000;

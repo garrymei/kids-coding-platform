@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Card, Badge, Button, Progress } from '@kids/ui-kit';
-import { useFormValidation, FormField, FormTextarea, FormSelect, FormInput } from '@kids/forms';
+import { Card, Badge, Button } from '@kids/ui-kit';
+import { useFormValidation, FormField, FormTextarea, FormSelect } from '@kids/forms';
 import { httpClient } from '../services/http';
 import { z } from 'zod';
 
@@ -95,6 +95,7 @@ export function ReviewWorkflowPage() {
       });
       setWorks(response);
     } catch (error) {
+      // eslint-disable-next-line no-console
       console.error('加载作品列表失败:', error);
     } finally {
       setLoading(false);
@@ -128,28 +129,34 @@ export function ReviewWorkflowPage() {
       setSelectedWork(null);
       loadWorks();
     } catch (error) {
+      // eslint-disable-next-line no-console
       console.error('提交评价失败:', error);
     }
   };
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const handleApproveWork = async (workId: string) => {
     try {
       await httpClient.post(`/teachers/works/${workId}/approve`);
       loadWorks();
     } catch (error) {
+      // eslint-disable-next-line no-console
       console.error('批准作品失败:', error);
     }
   };
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const handleRequestRevision = async (workId: string) => {
     try {
       await httpClient.post(`/teachers/works/${workId}/request-revision`);
       loadWorks();
     } catch (error) {
+      // eslint-disable-next-line no-console
       console.error('请求修改失败:', error);
     }
   };
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('zh-CN');
   };
@@ -358,11 +365,11 @@ export function ReviewWorkflowPage() {
                 <FormSelect
                   {...register('rating')}
                   options={[
-                    { value: 1, label: '⭐ (1星)' },
-                    { value: 2, label: '⭐⭐ (2星)' },
-                    { value: 3, label: '⭐⭐⭐ (3星)' },
-                    { value: 4, label: '⭐⭐⭐⭐ (4星)' },
-                    { value: 5, label: '⭐⭐⭐⭐⭐ (5星)' },
+                    { value: '1', label: '⭐ (1星)' },
+                    { value: '2', label: '⭐⭐ (2星)' },
+                    { value: '3', label: '⭐⭐⭐ (3星)' },
+                    { value: '4', label: '⭐⭐⭐⭐ (4星)' },
+                    { value: '5', label: '⭐⭐⭐⭐⭐ (5星)' },
                   ]}
                 />
               </FormField>
@@ -385,7 +392,11 @@ export function ReviewWorkflowPage() {
                 error={errors.suggestions}
                 helpText="可选，提供具体的改进建议"
               >
-                <FormTextarea {...register('suggestions')} placeholder="提供改进建议..." rows={3} />
+                <FormTextarea
+                  register={register('suggestions')}
+                  placeholder="提供改进建议..."
+                  rows={3}
+                />
               </FormField>
 
               <FormField label="处理状态" error={errors.status} required>
