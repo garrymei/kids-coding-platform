@@ -3,10 +3,9 @@ import { Button, List, Modal, Form, Input, Tag } from 'antd';
 import { Link } from 'react-router-dom';
 import { useClassStore } from '../stores/class';
 
-// Mock data for classes - in a real app, this would come from the store
 const mockClasses = [
-  { id: 'class_1', name: '七年级A班', code: '6K9JQF' },
-  { id: 'class_2', name: 'Python兴趣小组', code: 'AB12CD' },
+  { id: 'class_1', name: '七年级 A 班', code: '6K9JQF' },
+  { id: 'class_2', name: 'Python 兴趣小组', code: 'AB12CD' },
 ];
 
 export function ClassesPage() {
@@ -21,14 +20,13 @@ export function ClassesPage() {
   const handleOk = () => {
     form
       .validateFields()
-      .then(values => {
+      .then((values) => {
         form.resetFields();
         createClass(values.name).then(() => {
           setIsModalVisible(false);
-          // Here you would typically refetch the list of classes
         });
       })
-      .catch(info => {
+      .catch((info) => {
         console.log('Validate Failed:', info);
       });
   };
@@ -40,30 +38,32 @@ export function ClassesPage() {
   return (
     <div style={{ padding: '2rem' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <h1>My Classes</h1>
+        <h1>我的班级</h1>
         <Button type="primary" onClick={showModal}>
-          Create New Class
+          新建班级
         </Button>
       </div>
       <List
         itemLayout="horizontal"
         dataSource={mockClasses}
-        renderItem={item => (
+        renderItem={(item) => (
           <List.Item
             actions={[
-              <Tag color="blue">Code: {item.code}</Tag>,
-              <Link to={`/classes/${item.id}/approvals`}>Manage Approvals</Link>
+              <Tag color="blue" key="code">
+                邀请码：{item.code}
+              </Tag>,
+              <Link key="approvals" to={`/classes/${item.id}/approvals`}>
+                审批管理
+              </Link>,
             ]}
           >
-            <List.Item.Meta
-              title={item.name}
-            />
+            <List.Item.Meta title={item.name} />
           </List.Item>
         )}
       />
       <Modal
-        title="Create New Class"
-        visible={isModalVisible}
+        title="新建班级"
+        open={isModalVisible}
         onOk={handleOk}
         onCancel={handleCancel}
         confirmLoading={loading}
@@ -71,8 +71,8 @@ export function ClassesPage() {
         <Form form={form} layout="vertical" name="form_in_modal">
           <Form.Item
             name="name"
-            label="Class Name"
-            rules={[{ required: true, message: 'Please input the name of the class!' }]}
+            label="班级名称"
+            rules={[{ required: true, message: '请输入班级名称' }]}
           >
             <Input />
           </Form.Item>

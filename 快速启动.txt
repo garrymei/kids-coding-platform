@@ -1,0 +1,37 @@
+========================================
+  StudyRunner 测试环境 - 快速参考
+========================================
+
+✅ 服务已启动！
+两个 PowerShell 窗口应该已经打开：
+  窗口1: 后端 API (端口 3000)
+  窗口2: 学生端应用 (端口 5173)
+
+⏰ 请等待 30-60 秒让服务完全初始化
+
+🌐 立即访问测试页面：
+
+  http://localhost:5173/test
+
+  然后点击任意游戏按钮开始测试！
+
+📝 或直接访问关卡：
+
+  http://localhost:5173/learn/python/maze_navigator/1
+  http://localhost:5173/learn/javascript/turtle_artist/1
+
+💡 提示：
+- 如果页面加载失败，请检查 PowerShell 窗口是否有错误
+- 数据库错误可以忽略（StudyRunner 不需要数据库）
+- 详细说明请查看：STUDYRUNNER_启动说明.md
+
+🎮 可测试的游戏：
+Python & JavaScript:
+  - 迷宫导航 (maze_navigator) - 10关
+  - 海龟画家 (turtle_artist) - 10关  
+  - 机器人分拣 (robot_sorter) - 10关
+  
+总计 60 关卡！
+
+========================================
+

@@ -1,0 +1,253 @@
+{
+  "game_id": "robot_sorter",
+  "language": "python",
+  "title": "机器人分拣",
+  "levels": [
+    {
+      "level": 1,
+      "title": "找到最小值",
+      "objective": "返回数组中的最小值。",
+      "story": "工厂任务第 1 项。",
+      "starter_code": "def solve(arr):\n    # 返回最小值\n    pass\n",
+      "reference_solution": "def solve(arr):\n    return min(arr)\n",
+      "expected_io": {
+        "input": [3, 1, 2],
+        "output": 1
+      },
+      "judge": {
+        "type": "unit_tests",
+        "tests": [
+          {
+            "input": [3, 1, 2],
+            "output": 1
+          }
+        ]
+      },
+      "hints": ["先写出最朴素的思路，再考虑内置函数。"]
+    },
+    {
+      "level": 2,
+      "title": "数组求和",
+      "objective": "返回数组元素之和。",
+      "story": "工厂任务第 2 项。",
+      "starter_code": "def solve(arr):\n    # 返回和\n    pass\n",
+      "reference_solution": "def solve(arr):\n    return sum(arr)\n",
+      "expected_io": {
+        "input": [1, 2, 3],
+        "output": 6
+      },
+      "judge": {
+        "type": "unit_tests",
+        "tests": [
+          {
+            "input": [1, 2, 3],
+            "output": 6
+          }
+        ]
+      },
+      "hints": ["先写出最朴素的思路，再考虑内置函数。"]
+    },
+    {
+      "level": 3,
+      "title": "数组平均值",
+      "objective": "返回数组平均值（保留 1 位小数）。",
+      "story": "工厂任务第 3 项。",
+      "starter_code": "def solve(arr):\n    # 返回平均值(1位小数)\n    pass\n",
+      "reference_solution": "def solve(arr):\n    return round(sum(arr)/len(arr),1)\n",
+      "expected_io": {
+        "input": [1, 2, 3],
+        "output": 2.0
+      },
+      "judge": {
+        "type": "unit_tests",
+        "tests": [
+          {
+            "input": [1, 2, 3],
+            "output": 2.0
+          }
+        ]
+      },
+      "hints": ["先写出最朴素的思路，再考虑内置函数。"]
+    },
+    {
+      "level": 4,
+      "title": "升序排序",
+      "objective": "返回升序排序后的数组。",
+      "story": "工厂任务第 4 项。",
+      "starter_code": "def solve(arr):\n    # 升序排序\n    pass\n",
+      "reference_solution": "def solve(arr):\n    return sorted(arr)\n",
+      "expected_io": {
+        "input": [3, 1, 2],
+        "output": [1, 2, 3]
+      },
+      "judge": {
+        "type": "unit_tests",
+        "tests": [
+          {
+            "input": [3, 1, 2],
+            "output": [1, 2, 3]
+          }
+        ]
+      },
+      "hints": ["先写出最朴素的思路，再考虑内置函数。"]
+    },
+    {
+      "level": 5,
+      "title": "奇偶分组",
+      "objective": "将数组按奇偶分组（奇数在前）。",
+      "story": "工厂任务第 5 项。",
+      "starter_code": "def solve(arr):\n    # 奇偶分组（奇数在前）\n    pass\n",
+      "reference_solution": "def solve(arr):\n    odds=[x for x in arr if x%2==1]; evens=[x for x in arr if x%2==0]; return odds+evens\n",
+      "expected_io": {
+        "input": [1, 2, 3, 4],
+        "output": [1, 3, 2, 4]
+      },
+      "judge": {
+        "type": "unit_tests",
+        "tests": [
+          {
+            "input": [1, 2, 3, 4],
+            "output": [1, 3, 2, 4]
+          }
+        ]
+      },
+      "hints": ["先写出最朴素的思路，再考虑内置函数。"]
+    },
+    {
+      "level": 6,
+      "title": "去重",
+      "objective": "去除重复元素并保留顺序。",
+      "story": "工厂任务第 6 项。",
+      "starter_code": "def solve(arr):\n    # 去重（保持顺序）\n    pass\n",
+      "reference_solution": "def solve(arr):\n    seen=set(); out=[]\n    for x in arr:\n        if x not in seen:\n            seen.add(x); out.append(x)\n    return out\n",
+      "expected_io": {
+        "input": [1, 1, 2, 2, 3],
+        "output": [1, 2, 3]
+      },
+      "judge": {
+        "type": "unit_tests",
+        "tests": [
+          {
+            "input": [1, 1, 2, 2, 3],
+            "output": [1, 2, 3]
+          }
+        ]
+      },
+      "hints": ["先写出最朴素的思路，再考虑内置函数。"]
+    },
+    {
+      "level": 7,
+      "title": "计数出现次数",
+      "objective": "统计每个元素出现次数，返回字典/对象。",
+      "story": "工厂任务第 7 项。",
+      "starter_code": "def solve(arr):\n    # 统计次数\n    pass\n",
+      "reference_solution": "def solve(arr):\n    from collections import Counter\n    return dict(Counter(arr))\n",
+      "expected_io": {
+        "input": [1, 1, 2, 3, 3],
+        "output": {
+          "1": 2,
+          "2": 1,
+          "3": 2
+        }
+      },
+      "judge": {
+        "type": "unit_tests",
+        "tests": [
+          {
+            "input": [1, 1, 2, 3, 3],
+            "output": {
+              "1": 2,
+              "2": 1,
+              "3": 2
+            }
+          }
+        ]
+      },
+      "hints": ["先写出最朴素的思路，再考虑内置函数。"]
+    },
+    {
+      "level": 8,
+      "title": "筛选大于阈值",
+      "objective": "筛选出大于给定阈值的元素。",
+      "story": "工厂任务第 8 项。",
+      "starter_code": "def solve(arr, th):\n    # 筛选 > th\n    pass\n",
+      "reference_solution": "def solve(arr, th):\n    return [x for x in arr if x>th]\n",
+      "expected_io": {
+        "input": {
+          "arr": [1, 5, 3],
+          "th": 3
+        },
+        "output": [5]
+      },
+      "judge": {
+        "type": "unit_tests",
+        "tests": [
+          {
+            "input": {
+              "arr": [1, 5, 3],
+              "th": 3
+            },
+            "output": [5]
+          }
+        ]
+      },
+      "hints": ["先写出最朴素的思路，再考虑内置函数。"]
+    },
+    {
+      "level": 9,
+      "title": "合并去重排序",
+      "objective": "合并两个数组并去重排序。",
+      "story": "工厂任务第 9 项。",
+      "starter_code": "def solve(a, b):\n    # 合并去重排序\n    pass\n",
+      "reference_solution": "def solve(a,b):\n    return sorted(list(dict.fromkeys(a+b)))\n",
+      "expected_io": {
+        "input": {
+          "a": [1, 2],
+          "b": [2, 3]
+        },
+        "output": [1, 2, 3]
+      },
+      "judge": {
+        "type": "unit_tests",
+        "tests": [
+          {
+            "input": {
+              "a": [1, 2],
+              "b": [2, 3]
+            },
+            "output": [1, 2, 3]
+          }
+        ]
+      },
+      "hints": ["先写出最朴素的思路，再考虑内置函数。"]
+    },
+    {
+      "level": 10,
+      "title": "挑战：前 K 大",
+      "objective": "返回数组中前 K 大的元素（降序）。",
+      "story": "工厂任务第 10 项。",
+      "starter_code": "def solve(arr, k):\n    # 前K大（降序）\n    pass\n",
+      "reference_solution": "def solve(arr,k):\n    return sorted(arr, reverse=True)[:k]\n",
+      "expected_io": {
+        "input": {
+          "arr": [9, 1, 5, 3, 7],
+          "k": 3
+        },
+        "output": [9, 7, 5]
+      },
+      "judge": {
+        "type": "unit_tests",
+        "tests": [
+          {
+            "input": {
+              "arr": [9, 1, 5, 3, 7],
+              "k": 3
+            },
+            "output": [9, 7, 5]
+          }
+        ]
+      },
+      "hints": ["先写出最朴素的思路，再考虑内置函数。"]
+    }
+  ]
+}

@@ -29,6 +29,7 @@ export interface Level {
     blockly?: string;
     code?: string;
   };
+  solution?: string; // 参考答案代码
   grader: {
     mode: string;
     io?: {

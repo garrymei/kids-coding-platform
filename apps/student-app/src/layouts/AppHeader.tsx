@@ -45,7 +45,7 @@ export function AppHeader({ onToggleSidebar }: AppHeaderProps) {
           <a className="btn btn-ghost" href="/tasks">
             今日任务
           </a>
-          <img src="/avatar.png" width={32} height={32} className="kc-avatar" alt="当前用户头像" />
+          <img src="/avatar.svg" width={32} height={32} className="kc-avatar" alt="当前用户头像" />
         </div>
       </div>
     </header>

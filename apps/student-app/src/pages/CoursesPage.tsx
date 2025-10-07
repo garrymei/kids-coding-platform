@@ -86,10 +86,7 @@ export function CoursesPage() {
 
   if (!readyState || readyState.packs.length === 0) {
     return (
-      <EmptyView
-        title="还没有课程包"
-        description="稍后再来看看，或者联系老师获取课程权限。"
-      />
+      <EmptyView title="还没有课程包" description="稍后再来看看，或者联系老师获取课程权限。" />
     );
   }
 
@@ -97,7 +94,9 @@ export function CoursesPage() {
     <div className="grid" style={{ gap: 24 }}>
       <header className="card" style={{ boxShadow: 'none' }}>
         <h1 className="page-title">我的课程</h1>
-        <p className="text-muted" style={{ marginBottom: 8 }}>根据课程包逐步解锁，从基础到进阶完成所有挑战。</p>
+        <p className="text-muted" style={{ marginBottom: 8 }}>
+          根据课程包逐步解锁，从基础到进阶完成所有挑战。
+        </p>
         <span className="badge">{focusLabel}</span>
       </header>
 
@@ -108,29 +107,71 @@ export function CoursesPage() {
           const isFocused = pack.gameType === focusCourseId;
 
           return (
-            <article key={pack.gameType} className="card hover-rise" style={{ position: 'relative' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 16 }}>
-                <div style={{ display: 'grid', gap: 8 }}>
+            <article
+              key={pack.gameType}
+              className="card hover-rise"
+              style={{ position: 'relative' }}
+            >
+              <div
+                style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'flex-start',
+                  gap: 24,
+                  flexWrap: 'wrap',
+                }}
+              >
+                <div style={{ display: 'grid', gap: 8, flex: '1 1 300px', minWidth: 0 }}>
                   <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                     <span className="badge">{pack.world}</span>
                     <span className="badge">{pack.levelCount} 关</span>
-                    {isFocused && <span className="badge" style={{ background: 'rgba(47,138,255,0.16)' }}>主线</span>}
+                    {isFocused && (
+                      <span className="badge" style={{ background: 'rgba(47,138,255,0.16)' }}>
+                        主线
+                      </span>
+                    )}
                   </div>
                   <h2 style={{ margin: 0, fontSize: 20 }}>{pack.name}</h2>
-                  <p className="text-muted" style={{ fontSize: 14 }}>{pack.summary}</p>
+                  <p className="text-muted" style={{ fontSize: 14, marginBottom: 0 }}>
+                    {pack.summary}
+                  </p>
                 </div>
 
-                <ProgressRing percent={percent} label={`${progress.completed}/${progress.total}`} />
+                <div style={{ flexShrink: 0 }}>
+                  <ProgressRing
+                    percent={percent}
+                    label={`${progress.completed}/${progress.total}`}
+                  />
+                </div>
               </div>
 
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 20 }}>
-                <div style={{ fontSize: 13, color: 'var(--muted)', display: 'grid', gap: 4 }}>
+              <div
+                style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  marginTop: 20,
+                  gap: 16,
+                  flexWrap: 'wrap',
+                }}
+              >
+                <div
+                  style={{
+                    fontSize: 13,
+                    color: 'var(--muted)',
+                    display: 'grid',
+                    gap: 4,
+                    flex: '1 1 auto',
+                  }}
+                >
                   {pack.unlock.requires.length > 0 && (
-                    <div>需要完成：{pack.unlock.requires.map((req) => req.split('/')[1]).join(', ')}</div>
+                    <div>
+                      需要完成：{pack.unlock.requires.map((req) => req.split('/')[1]).join(', ')}
+                    </div>
                   )}
                   <div>解锁等级：Lv.{pack.unlock.minLevel}</div>
                 </div>
-                <div style={{ display: 'flex', gap: 8 }}>
+                <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                   <button
                     type="button"
                     className={`btn ${isFocused ? 'btn-primary' : 'btn-ghost'}`}
@@ -204,7 +245,9 @@ function ProgressRing({ percent, label }: { percent: number; label: string }) {
       </svg>
       <div className="progress-ring__label">
         <span>{Math.round(percent)}%</span>
-        <small className="text-muted" style={{ fontSize: 12 }}>{label}</small>
+        <small className="text-muted" style={{ fontSize: 12 }}>
+          {label}
+        </small>
       </div>
     </div>
   );

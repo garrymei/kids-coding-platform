@@ -1,11 +1,12 @@
 import { Module } from '@nestjs/common';
-import { ProgressController } from './progress.controller';
 import { ProgressService } from './progress.service';
-import { LoggerService } from '../../common/services/logger.service';
+import { ProgressController } from './progress.controller';
+import { CurriculumModule } from '../curriculum/curriculum.module';
 
 @Module({
+  imports: [CurriculumModule],
+  providers: [ProgressService],
   controllers: [ProgressController],
-  providers: [ProgressService, LoggerService],
   exports: [ProgressService],
 })
 export class ProgressModule {}

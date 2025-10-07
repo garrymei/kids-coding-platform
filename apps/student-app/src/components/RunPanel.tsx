@@ -13,15 +13,26 @@ interface RunPanelProps {
   gameRunner?: {
     render?: (result: RunAndJudgeResult | null) => ReactNode;
   };
+  nextLevelId?: string | null; // 下一关ID
+  onGoNext?: () => void; // 进入下一关的回调
 }
 
 /**
  * 标准化的运行面板，提供统一的代码编辑和运行体验。
  */
-export function RunPanel({ level, code, onCodeChange, onResult, gameRunner }: RunPanelProps) {
+export function RunPanel({
+  level,
+  code,
+  onCodeChange,
+  onResult,
+  gameRunner,
+  nextLevelId,
+  onGoNext,
+}: RunPanelProps) {
   const [busy, setBusy] = useState(false);
   const [result, setResult] = useState<RunAndJudgeResult | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [showSolution, setShowSolution] = useState(false);
 
   const handleRun = async () => {
     if (!code.trim()) {
@@ -52,50 +63,30 @@ export function RunPanel({ level, code, onCodeChange, onResult, gameRunner }: Ru
     setError(null);
   };
 
+  const handleFillSolution = () => {
+    if (level.solution) {
+      onCodeChange(level.solution);
+      setShowSolution(false);
+    }
+  };
+
+  const handleCopySolution = async () => {
+    if (level.solution) {
+      try {
+        await navigator.clipboard.writeText(level.solution);
+        alert('✅ 参考答案已复制到剪贴板');
+      } catch {
+        alert('❌ 复制失败，请手动复制');
+      }
+    }
+  };
+
   return (
     <div className="grid duo">
       {/* 代码编辑器 */}
       <section className="card" aria-label="代码编辑器">
-        <div
-          style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            marginBottom: 12,
-          }}
-        >
+        <div style={{ marginBottom: 12 }}>
           <strong style={{ fontSize: 16 }}>✏️ 代码编辑器</strong>
-          <div style={{ display: 'flex', gap: 8 }}>
-            <button
-              className="btn btn-ghost"
-              onClick={handleReset}
-              disabled={busy}
-              title="恢复为初始模板"
-            >
-              ↩️ 重置
-            </button>
-            <button
-              className="btn btn-cta"
-              onClick={handleRun}
-              disabled={busy}
-              style={{
-                minWidth: 120,
-                position: 'relative',
-              }}
-            >
-              {busy ? (
-                <>
-                  <span style={{ marginRight: 8 }}>⏳</span>
-                  运行中...
-                </>
-              ) : (
-                <>
-                  <span style={{ marginRight: 8 }}>▶️</span>
-                  运行代码
-                </>
-              )}
-            </button>
-          </div>
         </div>
 
         <textarea
@@ -122,6 +113,60 @@ export function RunPanel({ level, code, onCodeChange, onResult, gameRunner }: Ru
           aria-label="代码输入框"
         />
 
+        {/* 操作按钮 */}
+        <div style={{ display: 'flex', gap: 8, marginTop: 16, flexWrap: 'wrap' }}>
+          <button
+            className="btn btn-cta"
+            onClick={handleRun}
+            disabled={busy}
+            style={{ minWidth: 120 }}
+          >
+            {busy ? (
+              <>
+                <span style={{ marginRight: 8 }}>⏳</span>
+                运行中...
+              </>
+            ) : (
+              <>
+                <span style={{ marginRight: 8 }}>▶️</span>
+                运行代码
+              </>
+            )}
+          </button>
+
+          {level.solution && (
+            <button
+              className="btn btn-secondary"
+              onClick={() => setShowSolution((s) => !s)}
+              disabled={busy}
+              title="查看参考答案"
+            >
+              {showSolution ? '🙈 隐藏答案' : '💡 查看参考答案'}
+            </button>
+          )}
+
+          {level.solution && showSolution && (
+            <button
+              className="btn btn-primary"
+              onClick={handleFillSolution}
+              disabled={busy}
+              title="将参考答案粘贴到编辑器"
+            >
+              📋 粘贴到编辑器
+            </button>
+          )}
+
+          <button
+            className="btn btn-ghost"
+            onClick={handleReset}
+            disabled={busy}
+            title="恢复为初始模板"
+            style={{ marginLeft: 'auto' }}
+          >
+            🔄 重置代码
+          </button>
+        </div>
+
         {/* 代码统计 */}
         <div
           style={{
@@ -138,6 +183,38 @@ export function RunPanel({ level, code, onCodeChange, onResult, gameRunner }: Ru
           <span>字符数：{code.length}</span>
           <span>行数：{code.split('\n').length}</span>
         </div>
+
+        {/* 参考答案显示区 */}
+        {showSolution && level.solution && (
+          <div style={{ marginTop: 16 }}>
+            <div
+              style={{
+                padding: 12,
+                background: '#fff3cd',
+                border: '1px solid #ffc107',
+                borderRadius: 8,
+                marginBottom: 8,
+                fontSize: '0.9em',
+              }}
+            >
+              ⚠️ 参考答案仅供学习，建议先独立思考再查看
+            </div>
+            <pre
+              style={{
+                background: '#1e1e1e',
+                color: '#4ec9b0',
+                padding: 16,
+                borderRadius: 8,
+                overflow: 'auto',
+                fontFamily: "'Fira Code', 'Consolas', monospace",
+                fontSize: 14,
+                margin: 0,
+              }}
+            >
+              {level.solution}
+            </pre>
+          </div>
+        )}
       </section>
 
       {/* 运行结果 */}
@@ -160,7 +237,56 @@ export function RunPanel({ level, code, onCodeChange, onResult, gameRunner }: Ru
             <p style={{ color: 'var(--text-secondary)', margin: 0 }}>正在运行代码，请稍候...</p>
           </div>
         ) : (
-          <RunFeedback result={result} error={error} visualization={gameRunner?.render?.(result)} />
+          <>
+            <RunFeedback
+              result={result}
+              error={error}
+              visualization={gameRunner?.render?.(result)}
+            />
+
+            {/* 通过判题后显示"进入下一关"按钮 */}
+            {result?.judgeResult?.pass && nextLevelId && onGoNext && (
+              <div
+                style={{
+                  marginTop: 16,
+                  padding: 16,
+                  background:
+                    'linear-gradient(135deg, rgba(34, 197, 94, 0.15), rgba(34, 197, 94, 0.05))',
+                  border: '2px solid rgba(34, 197, 94, 0.4)',
+                  borderRadius: 12,
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                }}
+              >
+                <div>
+                  <div
+                    style={{
+                      fontSize: 16,
+                      fontWeight: 600,
+                      color: 'rgb(34, 197, 94)',
+                      marginBottom: 4,
+                    }}
+                  >
+                    🎉 恭喜通关！
+                  </div>
+                  <div style={{ fontSize: 13, color: 'var(--text-secondary)' }}>
+                    你已成功完成本关，继续挑战下一关吧！
+                  </div>
+                </div>
+                <button
+                  className="btn btn-cta"
+                  onClick={onGoNext}
+                  style={{
+                    minWidth: 140,
+                    background: 'linear-gradient(135deg, rgb(34, 197, 94), rgb(16, 185, 129))',
+                  }}
+                >
+                  进入下一关 →
+                </button>
+              </div>
+            )}
+          </>
         )}
       </section>
     </div>

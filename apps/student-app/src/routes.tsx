@@ -28,6 +28,7 @@ const MapPage = lazy(() => import('./pages/MapPage'));
 const TasksPage = lazy(() => import('./pages/Tasks/TasksPage'));
 const AchievementsPage = lazy(() => import('./pages/Achievements/AchievementsPage'));
 const TestPage = lazy(() => import('./pages/TestPage'));
+const LearnPage = lazy(() => import('./pages/Learn/LearnPage'));
 
 const withSuspense = (element: React.JSX.Element, text: string) => (
   <Suspense fallback={<LoadingSpinner text={text} />}>{element}</Suspense>
@@ -77,6 +78,10 @@ export const router = createBrowserRouter([
       {
         path: 'play/:levelId',
         element: <PlayPage />,
+      },
+      {
+        path: 'learn/:language/:game/:level',
+        element: withSuspense(<LearnPage />, '关卡加载中...'),
       },
       {
         path: 'settings',

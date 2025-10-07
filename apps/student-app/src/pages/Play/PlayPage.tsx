@@ -1,7 +1,7 @@
 ﻿import { useEffect, useMemo, useState } from 'react';
 import type { ReactNode } from 'react';
-import { useParams } from 'react-router-dom';
-import { levelRepo, type Level } from '../../services/level.repo';
+import { useParams, useNavigate } from 'react-router-dom';
+import { levelRepo, type Level, pickNextLevel } from '../../services/level.repo';
 import { RunPanel } from '../../components/RunPanel';
 import type { RunAndJudgeResult } from '../../lib/runAndJudge';
 
@@ -13,9 +13,11 @@ interface ViewState {
 
 export default function PlayPage() {
   const { levelId } = useParams();
+  const navigate = useNavigate();
   const [state, setState] = useState<ViewState>({ status: 'loading' });
   const [code, setCode] = useState('');
   const [runResult, setRunResult] = useState<RunAndJudgeResult | null>(null);
+  const [nextLevelId, setNextLevelId] = useState<string | null>(null);
 
   useEffect(() => {
     let active = true;
@@ -34,6 +36,11 @@ export default function PlayPage() {
         }
         setCode(level.starter?.code ?? '');
         setState({ status: 'ready', level });
+
+        // 计算下一关（可以从 progressStore 获取已完成的关卡列表）
+        const doneIds: string[] = []; // TODO: 从 progressStore 获取已完成的关卡
+        const next = await pickNextLevel(doneIds);
+        setNextLevelId(next?.id ?? null);
       } catch (error) {
         if (!active) return;
         const message = error instanceof Error ? error.message : '加载关卡失败';
@@ -64,6 +71,12 @@ export default function PlayPage() {
   const level = state.level;
   const summary = level.story || (level.goals?.length ? `目标：${level.goals.join('、')}` : '');
 
+  const handleGoNext = () => {
+    if (nextLevelId) {
+      navigate(`/play/${nextLevelId}`);
+    }
+  };
+
   return (
     <div className="kc-container" style={{ maxWidth: 1128 }}>
       <section className="card" style={{ marginBottom: 24 }}>
@@ -79,6 +92,8 @@ export default function PlayPage() {
         onCodeChange={setCode}
         onResult={setRunResult}
         gameRunner={{ render: () => visual }}
+        nextLevelId={nextLevelId}
+        onGoNext={handleGoNext}
       />
     </div>
   );
@@ -115,15 +130,21 @@ function IoPreview({ result }: { result: RunAndJudgeResult }): ReactNode {
       {cases.map((item, index) => (
         <div key={`${item.input}-${index}`} className="kc-list__item">
           <div>
-            <div className="text-muted" style={{ fontSize: 12 }}>输入</div>
+            <div className="text-muted" style={{ fontSize: 12 }}>
+              输入
+            </div>
             <div>{item.input || '(空)'}</div>
           </div>
           <div>
-            <div className="text-muted" style={{ fontSize: 12 }}>期望</div>
+            <div className="text-muted" style={{ fontSize: 12 }}>
+              期望
+            </div>
             <div>{item.expected}</div>
           </div>
           <div>
-            <div className="text-muted" style={{ fontSize: 12 }}>输出</div>
+            <div className="text-muted" style={{ fontSize: 12 }}>
+              输出
+            </div>
             <div>{item.actual}</div>
           </div>
         </div>
@@ -159,7 +180,9 @@ function PixelPreview({ result }: { result: RunAndJudgeResult }): ReactNode {
               height: 24,
               borderRadius: 6,
               border: '1px solid rgba(148,163,184,.35)',
-              background: value ? `rgba(93,168,255, ${Math.min(value / 255, 1)})` : 'rgba(15,23,42,.2)',
+              background: value
+                ? `rgba(93,168,255, ${Math.min(value / 255, 1)})`
+                : 'rgba(15,23,42,.2)',
               boxShadow: value ? '0 0 12px rgba(93,168,255,.35)' : 'none',
             }}
           />

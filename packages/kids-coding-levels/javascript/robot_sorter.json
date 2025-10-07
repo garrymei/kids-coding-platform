@@ -1,0 +1,253 @@
+{
+  "game_id": "robot_sorter",
+  "language": "javascript",
+  "title": "机器人分拣",
+  "levels": [
+    {
+      "level": 1,
+      "title": "找到最小值",
+      "objective": "返回数组中的最小值。",
+      "story": "工厂任务第 1 项。",
+      "starter_code": "function solve(arr){ /* 最小值 */ }",
+      "reference_solution": "function solve(arr){ return Math.min(...arr); }",
+      "expected_io": {
+        "input": [3, 1, 2],
+        "output": 1
+      },
+      "judge": {
+        "type": "unit_tests",
+        "tests": [
+          {
+            "input": [3, 1, 2],
+            "output": 1
+          }
+        ]
+      },
+      "hints": ["先写出最朴素的思路，再考虑内置函数。"]
+    },
+    {
+      "level": 2,
+      "title": "数组求和",
+      "objective": "返回数组元素之和。",
+      "story": "工厂任务第 2 项。",
+      "starter_code": "function solve(arr){ /* 求和 */ }",
+      "reference_solution": "function solve(arr){ return arr.reduce((s,x)=>s+x,0); }",
+      "expected_io": {
+        "input": [1, 2, 3],
+        "output": 6
+      },
+      "judge": {
+        "type": "unit_tests",
+        "tests": [
+          {
+            "input": [1, 2, 3],
+            "output": 6
+          }
+        ]
+      },
+      "hints": ["先写出最朴素的思路，再考虑内置函数。"]
+    },
+    {
+      "level": 3,
+      "title": "数组平均值",
+      "objective": "返回数组平均值（保留 1 位小数）。",
+      "story": "工厂任务第 3 项。",
+      "starter_code": "function solve(arr){ /* 平均值(1位小数) */ }",
+      "reference_solution": "function solve(arr){ const v=arr.reduce((s,x)=>s+x,0)/arr.length; return Math.round(v*10)/10; }",
+      "expected_io": {
+        "input": [1, 2, 3],
+        "output": 2.0
+      },
+      "judge": {
+        "type": "unit_tests",
+        "tests": [
+          {
+            "input": [1, 2, 3],
+            "output": 2.0
+          }
+        ]
+      },
+      "hints": ["先写出最朴素的思路，再考虑内置函数。"]
+    },
+    {
+      "level": 4,
+      "title": "升序排序",
+      "objective": "返回升序排序后的数组。",
+      "story": "工厂任务第 4 项。",
+      "starter_code": "function solve(arr){ /* 升序排序 */ }",
+      "reference_solution": "function solve(arr){ return [...arr].sort((a,b)=>a-b); }",
+      "expected_io": {
+        "input": [3, 1, 2],
+        "output": [1, 2, 3]
+      },
+      "judge": {
+        "type": "unit_tests",
+        "tests": [
+          {
+            "input": [3, 1, 2],
+            "output": [1, 2, 3]
+          }
+        ]
+      },
+      "hints": ["先写出最朴素的思路，再考虑内置函数。"]
+    },
+    {
+      "level": 5,
+      "title": "奇偶分组",
+      "objective": "将数组按奇偶分组（奇数在前）。",
+      "story": "工厂任务第 5 项。",
+      "starter_code": "function solve(arr){ /* 奇偶分组 */ }",
+      "reference_solution": "function solve(arr){ const odds=arr.filter(x=>x%2===1), evens=arr.filter(x=>x%2===0); return [...odds, ...evens]; }",
+      "expected_io": {
+        "input": [1, 2, 3, 4],
+        "output": [1, 3, 2, 4]
+      },
+      "judge": {
+        "type": "unit_tests",
+        "tests": [
+          {
+            "input": [1, 2, 3, 4],
+            "output": [1, 3, 2, 4]
+          }
+        ]
+      },
+      "hints": ["先写出最朴素的思路，再考虑内置函数。"]
+    },
+    {
+      "level": 6,
+      "title": "去重",
+      "objective": "去除重复元素并保留顺序。",
+      "story": "工厂任务第 6 项。",
+      "starter_code": "function solve(arr){ /* 去重（保持顺序） */ }",
+      "reference_solution": "function solve(arr){ const seen=new Set(); const out=[]; for(const x of arr){ if(!seen.has(x)){ seen.add(x); out.push(x);} } return out; }",
+      "expected_io": {
+        "input": [1, 1, 2, 2, 3],
+        "output": [1, 2, 3]
+      },
+      "judge": {
+        "type": "unit_tests",
+        "tests": [
+          {
+            "input": [1, 1, 2, 2, 3],
+            "output": [1, 2, 3]
+          }
+        ]
+      },
+      "hints": ["先写出最朴素的思路，再考虑内置函数。"]
+    },
+    {
+      "level": 7,
+      "title": "计数出现次数",
+      "objective": "统计每个元素出现次数，返回字典/对象。",
+      "story": "工厂任务第 7 项。",
+      "starter_code": "function solve(arr){ /* 次数统计 */ }",
+      "reference_solution": "function solve(arr){ const m={}; for(const x of arr){ m[x]=(m[x]||0)+1;} return m; }",
+      "expected_io": {
+        "input": [1, 1, 2, 3, 3],
+        "output": {
+          "1": 2,
+          "2": 1,
+          "3": 2
+        }
+      },
+      "judge": {
+        "type": "unit_tests",
+        "tests": [
+          {
+            "input": [1, 1, 2, 3, 3],
+            "output": {
+              "1": 2,
+              "2": 1,
+              "3": 2
+            }
+          }
+        ]
+      },
+      "hints": ["先写出最朴素的思路，再考虑内置函数。"]
+    },
+    {
+      "level": 8,
+      "title": "筛选大于阈值",
+      "objective": "筛选出大于给定阈值的元素。",
+      "story": "工厂任务第 8 项。",
+      "starter_code": "function solve(arr, th){ /* 筛选 > th */ }",
+      "reference_solution": "function solve(arr, th){ return arr.filter(x=>x>th); }",
+      "expected_io": {
+        "input": {
+          "arr": [1, 5, 3],
+          "th": 3
+        },
+        "output": [5]
+      },
+      "judge": {
+        "type": "unit_tests",
+        "tests": [
+          {
+            "input": {
+              "arr": [1, 5, 3],
+              "th": 3
+            },
+            "output": [5]
+          }
+        ]
+      },
+      "hints": ["先写出最朴素的思路，再考虑内置函数。"]
+    },
+    {
+      "level": 9,
+      "title": "合并去重排序",
+      "objective": "合并两个数组并去重排序。",
+      "story": "工厂任务第 9 项。",
+      "starter_code": "function solve(a, b){ /* 合并去重排序 */ }",
+      "reference_solution": "function solve(a,b){ return Array.from(new Set([...a,...b])).sort((x,y)=>x-y); }",
+      "expected_io": {
+        "input": {
+          "a": [1, 2],
+          "b": [2, 3]
+        },
+        "output": [1, 2, 3]
+      },
+      "judge": {
+        "type": "unit_tests",
+        "tests": [
+          {
+            "input": {
+              "a": [1, 2],
+              "b": [2, 3]
+            },
+            "output": [1, 2, 3]
+          }
+        ]
+      },
+      "hints": ["先写出最朴素的思路，再考虑内置函数。"]
+    },
+    {
+      "level": 10,
+      "title": "挑战：前 K 大",
+      "objective": "返回数组中前 K 大的元素（降序）。",
+      "story": "工厂任务第 10 项。",
+      "starter_code": "function solve(arr, k){ /* 前K大 */ }",
+      "reference_solution": "function solve(arr,k){ return [...arr].sort((a,b)=>b-a).slice(0,k); }",
+      "expected_io": {
+        "input": {
+          "arr": [9, 1, 5, 3, 7],
+          "k": 3
+        },
+        "output": [9, 7, 5]
+      },
+      "judge": {
+        "type": "unit_tests",
+        "tests": [
+          {
+            "input": {
+              "arr": [9, 1, 5, 3, 7],
+              "k": 3
+            },
+            "output": [9, 7, 5]
+          }
+        ]
+      },
+      "hints": ["先写出最朴素的思路，再考虑内置函数。"]
+    }
+  ]
+}

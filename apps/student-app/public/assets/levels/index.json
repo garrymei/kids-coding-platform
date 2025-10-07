@@ -4,41 +4,47 @@
     "title": "循环入门",
     "type": "pixel",
     "pack": "python-basics",
-    "prereq": []
+    "prereq": [],
+    "solution": "for i in range(5):\n    pixel(i, 0, 'blue')"
   },
   {
     "id": "loops-2",
     "title": "循环练习",
     "type": "pixel",
     "pack": "python-basics",
-    "prereq": ["loops-1"]
+    "prereq": ["loops-1"],
+    "solution": "for x in range(5):\n    for y in range(5):\n        pixel(x, y, 'green')"
   },
   {
     "id": "loops-3",
     "title": "嵌套循环",
     "type": "pixel",
     "pack": "python-basics",
-    "prereq": ["loops-2"]
+    "prereq": ["loops-2"],
+    "solution": "for i in range(5):\n    for j in range(i+1):\n        pixel(j, i, 'red')"
   },
   {
     "id": "maze-1",
     "title": "迷宫入门",
     "type": "maze",
     "pack": "maze",
-    "prereq": []
+    "prereq": [],
+    "solution": "move()\nmove()\nturn_right()\nmove()"
   },
   {
     "id": "py-io-001",
     "title": "输入输出基础",
     "type": "io",
     "pack": "python-io",
-    "prereq": []
+    "prereq": [],
+    "solution": "name = input()\nprint(f'Hello, {name}!')"
   },
   {
     "id": "py-io-002",
     "title": "回声频道",
     "type": "io",
     "pack": "python-io",
-    "prereq": ["py-io-001"]
+    "prereq": ["py-io-001"],
+    "solution": "for i in range(5):\n    text = input()\n    print(text)"
   }
 ]

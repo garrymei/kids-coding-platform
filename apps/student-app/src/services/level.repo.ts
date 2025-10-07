@@ -88,6 +88,7 @@ export type LevelLite = {
   type: 'pixel' | 'maze' | 'io' | 'music' | 'led';
   pack: string;
   prereq?: string[];
+  solution?: string; // 参考答案代码
 };
 
 export type CourseMap = {

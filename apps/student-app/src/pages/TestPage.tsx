@@ -1,3 +1,5 @@
+import { Link } from 'react-router-dom';
+
 export default function TestPage() {
   return (
     <div style={{ padding: '2rem', background: 'var(--bg-primary)', minHeight: '100vh' }}>
@@ -15,7 +17,92 @@ export default function TestPage() {
           <li>🎨 作品集 - 作品展示</li>
           <li>🏅 成就系统 - 徽章网格</li>
           <li>▶️ Play页面 - 标准化反馈</li>
+          <li>📚 课程学习 - 新增StudyRunner组件</li>
         </ul>
+
+        {/* 新增：StudyRunner 快速访问 */}
+        <div
+          style={{
+            marginTop: '2rem',
+            padding: '1.5rem',
+            background: 'rgba(76, 175, 80, 0.1)',
+            borderRadius: '8px',
+            border: '2px solid rgba(76, 175, 80, 0.3)',
+          }}
+        >
+          <h3 style={{ marginTop: 0, marginBottom: '1rem', color: 'var(--text-primary)' }}>
+            🆕 测试 StudyRunner（课程学习组件）
+          </h3>
+          <p style={{ marginBottom: '1rem' }}>选择一个关卡开始测试：</p>
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
+              gap: '1rem',
+            }}
+          >
+            {/* Python 游戏 */}
+            <div
+              style={{ padding: '1rem', background: 'var(--bg-secondary)', borderRadius: '8px' }}
+            >
+              <h4 style={{ marginTop: 0, color: '#3776ab' }}>🐍 Python</h4>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                <Link
+                  to="/learn/python/maze_navigator/1"
+                  className="btn btn-primary"
+                  style={{ textDecoration: 'none', textAlign: 'center' }}
+                >
+                  迷宫导航 - 第1关
+                </Link>
+                <Link
+                  to="/learn/python/turtle_artist/1"
+                  className="btn btn-primary"
+                  style={{ textDecoration: 'none', textAlign: 'center' }}
+                >
+                  海龟画家 - 第1关
+                </Link>
+                <Link
+                  to="/learn/python/robot_sorter/1"
+                  className="btn btn-primary"
+                  style={{ textDecoration: 'none', textAlign: 'center' }}
+                >
+                  机器人分拣 - 第1关
+                </Link>
+              </div>
+            </div>
+
+            {/* JavaScript 游戏 */}
+            <div
+              style={{ padding: '1rem', background: 'var(--bg-secondary)', borderRadius: '8px' }}
+            >
+              <h4 style={{ marginTop: 0, color: '#f7df1e' }}>⚡ JavaScript</h4>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                <Link
+                  to="/learn/javascript/maze_navigator/1"
+                  className="btn btn-primary"
+                  style={{ textDecoration: 'none', textAlign: 'center' }}
+                >
+                  迷宫导航 - 第1关
+                </Link>
+                <Link
+                  to="/learn/javascript/turtle_artist/1"
+                  className="btn btn-primary"
+                  style={{ textDecoration: 'none', textAlign: 'center' }}
+                >
+                  海龟画家 - 第1关
+                </Link>
+                <Link
+                  to="/learn/javascript/robot_sorter/1"
+                  className="btn btn-primary"
+                  style={{ textDecoration: 'none', textAlign: 'center' }}
+                >
+                  机器人分拣 - 第1关
+                </Link>
+              </div>
+            </div>
+          </div>
+        </div>
+
         <div
           style={{
             marginTop: '2rem',

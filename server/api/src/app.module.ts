@@ -1,6 +1,7 @@
 import { Module, MiddlewareConsumer, NestModule, RequestMethod } from '@nestjs/common';
 import { ExecuteModule } from './modules/execute/execute.module';
 import { JudgeModule } from './modules/judge/judge.module';
+import { CurriculumModule } from './modules/curriculum/curriculum.module';
 import { MetricsModule } from './modules/metrics/metrics.module';
 import { AuditModule } from './modules/audit/audit.module';
 import { HealthModule } from './modules/health/health.module';
@@ -17,31 +18,35 @@ import { RateLimitMiddleware } from './middleware/rate-limit.middleware';
 import { AuthMiddleware } from './middleware/auth.middleware';
 
 @Module({
-  imports: [ExecuteModule, JudgeModule, MetricsModule, AuditModule, HealthModule, LevelModule, ProgressModule, ConsentModule, AuthModule, PrometheusMetricsModule],
+  imports: [
+    ExecuteModule,
+    JudgeModule,
+    CurriculumModule,
+    ProgressModule,
+    MetricsModule,
+    AuditModule,
+    HealthModule,
+    LevelModule,
+    ConsentModule,
+    AuthModule,
+    PrometheusMetricsModule,
+  ],
   providers: [LoggerService],
   exports: [LoggerService],
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
     // 安全头中间件 - 最先应用
-    consumer
-      .apply(SecurityMiddleware)
-      .forRoutes('*');
+    consumer.apply(SecurityMiddleware).forRoutes('*');
 
     // 数据库降级中间件
-    consumer
-      .apply(DatabaseDegradationMiddleware)
-      .forRoutes('*');
+    consumer.apply(DatabaseDegradationMiddleware).forRoutes('*');
 
     // 输入验证中间件
-    consumer
-      .apply(ValidationMiddleware)
-      .forRoutes('*');
+    consumer.apply(ValidationMiddleware).forRoutes('*');
 
     // 速率限制中间件
-    consumer
-      .apply(RateLimitMiddleware)
-      .forRoutes('*');
+    consumer.apply(RateLimitMiddleware).forRoutes('*');
 
     // 认证中间件 - 应用到需要认证的路由
     consumer

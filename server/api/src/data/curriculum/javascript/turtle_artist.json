@@ -1,0 +1,207 @@
+{
+  "game_id": "turtle_artist",
+  "language": "javascript",
+  "title": "海龟画家",
+  "levels": [
+    {
+      "level": 1,
+      "title": "画一条线",
+      "objective": "让画笔前进 50 绘制一条线。",
+      "story": "画家训练第 1 课。",
+      "starter_code": "function solve(t){\n  // t.forward(len); t.right(deg)\n}\n",
+      "reference_solution": "function solve(t){ t.forward(50); }",
+      "expected_io": {
+        "input": null,
+        "output": "SVG_DRAWN"
+      },
+      "judge": {
+        "type": "svg_path_similarity",
+        "criteria": {
+          "tolerance": 0.1,
+          "segments": 1
+        }
+      },
+      "hints": ["先用循环复用边与角度关系。"]
+    },
+    {
+      "level": 2,
+      "title": "正方形",
+      "objective": "用循环画正方形（边长60）。",
+      "story": "画家训练第 2 课。",
+      "starter_code": "function solve(t){\n  // t.forward(len); t.right(deg)\n}\n",
+      "reference_solution": "function solve(t){ for(let i=0;i<4;i++){ t.forward(60); t.right(90);} }",
+      "expected_io": {
+        "input": null,
+        "output": "SVG_DRAWN"
+      },
+      "judge": {
+        "type": "svg_path_similarity",
+        "criteria": {
+          "tolerance": 0.1,
+          "segments": 2
+        }
+      },
+      "hints": ["先用循环复用边与角度关系。"]
+    },
+    {
+      "level": 3,
+      "title": "三角形",
+      "objective": "画等边三角形（边长60）。",
+      "story": "画家训练第 3 课。",
+      "starter_code": "function solve(t){\n  // t.forward(len); t.right(deg)\n}\n",
+      "reference_solution": "function solve(t){ for(let i=0;i<3;i++){ t.forward(60); t.right(120);} }",
+      "expected_io": {
+        "input": null,
+        "output": "SVG_DRAWN"
+      },
+      "judge": {
+        "type": "svg_path_similarity",
+        "criteria": {
+          "tolerance": 0.1,
+          "segments": 3
+        }
+      },
+      "hints": ["先用循环复用边与角度关系。"]
+    },
+    {
+      "level": 4,
+      "title": "五边形",
+      "objective": "画正五边形（边长50）。",
+      "story": "画家训练第 4 课。",
+      "starter_code": "function solve(t){\n  // t.forward(len); t.right(deg)\n}\n",
+      "reference_solution": "function solve(t){ for(let i=0;i<5;i++){ t.forward(50); t.right(72);} }",
+      "expected_io": {
+        "input": null,
+        "output": "SVG_DRAWN"
+      },
+      "judge": {
+        "type": "svg_path_similarity",
+        "criteria": {
+          "tolerance": 0.1,
+          "segments": 4
+        }
+      },
+      "hints": ["先用循环复用边与角度关系。"]
+    },
+    {
+      "level": 5,
+      "title": "星形",
+      "objective": "画五角星（边长40）。",
+      "story": "画家训练第 5 课。",
+      "starter_code": "function solve(t){\n  // t.forward(len); t.right(deg)\n}\n",
+      "reference_solution": "function solve(t){ for(let i=0;i<5;i++){ t.forward(40); t.right(144);} }",
+      "expected_io": {
+        "input": null,
+        "output": "SVG_DRAWN"
+      },
+      "judge": {
+        "type": "svg_path_similarity",
+        "criteria": {
+          "tolerance": 0.1,
+          "segments": 5
+        }
+      },
+      "hints": ["先用循环复用边与角度关系。"]
+    },
+    {
+      "level": 6,
+      "title": "同心方框",
+      "objective": "从中心画 3 个同心正方形。",
+      "story": "画家训练第 6 课。",
+      "starter_code": "function solve(t){\n  // t.forward(len); t.right(deg)\n}\n",
+      "reference_solution": "function solve(t){ [40,60,80].forEach(k=>{ for(let i=0;i<4;i++){ t.forward(k); t.right(90);} }); }",
+      "expected_io": {
+        "input": null,
+        "output": "SVG_DRAWN"
+      },
+      "judge": {
+        "type": "svg_path_similarity",
+        "criteria": {
+          "tolerance": 0.1,
+          "segments": 6
+        }
+      },
+      "hints": ["先用循环复用边与角度关系。"]
+    },
+    {
+      "level": 7,
+      "title": "正多边循环",
+      "objective": "封装循环画 n 边形。",
+      "story": "画家训练第 7 课。",
+      "starter_code": "function solve(t){\n  // t.forward(len); t.right(deg)\n}\n",
+      "reference_solution": "function solve(t){ let n=6,L=40; for(let i=0;i<n;i++){ t.forward(L); t.right(360/n);} }",
+      "expected_io": {
+        "input": null,
+        "output": "SVG_DRAWN"
+      },
+      "judge": {
+        "type": "svg_path_similarity",
+        "criteria": {
+          "tolerance": 0.1,
+          "segments": 7
+        }
+      },
+      "hints": ["先用循环复用边与角度关系。"]
+    },
+    {
+      "level": 8,
+      "title": "函数复用",
+      "objective": "将画 n 边形封装为函数复用 2 次。",
+      "story": "画家训练第 8 课。",
+      "starter_code": "function solve(t){\n  // t.forward(len); t.right(deg)\n}\n",
+      "reference_solution": "function solve(t){ const poly=(n,L)=>{ for(let i=0;i<n;i++){ t.forward(L); t.right(360/n);} }; poly(5,40); poly(3,60);}",
+      "expected_io": {
+        "input": null,
+        "output": "SVG_DRAWN"
+      },
+      "judge": {
+        "type": "svg_path_similarity",
+        "criteria": {
+          "tolerance": 0.1,
+          "segments": 8
+        }
+      },
+      "hints": ["先用循环复用边与角度关系。"]
+    },
+    {
+      "level": 9,
+      "title": "参数化多边形",
+      "objective": "实现 `polygon(n, len)` 可画任意正多边形。",
+      "story": "画家训练第 9 课。",
+      "starter_code": "function solve(t){\n  // t.forward(len); t.right(deg)\n}\n",
+      "reference_solution": "function solve(t){ const polygon=(n,L)=>{ for(let i=0;i<n;i++){ t.forward(L); t.right(360/n);} }; polygon(7,30);}",
+      "expected_io": {
+        "input": null,
+        "output": "SVG_DRAWN"
+      },
+      "judge": {
+        "type": "svg_path_similarity",
+        "criteria": {
+          "tolerance": 0.1,
+          "segments": 9
+        }
+      },
+      "hints": ["先用循环复用边与角度关系。"]
+    },
+    {
+      "level": 10,
+      "title": "挑战：小房子",
+      "objective": "组合正方形+三角形画小房子。",
+      "story": "画家训练第 10 课。",
+      "starter_code": "function solve(t){\n  // t.forward(len); t.right(deg)\n}\n",
+      "reference_solution": "function solve(t){ const square=L=>{ for(let i=0;i<4;i++){ t.forward(L); t.right(90);} }; const tri=L=>{ for(let i=0;i<3;i++){ t.forward(L); t.right(120);} }; square(60); t.right(90); t.penup(); t.forward(60); t.pendown(); t.left(90); tri(60);}",
+      "expected_io": {
+        "input": null,
+        "output": "SVG_DRAWN"
+      },
+      "judge": {
+        "type": "svg_path_similarity",
+        "criteria": {
+          "tolerance": 0.1,
+          "segments": 10
+        }
+      },
+      "hints": ["先用循环复用边与角度关系。"]
+    }
+  ]
+}

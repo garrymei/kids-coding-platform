@@ -1,195 +1,109 @@
 import { Injectable } from '@nestjs/common';
-import { JudgeRequestDto, JudgeResult } from './dto/judge-request.dto';
-import { judgeIO } from './strategies/io.strategy';
-import { judgeEventSeq } from './strategies/event-seq.strategy';
-import { judgeLEDStrategy } from './strategies/led.strategy';
-import { EventBridgeService } from '../execute/event-bridge.service';
-import { ExecutionEvent, extractArtifacts } from '../execute/eventParser';
-import { StrategyFactory, JudgeInput, JudgeResult as NewJudgeResult } from '@kids/judge-stub';
-
-type JudgeStrategy = 'stdout' | 'pixel' | 'music' | 'maze';
-
-type JudgeEvaluationResult = { ok: boolean; details?: any };
+import { JudgeRequest, JudgeResponse } from '../../common/dto/judge.dto';
 
 @Injectable()
 export class JudgeService {
-  constructor(private readonly eventBridge: EventBridgeService) {}
-
-  async judge(dto: JudgeRequestDto): Promise<JudgeResult> {
-    let ok = false;
-    let details: any = {};
-
-    switch (dto.gameType) {
-      case 'io': {
-        const res = judgeIO(dto.expected.io, dto.actual);
-        ok = res.ok;
-        details = res;
-        break;
-      }
-      case 'led': {
-        // LED ר���������
-        const res = judgeLEDStrategy({
-          code: dto.actual.code || '',
-          grader: dto.expected,
-          assets: dto.actual.assets,
-        });
-        ok = res.ok;
-        details = res;
-        break;
-      }
-      case 'maze': {
-        // ��֧��������¼���������
-        const res = judgeEventSeq(dto.expected.events, dto.actual);
-        ok = res.ok;
-        details = res;
-        break;
-      }
-      default: {
-        // ���������ȷ���δʵ��
-        return { ok: false, score: 0, stars: 0, details: { message: 'Not implemented' } };
-      }
+  async judge(req: JudgeRequest): Promise<JudgeResponse> {
+    switch (req.type) {
+      case 'api_events':
+        return this.judgeApiEvents(req);
+      case 'svg_path_similarity':
+        return this.judgeSvg(req);
+      case 'unit_tests':
+        return this.judgeUnit(req);
+      case 'stdout_compare':
+        return this.judgeStdout(req);
+      default:
+        return { pass: false, message: 'Unknown judge type' };
     }
-
-    // �򻯣�ok=3�ǣ�����1�ǣ��������ɹؿ����þ���������ֻ��ռλ
-    const stars = ok ? 3 : 1;
-    const score = stars;
-    const rewards = ok ? { xp: 20, coins: 5, badges: [] } : { xp: 0, coins: 0 };
-
-    return { ok, score, stars, details, rewards };
   }
 
-  async evaluateStrategy(params: {
-    strategy: JudgeStrategy;
-    expected: any;
-    output: { stdout: string; events: ExecutionEvent[] };
-    args?: Record<string, unknown>;
-    metadata?: Record<string, any>;
-  }): Promise<JudgeEvaluationResult> {
-    const { strategy, expected, output, args = {}, metadata = {} } = params;
-
-    try {
-      // 使用新的统一判题接口
-      const judgeStrategy = StrategyFactory.getStrategy(strategy);
-      if (judgeStrategy) {
-        // 提取执行产物
-        const artifacts = extractArtifacts(output.stdout, output.events);
-
-        const judgeInput: JudgeInput = {
-          strategy,
-          expected,
-          output: {
-            stdout: output.stdout,
-            events: output.events,
-            artifacts,
-          },
-          args,
-          metadata,
-        };
-
-        const result: NewJudgeResult = judgeStrategy.judge(judgeInput);
-
-        return {
-          ok: result.passed,
-          details: {
-            message: result.message,
-            details: result.details,
-            visualization: result.visualization,
-            metrics: result.metrics,
-            diff: result.diff,
-            warnings: result.warnings,
-          },
-        };
-      }
-
-      // 回退到旧的判题逻辑
-      return this.evaluateStrategyLegacy(params);
-    } catch (error) {
+  private async judgeApiEvents(req: JudgeRequest): Promise<JudgeResponse> {
+    const { criteria = {}, payload } = req;
+    const endOk = payload?.meta?.reached === true || payload?.meta?.end === 'REACHED';
+    const maxSteps = criteria.max_steps;
+    if (maxSteps != null && payload?.meta?.steps > maxSteps) {
       return {
-        ok: false,
-        details: {
-          message: 'Judge evaluation failed',
-          error: error instanceof Error ? error.message : String(error),
-        },
+        pass: false,
+        message: `超过最大步数限制 ${maxSteps}`,
+        details: { steps: payload?.meta?.steps, maxSteps },
       };
     }
+    return {
+      pass: !!endOk,
+      message: endOk ? '成功到达终点！' : '未到达终点',
+      details: { reached: endOk, steps: payload?.meta?.steps },
+    };
   }
 
-  private async evaluateStrategyLegacy(params: {
-    strategy: JudgeStrategy;
-    expected: any;
-    output: { stdout: string; events: ExecutionEvent[] };
-    args?: Record<string, unknown>;
-  }): Promise<JudgeEvaluationResult> {
-    const { strategy, expected, output } = params;
-
-    switch (strategy) {
-      case 'stdout': {
-        if (expected && typeof expected === 'object' && Array.isArray(expected.cases)) {
-          const res = judgeIO(expected, { stdout: output.stdout });
-          return { ok: res.ok, details: res };
-        }
-        const expectedText = this.extractExpectedText(expected);
-        const actual = output.stdout.trim();
-        const ok = actual === expectedText.trim();
-        return ok
-          ? { ok: true }
-          : { ok: false, details: { expected: expectedText, actual: output.stdout } };
-      }
-      case 'maze': {
-        const expectedSeq = this.normalizeExpectedSequence(expected);
-        const actualSeq = this.eventBridge.toJudgeSequence(output.events, 'maze');
-        const res = judgeEventSeq({ expect: expectedSeq }, { events: actualSeq });
-        return { ok: res.ok, details: { ...res, expected: expectedSeq, actual: actualSeq } };
-      }
-      case 'music': {
-        const expectedSeq = this.normalizeExpectedSequence(expected);
-        const actualSeq = this.eventBridge.toJudgeSequence(output.events, 'music');
-        const ok =
-          expectedSeq.length === actualSeq.length &&
-          expectedSeq.every((v, i) => v === actualSeq[i]);
-        return ok
-          ? { ok: true }
-          : { ok: false, details: { expected: expectedSeq, actual: actualSeq } };
-      }
-      case 'pixel': {
-        return { ok: false, details: { message: 'Pixel strategy not implemented yet' } };
-      }
-      default:
-        return { ok: false, details: { message: `Unknown judge strategy: ${strategy}` } };
-    }
+  private async judgeSvg(req: JudgeRequest): Promise<JudgeResponse> {
+    const { criteria = {}, payload } = req;
+    const expected = Number(criteria.segments ?? 0);
+    const got = Number(payload?.segments?.length ?? 0);
+    const ok = expected > 0 ? Math.abs(expected - got) <= 1 : false;
+    return {
+      pass: ok,
+      message: ok ? '路径绘制正确！' : `路径段数不匹配（期望：${expected}，实际：${got}）`,
+      details: { expectedSegments: expected, actualSegments: got },
+    };
   }
 
-  private extractExpectedText(expected: any): string {
-    if (Array.isArray(expected)) {
-      return expected.map((item) => String(item)).join('\n');
-    }
-    if (expected && typeof expected === 'object') {
-      if (typeof expected.stdout === 'string') return expected.stdout;
-      if (Array.isArray(expected.stdout)) return expected.stdout.join('\n');
-      if (typeof expected.expect === 'string') return expected.expect;
-    }
-    return typeof expected === 'string' ? expected : '';
+  private async judgeUnit(req: JudgeRequest): Promise<JudgeResponse> {
+    const { payload } = req;
+    const { result, expected } = payload || {};
+    const pass = JSON.stringify(result) === JSON.stringify(expected);
+    return {
+      pass,
+      message: pass ? '结果正确！' : '结果与期望不一致',
+      details: { result, expected },
+    };
   }
 
-  private normalizeExpectedSequence(expected: any): string[] {
-    if (!expected) return [];
-    if (Array.isArray(expected)) {
-      return expected.map((item) => String(item));
+  // 新增：标准输出比对判题
+  private normalizeStdout(s: string): string {
+    return (s ?? '')
+      .replace(/\r\n/g, '\n')
+      .replace(/[ \t]+$/gm, '') // 去除行尾空格
+      .replace(/\n+$/, '') // 去除尾部空行
+      .trim();
+  }
+
+  private lines(s: string): string[] {
+    return this.normalizeStdout(s).split('\n');
+  }
+
+  private async judgeStdout(req: JudgeRequest): Promise<JudgeResponse> {
+    const { criteria = {}, payload = {} } = req;
+    const mode = criteria.mode || 'exact'; // exact | lines | regex
+    const expected = String(criteria.expected ?? payload.expected ?? '');
+    const actual = String(payload.stdout ?? '');
+    let pass = false;
+    let message = '';
+
+    if (mode === 'regex') {
+      const re = new RegExp(expected, 'm');
+      pass = re.test(actual);
+      message = pass ? '输出匹配正则表达式！' : '输出不匹配正则表达式';
+    } else if (mode === 'lines') {
+      // 行级比较（忽略行末空格、Windows/Unix换行差异）
+      const actualLines = this.lines(actual);
+      const expectedLines = this.lines(expected);
+      pass =
+        actualLines.length === expectedLines.length &&
+        actualLines.every((x, i) => x === expectedLines[i]);
+      message = pass
+        ? '输出完全正确！'
+        : `输出不匹配（期望 ${expectedLines.length} 行，实际 ${actualLines.length} 行）`;
+    } else {
+      // exact 模式
+      pass = this.normalizeStdout(actual) === this.normalizeStdout(expected);
+      message = pass ? '输出完全正确！' : '输出与期望不一致';
     }
-    if (typeof expected === 'object') {
-      if (Array.isArray(expected.events)) {
-        return expected.events.map((item: unknown) => String(item));
-      }
-      if (Array.isArray(expected.expect)) {
-        return expected.expect.map((item: unknown) => String(item));
-      }
-      if (Array.isArray(expected.sequence)) {
-        return expected.sequence.map((item: unknown) => String(item));
-      }
-    }
-    if (typeof expected === 'string') {
-      return expected.split(/\r?\n/).filter(Boolean);
-    }
-    return [];
+
+    return {
+      pass,
+      message,
+      details: { mode, expected, actual },
+    };
   }
 }

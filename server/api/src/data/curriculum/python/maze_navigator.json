@@ -1,0 +1,207 @@
+{
+  "game_id": "maze_navigator",
+  "language": "python",
+  "title": "迷宫探索",
+  "levels": [
+    {
+      "level": 1,
+      "title": "向前一步",
+      "objective": "向前移动 1 步到达终点。",
+      "story": "迷宫第1关，挑战升级。",
+      "starter_code": "def solve(api):\n    # api: move_forward(steps), left(), right(), wall_ahead(), has_key(), take_key(), open_door()\n    pass\n",
+      "reference_solution": "def solve(api):\n    api.move_forward(1)\n",
+      "expected_io": {
+        "input": null,
+        "output": "REACHED"
+      },
+      "judge": {
+        "type": "api_events",
+        "criteria": {
+          "end_state": "REACHED",
+          "max_steps": null
+        }
+      },
+      "hints": ["先尝试直接前进。"]
+    },
+    {
+      "level": 2,
+      "title": "左右转向",
+      "objective": "学会 left()/right() 转向后前进到终点。",
+      "story": "迷宫第2关，挑战升级。",
+      "starter_code": "def solve(api):\n    # api: move_forward(steps), left(), right(), wall_ahead(), has_key(), take_key(), open_door()\n    pass\n",
+      "reference_solution": "def solve(api):\n    api.right(); api.move_forward(1)\n",
+      "expected_io": {
+        "input": null,
+        "output": "REACHED"
+      },
+      "judge": {
+        "type": "api_events",
+        "criteria": {
+          "end_state": "REACHED",
+          "max_steps": null
+        }
+      },
+      "hints": ["转向后再走。"]
+    },
+    {
+      "level": 3,
+      "title": "两段路径",
+      "objective": "走完两段折线路径到终点。",
+      "story": "迷宫第3关，挑战升级。",
+      "starter_code": "def solve(api):\n    # api: move_forward(steps), left(), right(), wall_ahead(), has_key(), take_key(), open_door()\n    pass\n",
+      "reference_solution": "def solve(api):\n    api.move_forward(2); api.right(); api.move_forward(1)\n",
+      "expected_io": {
+        "input": null,
+        "output": "REACHED"
+      },
+      "judge": {
+        "type": "api_events",
+        "criteria": {
+          "end_state": "REACHED",
+          "max_steps": null
+        }
+      },
+      "hints": ["拆分折线为两段。"]
+    },
+    {
+      "level": 4,
+      "title": "遇墙转弯",
+      "objective": "检测前方是否有墙，有则右转再前进。",
+      "story": "迷宫第4关，挑战升级。",
+      "starter_code": "def solve(api):\n    # api: move_forward(steps), left(), right(), wall_ahead(), has_key(), take_key(), open_door()\n    pass\n",
+      "reference_solution": "def solve(api):\n    if api.wall_ahead(): api.right()\n    api.move_forward(1)\n",
+      "expected_io": {
+        "input": null,
+        "output": "REACHED"
+      },
+      "judge": {
+        "type": "api_events",
+        "criteria": {
+          "end_state": "REACHED",
+          "max_steps": null
+        }
+      },
+      "hints": ["判断前方是否有墙。"]
+    },
+    {
+      "level": 5,
+      "title": "小回形路径",
+      "objective": "按指示走出小回形路径。",
+      "story": "迷宫第5关，挑战升级。",
+      "starter_code": "def solve(api):\n    # api: move_forward(steps), left(), right(), wall_ahead(), has_key(), take_key(), open_door()\n    pass\n",
+      "reference_solution": "def solve(api):\n    api.move_forward(1); api.right(); api.move_forward(1); api.right(); api.move_forward(1)\n",
+      "expected_io": {
+        "input": null,
+        "output": "REACHED"
+      },
+      "judge": {
+        "type": "api_events",
+        "criteria": {
+          "end_state": "REACHED",
+          "max_steps": null
+        }
+      },
+      "hints": ["按提示走出回形。"]
+    },
+    {
+      "level": 6,
+      "title": "循环代替重复",
+      "objective": "用循环消除重复指令，走到终点。",
+      "story": "迷宫第6关，挑战升级。",
+      "starter_code": "def solve(api):\n    # api: move_forward(steps), left(), right(), wall_ahead(), has_key(), take_key(), open_door()\n    pass\n",
+      "reference_solution": "def solve(api):\n    for _ in range(3): api.move_forward(1)\n",
+      "expected_io": {
+        "input": null,
+        "output": "REACHED"
+      },
+      "judge": {
+        "type": "api_events",
+        "criteria": {
+          "end_state": "REACHED",
+          "max_steps": null
+        }
+      },
+      "hints": ["把重复前进改成循环。"]
+    },
+    {
+      "level": 7,
+      "title": "绕过障碍",
+      "objective": "绕过障碍块到达终点。",
+      "story": "迷宫第7关，挑战升级。",
+      "starter_code": "def solve(api):\n    # api: move_forward(steps), left(), right(), wall_ahead(), has_key(), take_key(), open_door()\n    pass\n",
+      "reference_solution": "def solve(api):\n    api.move_forward(1); api.right(); api.move_forward(2)\n",
+      "expected_io": {
+        "input": null,
+        "output": "REACHED"
+      },
+      "judge": {
+        "type": "api_events",
+        "criteria": {
+          "end_state": "REACHED",
+          "max_steps": null
+        }
+      },
+      "hints": ["观察障碍位置调整路线。"]
+    },
+    {
+      "level": 8,
+      "title": "钥匙与门",
+      "objective": "先拿到钥匙再通过大门抵达终点。",
+      "story": "迷宫第8关，挑战升级。",
+      "starter_code": "def solve(api):\n    # api: move_forward(steps), left(), right(), wall_ahead(), has_key(), take_key(), open_door()\n    pass\n",
+      "reference_solution": "def solve(api):\n    api.move_forward(1); api.take_key(); api.right(); api.open_door(); api.move_forward(1)\n",
+      "expected_io": {
+        "input": null,
+        "output": "REACHED"
+      },
+      "judge": {
+        "type": "api_events",
+        "criteria": {
+          "end_state": "REACHED",
+          "max_steps": null
+        }
+      },
+      "hints": ["拿钥匙→开门→终点。"]
+    },
+    {
+      "level": 9,
+      "title": "最短路径",
+      "objective": "找到最短路径（限制指令次数）。",
+      "story": "迷宫第9关，挑战升级。",
+      "starter_code": "def solve(api):\n    # api: move_forward(steps), left(), right(), wall_ahead(), has_key(), take_key(), open_door()\n    pass\n",
+      "reference_solution": "def solve(api):\n    # 假设最短路径为：F2,R,F1\n    api.move_forward(2); api.right(); api.move_forward(1)\n",
+      "expected_io": {
+        "input": null,
+        "output": "REACHED"
+      },
+      "judge": {
+        "type": "api_events",
+        "criteria": {
+          "end_state": "REACHED",
+          "max_steps": 3
+        }
+      },
+      "hints": ["控制总指令数量。"]
+    },
+    {
+      "level": 10,
+      "title": "限步通关",
+      "objective": "在限定总步数内抵达终点。",
+      "story": "迷宫第10关，挑战升级。",
+      "starter_code": "def solve(api):\n    # api: move_forward(steps), left(), right(), wall_ahead(), has_key(), take_key(), open_door()\n    pass\n",
+      "reference_solution": "def solve(api):\n    # 限步 3\n    api.move_forward(2); api.right(); api.move_forward(1)\n",
+      "expected_io": {
+        "input": null,
+        "output": "REACHED"
+      },
+      "judge": {
+        "type": "api_events",
+        "criteria": {
+          "end_state": "REACHED",
+          "max_steps": 3
+        }
+      },
+      "hints": ["总步数有上限，先规划。"]
+    }
+  ]
+}
