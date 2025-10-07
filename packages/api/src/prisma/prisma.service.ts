@@ -1,62 +1,77 @@
 ﻿import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 
-type PrismaDelegate = {
-  findUnique: (...args: any[]) => Promise<any>;
-  findFirst: (...args: any[]) => Promise<any>;
-  findMany: (...args: any[]) => Promise<any[]>;
-  create: (...args: any[]) => Promise<any>;
-  update: (...args: any[]) => Promise<any>;
-  updateMany: (...args: any[]) => Promise<{ count: number }>;
-  createMany: (...args: any[]) => Promise<{ count: number }>;
-  delete: (...args: any[]) => Promise<any>;
-  deleteMany: (...args: any[]) => Promise<{ count: number }>;
-  count: (...args: any[]) => Promise<number>;
-};
+type AsyncFn<T = any> = (...args: any[]) => Promise<T>;
 
-function createDelegate(model: string, logger: Logger): PrismaDelegate {
-  const log = (operation: string) =>
-    logger.warn([Prisma mock] . invoked in mock database mode.);
+interface PrismaDelegateMock {
+  findUnique: AsyncFn;
+  findFirst: AsyncFn;
+  findMany: AsyncFn<any[]>;
+  create: AsyncFn;
+  createMany: AsyncFn<{ count: number }>;
+  update: AsyncFn;
+  updateMany: AsyncFn<{ count: number }>;
+  upsert: AsyncFn;
+  delete: AsyncFn;
+  deleteMany: AsyncFn<{ count: number }>;
+  count: AsyncFn<number>;
+  groupBy: AsyncFn<any[]>;
+}
+
+function createDelegate(model: string, logger: Logger): PrismaDelegateMock {
+  const log = (operation: string) => {
+    logger.warn(`Prisma mock :: ${model}.${operation} invoked in mock database mode.`);
+  };
+
+  const returnInput = (args: any[]) => args?.[0]?.data ?? null;
 
   return {
-    async findUnique(...args: any[]) {
+    async findUnique(...args) {
       log('findUnique');
       return null;
     },
-    async findFirst(...args: any[]) {
+    async findFirst(...args) {
       log('findFirst');
       return null;
     },
-    async findMany(...args: any[]) {
+    async findMany(...args) {
       log('findMany');
       return [];
     },
-    async create(...args: any[]) {
+    async create(...args) {
       log('create');
-      return args[0]?.data ?? null;
+      return returnInput(args);
     },
-    async update(...args: any[]) {
-      log('update');
-      return args[0]?.data ?? null;
-    },
-    async updateMany(...args: any[]) {
-      log('updateMany');
-      return { count: 0 };
-    },
-    async createMany(...args: any[]) {
+    async createMany(...args) {
       log('createMany');
       return { count: 0 };
     },
-    async delete(...args: any[]) {
+    async update(...args) {
+      log('update');
+      return returnInput(args);
+    },
+    async updateMany(...args) {
+      log('updateMany');
+      return { count: 0 };
+    },
+    async upsert(...args) {
+      log('upsert');
+      return args?.[0]?.create ?? null;
+    },
+    async delete(...args) {
       log('delete');
       return null;
     },
-    async deleteMany(...args: any[]) {
+    async deleteMany(...args) {
       log('deleteMany');
       return { count: 0 };
     },
-    async count(...args: any[]) {
+    async count(...args) {
       log('count');
       return 0;
+    },
+    async groupBy(...args) {
+      log('groupBy');
+      return [];
     },
   };
 }
@@ -81,21 +96,23 @@ export class PrismaService implements OnModuleInit {
     this.logger.warn('PrismaService is running in mock mode. No database connection will be established.');
   }
 
-  async (): Promise<void> {
-    this.logger.log('PrismaService mock connect invoked');
+  async $connect(): Promise<void> {
+    this.logger.log('PrismaService mock connect invoked.');
   }
 
-  async (): Promise<void> {
-    this.logger.log('PrismaService mock disconnect invoked');
+  async $disconnect(): Promise<void> {
+    this.logger.log('PrismaService mock disconnect invoked.');
   }
 
-  async <T = unknown>(query: string): Promise<T[]> {
-    this.logger.warn([Prisma mock]  executed with query: );
-    return [];
+  async $queryRawUnsafe<T = unknown>(...params: any[]): Promise<T> {
+    const [query] = params;
+    this.logger.warn(`Prisma mock :: $queryRawUnsafe executed with query: ${query}`);
+    return [] as T;
   }
 
-  async <T = unknown>(query: string): Promise<T[]> {
-    this.logger.warn([Prisma mock]  executed with query: );
-    return [];
+  async $queryRaw<T = unknown>(...params: any[]): Promise<T> {
+    const [query] = params;
+    this.logger.warn(`Prisma mock :: $queryRaw executed with query: ${query}`);
+    return [] as T;
   }
 }

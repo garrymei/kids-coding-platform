@@ -111,31 +111,32 @@ export function CourseCreateForm({ onSubmit, isLoading = false }: CourseCreateFo
 
       <FormField
         label="课程标签"
-        error={errors.tags}
+        error={Array.isArray(errors.tags) ? errors.tags[0] : errors.tags}
         required
         helpText="选择相关的标签，最多可选择 5 个"
       >
-        <div className="tag-selector">
-          {commonTags.map((tag) => (
-            <FormCheckbox
-              key={tag}
-              register={{
-                ...tagsRegister,
-                value: tag,
-                onChange: (event) => {
-                  tagsRegister.onChange(event);
-                  handleTagToggle(tag);
-                },
-              }}
-              label={tag}
-              checked={selectedTags.includes(tag)}
-              disabled={
-                isBusy || (!selectedTags.includes(tag) && selectedTags.length >= 5)
-              }
-            />
-          ))}
-        </div>
-        <div className="tag-info">已选择 {selectedTags.length}/5 个标签</div>
+        <>
+          <div className="tag-selector">
+            {commonTags.map((tag) => (
+              <FormCheckbox
+                key={tag}
+                register={{
+                  ...tagsRegister,
+                  onChange: async (event) => {
+                    await tagsRegister.onChange(event);
+                    handleTagToggle(tag);
+                  },
+                }}
+                label={tag}
+                checked={selectedTags.includes(tag)}
+                disabled={
+                  isBusy || (!selectedTags.includes(tag) && selectedTags.length >= 5)
+                }
+              />
+            ))}
+          </div>
+          <div className="tag-info">已选择 {selectedTags.length}/5 个标签</div>
+        </>
       </FormField>
 
       <FormField

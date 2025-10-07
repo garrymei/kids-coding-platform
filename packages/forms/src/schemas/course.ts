@@ -22,7 +22,7 @@ export const courseCreateSchema = z.object({
     .int()
     .min(1, '预计时长必须大于0')
     .max(480, '预计时长不能超过480分钟'),
-  isPublic: z.boolean().default(true),
+  isPublic: z.boolean(),
 });
 
 export type CourseCreateFormData = z.infer<typeof courseCreateSchema>;
@@ -55,7 +55,7 @@ export const lessonCreateSchema = z.object({
     .int()
     .min(1, '预计时长必须大于0')
     .max(120, '预计时长不能超过120分钟'),
-  isPublished: z.boolean().default(false),
+  isPublished: z.boolean(),
 });
 
 export type LessonCreateFormData = z.infer<typeof lessonCreateSchema>;
@@ -81,14 +81,12 @@ export const assignmentCreateSchema = z.object({
     .number()
     .int()
     .min(1, '最大尝试次数至少为1')
-    .max(10, '最大尝试次数不能超过10')
-    .default(3),
+    .max(10, '最大尝试次数不能超过10'),
   points: z
     .number()
     .int()
     .min(1, '分数至少为1')
-    .max(1000, '分数不能超过1000')
-    .default(100),
+    .max(1000, '分数不能超过1000'),
 });
 
 export type AssignmentCreateFormData = z.infer<typeof assignmentCreateSchema>;

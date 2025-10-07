@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useMetricsStore } from '../../stores/metrics';
 import { LineTimeseries } from '@kids/ui-kit';
-import { Dim, Period } from '@kids/utils';
+import type { Dim, Period } from '@kids/utils';
 import { Select, Card, Skeleton } from 'antd';
 import { useParams, useLocation } from 'react-router-dom';
 
@@ -18,7 +18,7 @@ export function StudentTrendPage() {
 
   const { trendSeries, trendLoading, fetchTrend } = useMetricsStore();
   const [dimension, setDimension] = useState<Dim>(initialDim);
-  const [period, setPeriod] = useState<Period>('weekly');
+  const [period, _setPeriod] = useState<Period>('weekly');
 
   useEffect(() => {
     if (studentId) {

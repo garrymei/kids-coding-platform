@@ -45,6 +45,14 @@ export default function PlayPage() {
     };
   }, [levelId]);
 
+  // useMemo 必须在所有条件返回之前调用
+  const visual = useMemo(() => {
+    if (state.status === 'ready' && state.level) {
+      return renderVisualization(state.level, runResult);
+    }
+    return null;
+  }, [state.status, state.level, runResult]);
+
   if (state.status === 'loading') {
     return <div className="card" style={{ height: 240 }} />;
   }
@@ -55,7 +63,6 @@ export default function PlayPage() {
 
   const level = state.level;
   const summary = level.story || (level.goals?.length ? `目标：${level.goals.join('、')}` : '');
-  const visual = useMemo(() => renderVisualization(level, runResult), [level, runResult]);
 
   return (
     <div className="kc-container" style={{ maxWidth: 1128 }}>

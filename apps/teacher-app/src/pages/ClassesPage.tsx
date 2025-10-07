@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Button, List, Modal, Form, Input, Tag } from 'antd';
 import { Link } from 'react-router-dom';
 import { useClassStore } from '../stores/class';

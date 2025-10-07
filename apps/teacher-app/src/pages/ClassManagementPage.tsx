@@ -139,10 +139,10 @@ const ClassManagementPage: React.FC = () => {
   };
 
   // 审批学生入班
-  const handleApproveEnrollment = async (enrollmentId: string, action: 'approve' | 'reject') => {
+  const handleApproveEnrollment = async (_enrollmentId: string, action: 'approve' | 'reject') => {
     try {
       // TODO: 调用 API 审批入班
-      // await api.post(`/classes/enrollments/${enrollmentId}/approve`, { action });
+      // await api.post(`/classes/enrollments/${_enrollmentId}/approve`, { action });
       // message.success(action === 'approve' ? '已批准入班' : '已拒绝入班');
       // viewPendingStudents(selectedClass!);
 
@@ -214,7 +214,7 @@ const ClassManagementPage: React.FC = () => {
     {
       title: '操作',
       key: 'actions',
-      render: (_, record: Class) => (
+      render: (_: unknown, record: Class) => (
         <Space>
           <Button
             type="primary"
@@ -260,7 +260,7 @@ const ClassManagementPage: React.FC = () => {
     {
       title: '操作',
       key: 'actions',
-      render: (_, record: PendingEnrollment) => (
+      render: (_: unknown, record: PendingEnrollment) => (
         <Space>
           <Button
             type="primary"

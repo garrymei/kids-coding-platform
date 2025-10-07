@@ -190,14 +190,14 @@ export default function MapPage() {
     let active = true;
 
     // 使用新的getCourseMap从统一的地图源加载
-    import('@/services/level.repo').then(({ getCourseMap }) => {
+    import('../services/level.repo').then(({ getCourseMap }) => {
       getCourseMap()
-        .then((data) => {
+        .then((data: any) => {
           if (!active) return;
 
           // 转换节点数据格式
           const mapData: MapData = {
-            nodes: data.nodes.map((n) => ({
+            nodes: data.nodes.map((n: any) => ({
               id: n.id,
               title: n.title,
               summary: n.summary,

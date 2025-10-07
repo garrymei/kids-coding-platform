@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import { useEffect } from 'react';
 import { List, Button, Spin, Space, Avatar } from 'antd';
 import { useParams } from 'react-router-dom';
 import { useClassStore } from '../stores/class';

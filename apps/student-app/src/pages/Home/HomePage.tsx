@@ -1,4 +1,5 @@
 ﻿import { useEffect } from 'react';
+// import { useNavigate } from 'react-router-dom';
 import { useProgressStore } from '../../stores/progress';
 import { DailyTaskCard } from './DailyTaskCard';
 import { AchievementsCard } from './AchievementsCard';

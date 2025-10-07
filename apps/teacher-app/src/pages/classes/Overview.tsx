@@ -1,11 +1,9 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useMetricsStore } from '../../stores/metrics';
 import { HeatmapMatrix } from '../../components/charts/HeatmapMatrix';
-import { Dim, Period } from '@kids/utils';
-import { Select, Card, Skeleton, Button } from 'antd';
+import type { Dim, Period } from '@kids/utils';
+import { Card, Skeleton } from 'antd';
 import { useNavigate } from 'react-router-dom';
-
-const { Option } = Select;
 const classId = 'class_1'; // Mock classId
 
 // Simple quantile color scale function
@@ -19,10 +17,10 @@ function getQuantileColor(value: number, quantileThresholds: number[]) {
 }
 
 export function OverviewPage() {
-  const navigate = useNavigate();
+  // const navigate = useNavigate();
   const { compareRows, compareLoading, fetchCompare } = useMetricsStore();
-  const [dimensions, setDimensions] = useState<Dim[]>(['accuracy', 'retry_count', 'levels_completed']);
-  const [period, setPeriod] = useState<Period>('weekly');
+  const [dimensions, _setDimensions] = useState<Dim[]>(['accuracy', 'retry_count', 'levels_completed']);
+  const [period, _setPeriod] = useState<Period>('weekly');
 
   useEffect(() => {
     // Fetch data for the current week
@@ -42,9 +40,9 @@ export function OverviewPage() {
     return thresholds;
   }, [compareRows, dimensions]);
 
-  const handleCellClick = (studentId: string, dimension: Dim) => {
-    navigate(`/classes/students/${studentId}/trend?dim=${dimension}`);
-  };
+  // const _handleCellClick = (studentId: string, dimension: Dim) => {
+  //   navigate(`/classes/students/${studentId}/trend?dim=${dimension}`);
+  // };
 
   const getColorForCell = (value: number, column: string) => {
     return getQuantileColor(value, quantileThresholds[column] || []);

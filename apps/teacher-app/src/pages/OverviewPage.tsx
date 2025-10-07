@@ -245,7 +245,7 @@ export function OverviewPage() {
       averageAccuracy: parseFloat((Math.random() * 100).toFixed(2)),
       totalTasksDone: Math.floor(Math.random() * 500),
       totalTimeSpent: Math.floor(Math.random() * 3000),
-      topPerformers: students.slice(0, 3).map((student, index) => ({
+      topPerformers: students.slice(0, 3).map((student) => ({
         studentId: student.id,
         studentName: student.displayName,
         accuracy: parseFloat((Math.random() * 100).toFixed(2)),
@@ -544,7 +544,7 @@ export function OverviewPage() {
                       nameKey="studentName"
                       label={({ studentName, accuracy }) => `${studentName}: ${accuracy}%`}
                     >
-                      {comparisonData.map((entry, index) => (
+                      {comparisonData.map((_, index) => (
                         <Cell key={`cell-${index}`} fill={CHART_COLORS[index % CHART_COLORS.length]} />
                       ))}
                     </Pie>

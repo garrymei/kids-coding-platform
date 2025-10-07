@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react';
+﻿import { useState, useEffect } from 'react';
 import { Card, Badge, Button } from '@kids/ui-kit';
 import { useFormValidation, FormField, FormTextarea, FormSelect } from '@kids/forms';
 import { httpClient } from '../services/http';
@@ -40,9 +40,9 @@ interface StudentWork {
 interface ReviewFormData {
   rating: number;
   comment: string;
-  suggestions: string;
+  suggestions?: string;
   status: 'approved' | 'needs_revision' | 'rejected';
-  privateNotes: string;
+  privateNotes?: string;
 }
 
 const reviewSchema = z.object({
@@ -134,8 +134,8 @@ export function ReviewWorkflowPage() {
     }
   };
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const handleApproveWork = async (workId: string) => {
+  /*
+  const _handleApproveWork = async (workId: string) => {
     try {
       await httpClient.post(`/teachers/works/${workId}/approve`);
       loadWorks();
@@ -145,8 +145,7 @@ export function ReviewWorkflowPage() {
     }
   };
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const handleRequestRevision = async (workId: string) => {
+  const _handleRequestRevision = async (workId: string) => {
     try {
       await httpClient.post(`/teachers/works/${workId}/request-revision`);
       loadWorks();
@@ -156,10 +155,10 @@ export function ReviewWorkflowPage() {
     }
   };
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const formatDate = (dateString: string) => {
+  const _formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('zh-CN');
   };
+  */
 
   const formatDateTime = (dateString: string) => {
     return new Date(dateString).toLocaleString('zh-CN');
@@ -363,7 +362,7 @@ export function ReviewWorkflowPage() {
             <form onSubmit={handleSubmit(onSubmitReview)}>
               <FormField label="评分" error={errors.rating} required helpText="1-5星评分">
                 <FormSelect
-                  register={register('rating')}
+                  {...register('rating')}
                   options={[
                     { value: '1', label: '⭐ (1星)' },
                     { value: '2', label: '⭐⭐ (2星)' },
@@ -381,7 +380,7 @@ export function ReviewWorkflowPage() {
                 helpText="请详细评价学生的作品"
               >
                 <FormTextarea
-                  register={register('comment')}
+                  {...register('comment')}
                   placeholder="请详细评价学生的作品..."
                   rows={4}
                 />
@@ -401,7 +400,7 @@ export function ReviewWorkflowPage() {
 
               <FormField label="处理状态" error={errors.status} required>
                 <FormSelect
-                  register={register('status')}
+                  {...register('status')}
                   options={[
                     { value: 'approved', label: '通过' },
                     { value: 'needs_revision', label: '需要修改' },
@@ -417,7 +416,7 @@ export function ReviewWorkflowPage() {
                   helpText="详细说明需要修改的地方"
                 >
                   <FormTextarea
-                    register={register('privateNotes')}
+                    {...register('privateNotes')}
                     placeholder="详细说明需要修改的地方..."
                     rows={3}
                   />
@@ -439,4 +438,3 @@ export function ReviewWorkflowPage() {
     </div>
   );
 }
-
