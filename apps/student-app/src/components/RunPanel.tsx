@@ -1,5 +1,6 @@
-﻿import { useState } from 'react';
+import { useState } from 'react';
 import type { ReactNode } from 'react';
+
 import type { Level } from '@kids/types';
 import { runAndJudge, type RunAndJudgeResult } from '../lib/runAndJudge';
 import { RunFeedback } from './RunFeedback';
@@ -15,8 +16,7 @@ interface RunPanelProps {
 }
 
 /**
- * 标准化的代码运行面板
- * 提供统一的代码编辑和运行结果展示
+ * 标准化的运行面板，提供统一的代码编辑和运行体验。
  */
 export function RunPanel({ level, code, onCodeChange, onResult, gameRunner }: RunPanelProps) {
   const [busy, setBusy] = useState(false);
@@ -25,7 +25,7 @@ export function RunPanel({ level, code, onCodeChange, onResult, gameRunner }: Ru
 
   const handleRun = async () => {
     if (!code.trim()) {
-      setError('请输入代码后再运行');
+      setError('请先输入要运行的代码');
       setResult(null);
       return;
     }
@@ -38,7 +38,7 @@ export function RunPanel({ level, code, onCodeChange, onResult, gameRunner }: Ru
       setResult(data);
       onResult?.(data);
     } catch (err) {
-      const message = err instanceof Error ? err.message : '运行失败，请稍后重试';
+      const message = err instanceof Error ? err.message : '运行失败，请稍后再试';
       setError(message);
       setResult(null);
     } finally {
@@ -47,14 +47,14 @@ export function RunPanel({ level, code, onCodeChange, onResult, gameRunner }: Ru
   };
 
   const handleReset = () => {
-    onCodeChange((level as any).starterCode || '');
+    onCodeChange(level.starter?.code ?? '');
     setResult(null);
     setError(null);
   };
 
   return (
     <div className="grid duo">
-      {/* 代码编辑区 */}
+      {/* 代码编辑器 */}
       <section className="card" aria-label="代码编辑器">
         <div
           style={{
@@ -64,15 +64,15 @@ export function RunPanel({ level, code, onCodeChange, onResult, gameRunner }: Ru
             marginBottom: 12,
           }}
         >
-          <strong style={{ fontSize: 16 }}>💻 代码编辑器</strong>
+          <strong style={{ fontSize: 16 }}>✏️ 代码编辑器</strong>
           <div style={{ display: 'flex', gap: 8 }}>
             <button
               className="btn btn-ghost"
               onClick={handleReset}
               disabled={busy}
-              title="重置为初始代码"
+              title="恢复为初始模板"
             >
-              ↺ 重置
+              ↩️ 重置
             </button>
             <button
               className="btn btn-cta"
@@ -90,7 +90,7 @@ export function RunPanel({ level, code, onCodeChange, onResult, gameRunner }: Ru
                 </>
               ) : (
                 <>
-                  <span style={{ marginRight: 8 }}>▶</span>
+                  <span style={{ marginRight: 8 }}>▶️</span>
                   运行代码
                 </>
               )}
@@ -118,8 +118,8 @@ export function RunPanel({ level, code, onCodeChange, onResult, gameRunner }: Ru
             opacity: busy ? 0.6 : 1,
             cursor: busy ? 'not-allowed' : 'text',
           }}
-          placeholder="在这里编写你的代码..."
-          aria-label="代码输入区"
+          placeholder="请在此输入你的代码..."
+          aria-label="代码输入框"
         />
 
         {/* 代码统计 */}
@@ -135,15 +135,15 @@ export function RunPanel({ level, code, onCodeChange, onResult, gameRunner }: Ru
             justifyContent: 'space-between',
           }}
         >
-          <span>字符数: {code.length}</span>
-          <span>行数: {code.split('\n').length}</span>
+          <span>字符数：{code.length}</span>
+          <span>行数：{code.split('\n').length}</span>
         </div>
       </section>
 
-      {/* 运行结果区 */}
+      {/* 运行结果 */}
       <section className="card" aria-live="polite" aria-busy={busy}>
         <div style={{ marginBottom: 16 }}>
-          <strong style={{ fontSize: 16 }}>📊 运行结果</strong>
+          <strong style={{ fontSize: 16 }}>🎯 运行结果</strong>
         </div>
 
         {busy ? (
@@ -155,9 +155,9 @@ export function RunPanel({ level, code, onCodeChange, onResult, gameRunner }: Ru
                 animation: 'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
               }}
             >
-              ⚙️
+              🚀
             </div>
-            <p style={{ color: 'var(--text-secondary)', margin: 0 }}>正在运行代码...</p>
+            <p style={{ color: 'var(--text-secondary)', margin: 0 }}>正在运行代码，请稍候...</p>
           </div>
         ) : (
           <RunFeedback result={result} error={error} visualization={gameRunner?.render?.(result)} />

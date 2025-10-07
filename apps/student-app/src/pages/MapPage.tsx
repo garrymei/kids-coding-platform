@@ -1,4 +1,4 @@
-﻿import { useEffect, useState, useCallback, type CSSProperties } from 'react';
+import { useCallback, useEffect, useState, type CSSProperties } from 'react';
 import { useNavigate } from 'react-router-dom';
 import ReactFlow, {
   Background,
@@ -6,8 +6,10 @@ import ReactFlow, {
   MiniMap,
   type Node,
   type Edge,
+  type NodeChange,
   Position,
   MarkerType,
+  applyNodeChanges,
 } from 'reactflow';
 import dagre from 'dagre';
 import 'reactflow/dist/style.css';
@@ -24,7 +26,7 @@ type MapData = {
   edges: Array<{ from: string; to: string }>;
 };
 
-// 自动布局函数
+// 自动对节点进行层级布局，保证图形清晰可读
 const getLayoutedElements = (nodes: Node[], edges: Edge[]) => {
   const dagreGraph = new dagre.graphlib.Graph();
   dagreGraph.setDefaultEdgeLabel(() => ({}));
@@ -54,21 +56,20 @@ const getLayoutedElements = (nodes: Node[], edges: Edge[]) => {
   return { nodes: layoutedNodes, edges };
 };
 
-// 自定义节点组件
 function CourseNode({ data }: { data: MapNode & { onClick: () => void } }) {
-  const statusColors = {
+  const statusStyles: Record<MapNode['status'], { bg: string; border: string; glow: string; icon: string; label: string }> = {
     completed: {
       bg: 'linear-gradient(135deg, rgba(34, 197, 94, 0.25), rgba(34, 197, 94, 0.1))',
       border: '2px solid rgba(34, 197, 94, 0.6)',
       glow: '0 0 20px rgba(34, 197, 94, 0.4)',
-      icon: '✓',
+      icon: '🏆',
       label: '已完成',
     },
     ready: {
       bg: 'linear-gradient(135deg, rgba(93, 168, 255, 0.3), rgba(167, 139, 250, 0.2))',
       border: '2px solid rgba(93, 168, 255, 0.8)',
       glow: '0 0 24px rgba(93, 168, 255, 0.6)',
-      icon: '▶',
+      icon: '🚀',
       label: '可挑战',
     },
     locked: {
@@ -80,7 +81,7 @@ function CourseNode({ data }: { data: MapNode & { onClick: () => void } }) {
     },
   };
 
-  const config = statusColors[data.status];
+  const config = statusStyles[data.status];
 
   const nodeStyle: CSSProperties = {
     background: config.bg,
@@ -102,15 +103,15 @@ function CourseNode({ data }: { data: MapNode & { onClick: () => void } }) {
     <div
       style={nodeStyle}
       onClick={data.status !== 'locked' ? data.onClick : undefined}
-      onMouseEnter={(e) => {
+      onMouseEnter={(event) => {
         if (data.status !== 'locked') {
-          e.currentTarget.style.transform = 'scale(1.05)';
-          e.currentTarget.style.boxShadow = `${config.glow}, 0 4px 12px rgba(0, 0, 0, 0.3)`;
+          event.currentTarget.style.transform = 'scale(1.05)';
+          event.currentTarget.style.boxShadow = `${config.glow}, 0 4px 12px rgba(0, 0, 0, 0.3)`;
         }
       }}
-      onMouseLeave={(e) => {
-        e.currentTarget.style.transform = 'scale(1)';
-        e.currentTarget.style.boxShadow = config.glow;
+      onMouseLeave={(event) => {
+        event.currentTarget.style.transform = 'scale(1)';
+        event.currentTarget.style.boxShadow = config.glow;
       }}
     >
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
@@ -179,9 +180,7 @@ export default function MapPage() {
     status: 'loading' | 'error' | 'ready';
     data?: MapData;
     message?: string;
-  }>({
-    status: 'loading',
-  });
+  }>({ status: 'loading' });
 
   const [nodes, setNodes] = useState<Node[]>([]);
   const [edges, setEdges] = useState<Edge[]>([]);
@@ -189,26 +188,23 @@ export default function MapPage() {
   useEffect(() => {
     let active = true;
 
-    // 使用新的getCourseMap从统一的地图源加载
-    import('../services/level.repo').then(({ getCourseMap }) => {
+    import('@/services/level.repo').then(({ getCourseMap }) => {
       getCourseMap()
-        .then((data: any) => {
+        .then((data) => {
           if (!active) return;
 
-          // 转换节点数据格式
           const mapData: MapData = {
-            nodes: data.nodes.map((n: any) => ({
-              id: n.id,
-              title: n.title,
-              summary: n.summary,
-              status: n.status,
+            nodes: data.nodes.map((node) => ({
+              id: node.id,
+              title: node.title,
+              summary: node.summary,
+              status: node.status,
             })),
             edges: data.edges,
           };
 
           setState({ status: 'ready', data: mapData });
 
-          // 转换为 React Flow 格式
           const flowNodes: Node[] = mapData.nodes.map((node) => ({
             id: node.id,
             type: 'courseNode',
@@ -225,8 +221,8 @@ export default function MapPage() {
             targetPosition: Position.Top,
           }));
 
-          const flowEdges: Edge[] = mapData.edges.map((edge, idx) => ({
-            id: `edge-${idx}`,
+          const flowEdges: Edge[] = mapData.edges.map((edge, index) => ({
+            id: `edge-${index}`,
             source: edge.from,
             target: edge.to,
             type: 'smoothstep',
@@ -257,27 +253,18 @@ export default function MapPage() {
   }, [navigate]);
 
   const onNodesChange = useCallback(
-    (changes: any) => {
-      // React Flow的节点变更处理
-      setNodes((nds) =>
-        nds.map((node) => {
-          const change = changes.find((c: any) => c.id === node.id);
-          if (change && change.type === 'position' && change.position) {
-            return { ...node, position: change.position };
-          }
-          return node;
-        }),
-      );
+    (changes: NodeChange[]) => {
+      setNodes((nds) => applyNodeChanges(changes, nds));
     },
-    [setNodes],
+    [],
   );
 
   if (state.status === 'loading') {
     return (
       <div className="kc-container" style={{ padding: '2rem 0' }}>
         <div className="card" style={{ padding: '80px 40px', textAlign: 'center' }}>
-          <div style={{ fontSize: '48px', marginBottom: '16px' }}>🗺️</div>
-          <p className="text-muted">加载课程地图中...</p>
+          <div style={{ fontSize: '48px', marginBottom: '16px' }}>🧭</div>
+          <p className="text-muted">正在加载课程地图...</p>
         </div>
       </div>
     );
@@ -289,7 +276,7 @@ export default function MapPage() {
         <div className="card alert-error" style={{ padding: '40px' }}>
           <div style={{ fontSize: '32px', marginBottom: '12px' }}>⚠️</div>
           <h3 style={{ marginBottom: '8px' }}>课程地图加载失败</h3>
-          <p className="text-muted">{state.message ?? '未知错误'}</p>
+          <p className="text-muted">{state.message ?? '未知错误，请稍后重试。'}</p>
         </div>
       </div>
     );
@@ -302,7 +289,7 @@ export default function MapPage() {
           🗺️ 课程地图
         </h1>
         <p className="text-muted">
-          按照推荐顺序完成课程节点，逐步点亮实验岛。可拖拽和缩放地图查看全局。
+          按推荐顺序完成课程节点，逐步解锁新的练习。拖动、缩放地图即可查看学习全貌。
         </p>
       </header>
 
@@ -324,9 +311,7 @@ export default function MapPage() {
           minZoom={0.5}
           maxZoom={1.5}
           defaultViewport={{ x: 0, y: 0, zoom: 1 }}
-          style={{
-            background: 'transparent',
-          }}
+          style={{ background: 'transparent' }}
         >
           <Background color="rgba(93, 168, 255, 0.15)" gap={20} size={1} style={{ opacity: 0.3 }} />
           <Controls

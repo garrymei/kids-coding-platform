@@ -49,19 +49,13 @@ const ClassManagementPage: React.FC = () => {
   const [pendingEnrollments, setPendingEnrollments] = useState<PendingEnrollment[]>([]);
   const [newClass, setNewClass] = useState({ name: '', description: '' });
 
-  // 获取班级列表
   const fetchClasses = async () => {
     setLoading(true);
     try {
-      // TODO: 调用 API 获取班级列表
-      // const response = await api.get('/classes/my-classes');
-      // setClasses(response.data);
-
-      // 模拟数据
       setClasses([
         {
           id: '1',
-          name: '初一(3)班',
+          name: '初一（3）班',
           description: '编程入门班级',
           code: 'A1B2C3',
           status: 'ACTIVE',
@@ -79,7 +73,10 @@ const ClassManagementPage: React.FC = () => {
     }
   };
 
-  // 创建班级
+  useEffect(() => {
+    void fetchClasses();
+  }, []);
+
   const handleCreateClass = async () => {
     if (!newClass.name.trim()) {
       message.error('请输入班级名称');
@@ -87,13 +84,6 @@ const ClassManagementPage: React.FC = () => {
     }
 
     try {
-      // TODO: 调用 API 创建班级
-      // const response = await api.post('/classes', newClass);
-      // message.success('班级创建成功');
-      // setCreateModalVisible(false);
-      // setNewClass({ name: '', description: '' });
-      // fetchClasses();
-
       message.success('班级创建成功（模拟）');
       setCreateModalVisible(false);
       setNewClass({ name: '', description: '' });
@@ -102,35 +92,41 @@ const ClassManagementPage: React.FC = () => {
     }
   };
 
-  // 复制邀请码
   const copyInviteCode = (code: string) => {
-    navigator.clipboard.writeText(code);
-    message.success('邀请码已复制到剪贴板');
+    navigator.clipboard.writeText(code).then(() => {
+      message.success('邀请码已复制到剪贴板');
+    });
   };
 
-  // 查看待审批学生
   const viewPendingStudents = async (classInfo: Class) => {
     setSelectedClass(classInfo);
     setPendingModalVisible(true);
 
     try {
-      // TODO: 调用 API 获取待审批学生
-      // const response = await api.get(`/classes/${classInfo.id}/pending-enrollments`);
-      // setPendingEnrollments(response.data);
-
-      // 模拟数据
       setPendingEnrollments([
         {
           id: '1',
           student: {
             id: 's1',
             displayName: '小明',
-            nickname: '小明',
-            school: '北京市第一中学',
-            className: '初一(3)班',
-            email: 'xiaoming@example.com',
+            nickname: '明明',
+            school: '第一小学',
+            className: '四年级',
+            email: 'stu1@example.com',
           },
-          requestedAt: '2024-01-03T10:00:00Z',
+          requestedAt: new Date().toISOString(),
+        },
+        {
+          id: '2',
+          student: {
+            id: 's2',
+            displayName: '小红',
+            nickname: '红豆',
+            school: '第二小学',
+            className: '四年级',
+            email: 'stu2@example.com',
+          },
+          requestedAt: new Date().toISOString(),
         },
       ]);
     } catch (error) {
@@ -138,77 +134,62 @@ const ClassManagementPage: React.FC = () => {
     }
   };
 
-  // 审批学生入班
-  const handleApproveEnrollment = async (_enrollmentId: string, action: 'approve' | 'reject') => {
+  const handleApproveEnrollment = async (enrollmentId: string, action: 'approve' | 'reject') => {
     try {
-      // TODO: 调用 API 审批入班
-      // await api.post(`/classes/enrollments/${_enrollmentId}/approve`, { action });
-      // message.success(action === 'approve' ? '已批准入班' : '已拒绝入班');
-      // viewPendingStudents(selectedClass!);
-
-      message.success(action === 'approve' ? '已批准入班（模拟）' : '已拒绝入班（模拟）');
+      console.log('handle enrollment', enrollmentId, action);
     } catch (error) {
-      message.error('审批失败');
+      message.error('审批失败，请稍后再试');
     }
   };
-
-  useEffect(() => {
-    fetchClasses();
-  }, []);
 
   const columns = [
     {
       title: '班级名称',
       dataIndex: 'name',
       key: 'name',
-    },
-    {
-      title: '描述',
-      dataIndex: 'description',
-      key: 'description',
-    },
-    {
-      title: '邀请码',
-      dataIndex: 'code',
-      key: 'code',
-      render: (code: string) => (
-        <Space>
-          <code>{code}</code>
-          <Button
-            type="text"
-            size="small"
-            icon={<CopyOutlined />}
-            onClick={() => copyInviteCode(code)}
-          />
-        </Space>
-      ),
-    },
-    {
-      title: '学生数量',
-      dataIndex: 'studentCount',
-      key: 'studentCount',
-      render: (count: number) => (
+      render: (text: string) => (
         <Space>
           <UserOutlined />
-          {count}
+          {text}
         </Space>
       ),
+    },
+    {
+      title: '班级简介',
+      dataIndex: 'description',
+      key: 'description',
+      render: (text: string | undefined) => text ?? '暂无简介',
+    },
+    {
+      title: '班级状态',
+      dataIndex: 'status',
+      key: 'status',
+      render: (status: string) => (
+        <Tag color={status === 'ACTIVE' ? 'green' : 'gray'}>{status === 'ACTIVE' ? '进行中' : '停用'}</Tag>
+      ),
+    },
+    {
+      title: '学生人数',
+      dataIndex: 'studentCount',
+      key: 'studentCount',
     },
     {
       title: '待审批',
       dataIndex: 'pendingCount',
       key: 'pendingCount',
-      render: (count: number) =>
-        count > 0 ? <Tag color="orange">{count}</Tag> : <Tag color="green">无</Tag>,
+      render: (count: number) => <Tag color={count > 0 ? 'orange' : 'default'}>{count}</Tag>,
     },
     {
-      title: '状态',
-      dataIndex: 'status',
-      key: 'status',
-      render: (status: string) => (
-        <Tag color={status === 'ACTIVE' ? 'green' : 'red'}>
-          {status === 'ACTIVE' ? '活跃' : '已关闭'}
-        </Tag>
+      title: '邀请码',
+      dataIndex: 'code',
+      key: 'code',
+      render: (code: string, record: Class) => (
+        <Space>
+          <span>{code}</span>
+          <Button size="small" icon={<CopyOutlined />} onClick={() => copyInviteCode(record.inviteUrl)}>
+            复制链接
+          </Button>
+        </Space>
       ),
     },
     {
@@ -219,12 +200,12 @@ const ClassManagementPage: React.FC = () => {
           <Button
             type="primary"
             size="small"
+            icon={<CheckOutlined />}
             onClick={() => viewPendingStudents(record)}
-            disabled={record.pendingCount === 0}
           >
-            审批入班
+            待审批 ({record.pendingCount})
           </Button>
-          <Button size="small">编辑</Button>
+          <Button size="small">管理班级</Button>
         </Space>
       ),
     },
@@ -240,22 +221,25 @@ const ClassManagementPage: React.FC = () => {
       title: '昵称',
       dataIndex: ['student', 'nickname'],
       key: 'nickname',
+      render: (text: string | undefined) => text ?? '-',
     },
     {
       title: '学校',
       dataIndex: ['student', 'school'],
       key: 'school',
+      render: (text: string | undefined) => text ?? '-',
     },
     {
       title: '班级',
       dataIndex: ['student', 'className'],
       key: 'className',
+      render: (text: string | undefined) => text ?? '-',
     },
     {
       title: '申请时间',
       dataIndex: 'requestedAt',
       key: 'requestedAt',
-      render: (date: string) => new Date(date).toLocaleString(),
+      render: (date: string) => new Date(date).toLocaleString('zh-CN'),
     },
     {
       title: '操作',
@@ -309,7 +293,6 @@ const ClassManagementPage: React.FC = () => {
         />
       </Card>
 
-      {/* 创建班级模态框 */}
       <Modal
         title="创建班级"
         open={createModalVisible}
@@ -320,24 +303,23 @@ const ClassManagementPage: React.FC = () => {
           <label>班级名称 *</label>
           <Input
             value={newClass.name}
-            onChange={(e) => setNewClass({ ...newClass, name: e.target.value })}
+            onChange={(event) => setNewClass({ ...newClass, name: event.target.value })}
             placeholder="请输入班级名称"
           />
         </div>
         <div>
-          <label>班级描述</label>
+          <label>班级简介</label>
           <Input.TextArea
             value={newClass.description}
-            onChange={(e) => setNewClass({ ...newClass, description: e.target.value })}
-            placeholder="请输入班级描述（可选）"
+            onChange={(event) => setNewClass({ ...newClass, description: event.target.value })}
+            placeholder="可选：简要描述课程目标"
             rows={3}
           />
         </div>
       </Modal>
 
-      {/* 待审批学生模态框 */}
       <Modal
-        title={`${selectedClass?.name} - 待审批学生`}
+        title={`${selectedClass?.name ?? ''} - 待审批学生`}
         open={pendingModalVisible}
         onCancel={() => setPendingModalVisible(false)}
         footer={null}

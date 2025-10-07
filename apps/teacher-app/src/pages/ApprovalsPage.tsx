@@ -26,32 +26,40 @@ export function ApprovalsPage() {
   };
 
   if (loading) {
-    return <Spin tip="Loading..."><div style={{ height: 200 }} /></Spin>;
+    return (
+      <Spin tip="加载中...">
+        <div style={{ height: 200 }} />
+      </Spin>
+    );
   }
 
   if (error) {
-    return <p>Error: {error}</p>;
+    return <p>加载失败：{error}</p>;
   }
 
   return (
     <div style={{ padding: '2rem' }}>
-      <h1>Pending Approvals for Class {classId}</h1>
+      <h1>班级 {classId} 的审批请求</h1>
       <List
         itemLayout="horizontal"
         dataSource={approvals}
-        renderItem={item => (
+        renderItem={(item) => (
           <List.Item
             actions={[
-              <Space>
-                <Button type="primary" onClick={() => handleApprove(item.memberId)}>Approve</Button>
-                <Button danger onClick={() => handleReject(item.memberId)}>Reject</Button>
-              </Space>
+              <Space key="actions">
+                <Button type="primary" onClick={() => handleApprove(item.memberId)}>
+                  通过
+                </Button>
+                <Button danger onClick={() => handleReject(item.memberId)}>
+                  拒绝
+                </Button>
+              </Space>,
             ]}
           >
             <List.Item.Meta
               avatar={<Avatar>{item.studentName[0]}</Avatar>}
               title={item.studentName}
-              description={`Requested on: ${new Date(item.requestedAt).toLocaleDateString()}`}
+              description={`申请时间：${new Date(item.requestedAt).toLocaleDateString('zh-CN')}`}
             />
           </List.Item>
         )}

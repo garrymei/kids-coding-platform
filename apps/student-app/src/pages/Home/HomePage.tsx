@@ -1,5 +1,5 @@
-﻿import { useEffect } from 'react';
-// import { useNavigate } from 'react-router-dom';
+import { useEffect } from 'react';
+
 import { useProgressStore } from '../../stores/progress';
 import { DailyTaskCard } from './DailyTaskCard';
 import { AchievementsCard } from './AchievementsCard';
@@ -7,27 +7,26 @@ import { RecommendedNextLevel } from './RecommendedNextLevel';
 
 const MOCK_STUDENT_ID = 'stu_1';
 
-// Mock data for new features
 const mockDailyTasks = [
-  { id: 1, title: '完成2个循环关卡', xp: 50, status: 'done' as const },
-  { id: 2, title: '连续登录3天', xp: 30, status: 'pending' as const },
-  { id: 3, title: '解锁一个新成就', xp: 25, status: 'pending' as const },
+  { id: 1, title: '完成 2 个循环关卡', xp: 50, status: 'done' as const },
+  { id: 2, title: '连续登录 3 天', xp: 30, status: 'pending' as const },
+  { id: 3, title: '提交一份新作品', xp: 25, status: 'pending' as const },
 ];
 
 const mockAchievements = [
-  { id: 'streak-7', title: '坚持7天', icon: '🔥', unlockedAt: new Date().toISOString() },
-  { id: 'maze-5', title: '迷宫大师', icon: '🏆' },
-  { id: 'loop-master', title: '循环达人', icon: '🎯' },
-  { id: 'pixel-artist', title: '像素艺术家', icon: '🎨' },
+  { id: 'streak-7', title: '连续学习 7 天', icon: '🔥', unlockedAt: new Date().toISOString() },
+  { id: 'maze-5', title: '迷宫大师', icon: '🧭' },
+  { id: 'loop-master', title: '循环达人', icon: '♻️' },
+  { id: 'pixel-artist', title: '像素画家', icon: '🎨' },
 ];
 
 const mockNextLevel = {
-  id: 'loops-1', // 改为实际存在的关卡ID
-  title: '循环入门',
+  id: 'loops-1',
+  title: '循环初体验',
   type: 'pixel' as const,
   difficulty: 1,
   xp: 50,
-  story: '学习基本循环语法',
+  story: '学习 for 循环的基本语法',
 };
 
 export default function HomePage() {
@@ -35,7 +34,7 @@ export default function HomePage() {
 
   useEffect(() => {
     fetchHome(MOCK_STUDENT_ID).catch(() => {
-      /* noop: 进度数据加载失败时保持占位卡片 */
+      /* 忽略演示数据加载失败 */
     });
   }, [fetchHome]);
 
@@ -71,19 +70,17 @@ export default function HomePage() {
         </article>
       </section>
 
-      {/* New: 推荐下一关 */}
       <section>
         <RecommendedNextLevel nextLevel={nextLesson ? mockNextLevel : null} />
       </section>
 
-      {/* New: 今日任务和成就 */}
       <section className="grid duo">
         <DailyTaskCard tasks={mockDailyTasks} />
         <AchievementsCard achievements={mockAchievements} totalAchievements={20} />
       </section>
 
       <section className="card" style={{ padding: 24 }}>
-        <div className="kc-section-title">课程包进度</div>
+        <div className="kc-section-title">课程概览</div>
         <div className="kc-scroll-row">
           {snapshot.packages.map((pkg) => (
             <article key={pkg.pkgId} className="card" style={{ minWidth: 240 }}>
@@ -118,14 +115,14 @@ export default function HomePage() {
 
       <section className="grid duo">
         <article className="card">
-          <div className="kc-section-title">近期活动</div>
+          <div className="kc-section-title">最近活动</div>
           <div className="kc-list">
             {snapshot.recent.map((item) => (
               <div key={item.ts} className="kc-list__item">
                 <div>
                   <strong>{item.levelId}</strong>
                   <div className="text-muted" style={{ fontSize: 12 }}>
-                    {new Date(item.ts).toLocaleString()}
+                    {new Date(item.ts).toLocaleString('zh-CN')}
                   </div>
                 </div>
                 <span
@@ -140,7 +137,7 @@ export default function HomePage() {
         </article>
 
         <article className="card">
-          <div className="kc-section-title">近期成就</div>
+          <div className="kc-section-title">最新成就</div>
           <div className="kc-list">
             {snapshot.achievements.map((item) => (
               <div key={item.id} className="kc-list__item">

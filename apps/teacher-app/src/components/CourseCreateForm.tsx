@@ -1,17 +1,25 @@
-﻿import { useState } from 'react';
-import { useFormValidation, FormField, FormInput, FormTextarea, FormSelect, FormCheckbox } from '@kids/forms';
+import { useState } from 'react';
+import {
+  useFormValidation,
+  FormField,
+  FormInput,
+  FormTextarea,
+  FormSelect,
+  FormCheckbox,
+} from '@kids/forms';
 import { Button } from '@kids/ui-kit';
 import { courseCreateSchema, type CourseCreateFormData } from '@kids/forms';
 
 interface CourseCreateFormProps {
   onSubmit: (data: CourseCreateFormData) => Promise<void>;
   isLoading?: boolean;
+  onCancel?: () => void;
 }
 
 const difficultyOptions = [
-  { value: 'beginner', label: '初级' },
-  { value: 'intermediate', label: '中级' },
-  { value: 'advanced', label: '高级' },
+  { value: 'beginner', label: '入门' },
+  { value: 'intermediate', label: '进阶' },
+  { value: 'advanced', label: '挑战' },
 ];
 
 const commonTags = [
@@ -27,7 +35,7 @@ const commonTags = [
   '数据分析',
 ];
 
-export function CourseCreateForm({ onSubmit, isLoading = false }: CourseCreateFormProps) {
+export function CourseCreateForm({ onSubmit, isLoading = false, onCancel }: CourseCreateFormProps) {
   const {
     register,
     handleSubmit,
@@ -87,14 +95,14 @@ export function CourseCreateForm({ onSubmit, isLoading = false }: CourseCreateFo
       </FormField>
 
       <FormField
-        label="课程描述"
+        label="课程简介"
         error={errors.description}
         required
-        helpText="简要介绍课程内容和学习目标"
+        helpText="简要说明课程的学习目标和核心内容"
       >
         <FormTextarea
           register={register('description')}
-          placeholder="请输入课程描述..."
+          placeholder="请描述课程内容..."
           rows={4}
           disabled={isBusy}
         />
@@ -104,7 +112,7 @@ export function CourseCreateForm({ onSubmit, isLoading = false }: CourseCreateFo
         <FormSelect
           register={register('difficulty')}
           options={difficultyOptions}
-          placeholder="请选择难度等级"
+          placeholder="请选择难度"
           disabled={isBusy}
         />
       </FormField>
@@ -113,37 +121,34 @@ export function CourseCreateForm({ onSubmit, isLoading = false }: CourseCreateFo
         label="课程标签"
         error={Array.isArray(errors.tags) ? errors.tags[0] : errors.tags}
         required
-        helpText="选择相关的标签，最多可选择 5 个"
+        helpText="选择与课程相关的标签，最多可选择 5 个"
       >
-        <>
-          <div className="tag-selector">
-            {commonTags.map((tag) => (
-              <FormCheckbox
-                key={tag}
-                register={{
-                  ...tagsRegister,
-                  onChange: async (event) => {
-                    await tagsRegister.onChange(event);
-                    handleTagToggle(tag);
-                  },
-                }}
-                label={tag}
-                checked={selectedTags.includes(tag)}
-                disabled={
-                  isBusy || (!selectedTags.includes(tag) && selectedTags.length >= 5)
-                }
-              />
-            ))}
-          </div>
-          <div className="tag-info">已选择 {selectedTags.length}/5 个标签</div>
-        </>
+        <div className="tag-selector">
+          {commonTags.map((tag) => (
+            <FormCheckbox
+              key={tag}
+              register={{
+                ...tagsRegister,
+                value: tag,
+                onChange: (event) => {
+                  tagsRegister.onChange(event);
+                  handleTagToggle(tag);
+                },
+              }}
+              label={tag}
+              checked={selectedTags.includes(tag)}
+              disabled={isBusy || (!selectedTags.includes(tag) && selectedTags.length >= 5)}
+            />
+          ))}
+        </div>
+        <div className="tag-info">已选择 {selectedTags.length}/5 个标签</div>
       </FormField>
 
       <FormField
-        label="预计时长（分钟）"
+        label="预计学习时长（分钟）"
         error={errors.estimatedDuration}
         required
-        helpText="整个课程的预计学习时间"
+        helpText="请输入该课程预计的总学习时长"
       >
         <FormInput
           register={register('estimatedDuration', { valueAsNumber: true })}
@@ -155,16 +160,16 @@ export function CourseCreateForm({ onSubmit, isLoading = false }: CourseCreateFo
         />
       </FormField>
 
-      <FormField label="课程设置" error={errors.isPublic}>
+      <FormField label="课程可见性" error={errors.isPublic}>
         <FormCheckbox
           register={register('isPublic')}
-          label="公开课程（其他教师和学生可以查看）"
+          label="对所有教师和学生公开"
           disabled={isBusy}
         />
       </FormField>
 
       <div className="form-actions">
-        <Button type="button" variant="ghost" disabled={isBusy}>
+        <Button type="button" variant="ghost" disabled={isBusy} onClick={onCancel}>
           取消
         </Button>
         <Button type="submit" variant="primary" disabled={isBusy}>
