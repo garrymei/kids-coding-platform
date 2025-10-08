@@ -1,4 +1,4 @@
-import { Controller, Post, Body, HttpException, HttpStatus, Request } from '@nestjs/common';
+import { Controller, Post, Get, Body, HttpException, HttpStatus, Request } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { LoginDto, RegisterDto, RefreshTokenDto } from './dto/auth.dto';
 import { LoggerService } from '../../common/services/logger.service';
@@ -200,6 +200,36 @@ export class AuthController {
       // 登出失败不应该抛出异常，因为用户可能已经离开
       return { message: 'Logout completed' };
     }
+  }
+
+  /**
+   * 获取用户配置文件
+   * GET /auth/profile
+   */
+  @Get('profile')
+  getProfile(@Request() req: any) {
+    // 开发模式下返回模拟用户数据
+    if (process.env.NODE_ENV === 'development') {
+      return {
+        id: 'stu_1',
+        email: 'student1@example.com',
+        role: 'student',
+        name: '小明'
+      };
+    }
+    
+    // 正常模式下，认证中间件会设置req.user
+    if (req.user && req.user.userId) {
+      return this.authService.getUserById(req.user.userId);
+    }
+    
+    // 如果没有用户信息，返回默认数据
+    return {
+      id: 'unknown',
+      email: 'unknown@example.com',
+      role: 'student',
+      name: '游客'
+    };
   }
 
   private generateCorrelationId(): string {

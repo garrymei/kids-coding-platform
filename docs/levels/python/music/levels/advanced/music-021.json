@@ -1,0 +1,33 @@
+{
+  "id": "py-music-021",
+  "title": "交响乐章",
+  "lang": "python",
+  "gameType": "music",
+  "difficulty": 3,
+  "story": "创作一段复杂的交响乐章，展现编程与音乐的完美结合。",
+  "goals": ["创建复杂的音乐序列，包含和弦、旋律和节奏变化"],
+  "starter": {
+    "blockly": "<xml/>",
+    "code": "# 创作交响乐章\n# 主旋律\nmelody = ['C', 'D', 'E', 'F', 'G']\n# 和弦\nchords = [['C', 'E', 'G'], ['F', 'A', 'C'], ['G', 'B', 'D']]\n# TODO: 组合旋律和和弦"
+  },
+  "grader": {
+    "mode": "event",
+    "events": {
+      "channel": "music",
+      "collectFromStdout": true,
+      "mapRule": "stdout line 'note t p d'"
+    },
+    "checks": [{ 
+      "type": "eventSeq", 
+      "expect": [
+        "note 0 C 1", "note 0 E 1", "note 0 G 1",
+        "note 2 D 1", 
+        "note 4 F 1", "note 4 A 1", "note 4 C 1",
+        "note 6 E 1",
+        "note 8 G 1", "note 8 B 1", "note 8 D 1"
+      ] 
+    }]
+  },
+  "rewards": { "xp": 45, "coins": 18, "badges": ["交响乐大师"] },
+  "hints": ["在偶数tick播放和弦", "在奇数tick播放单音", "合理安排时间间隔"]
+}

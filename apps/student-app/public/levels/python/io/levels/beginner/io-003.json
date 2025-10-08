@@ -1,0 +1,27 @@
+{
+  "id": "py-io-003",
+  "title": "数字相加",
+  "lang": "python",
+  "gameType": "io",
+  "difficulty": 1,
+  "story": "灯塔需要计算两个数字的和来校准信号强度。",
+  "goals": ["读取两个整数，输出它们的和"],
+  "starter": { "blockly": "<xml/>", "code": "a = int(input())\nb = int(input())\n# TODO: 输出 a + b" },
+  "solution": "a = int(input())\nb = int(input())\nprint(a + b)",
+  "grader": {
+    "mode": "io",
+    "io": {
+      "cases": [
+        { "in": "3\n5\n", "out": "8\n" },
+        { "in": "10\n20\n", "out": "30\n" }
+      ],
+      "match": "exact"
+    },
+    "constraints": {
+      "maxTimeMs": 3000,
+      "maxMemMB": 64
+    }
+  },
+  "rewards": { "xp": 15, "coins": 6, "badges": [] },
+  "hints": ["int() 转换为整数", "print() 输出结果"]
+}

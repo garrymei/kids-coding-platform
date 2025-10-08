@@ -1,0 +1,32 @@
+{
+  "id": "py-maze-023",
+  "title": "最优路径",
+  "lang": "python",
+  "gameType": "maze",
+  "difficulty": 3,
+  "story": "使用启发式算法找到最短路径，体验AI算法的魅力。",
+  "goals": ["找到从起点到终点的最短路径"],
+  "starter": {
+    "blockly": "<xml/>",
+    "code": "# 实现简化版A*算法\nimport heapq\n\ndef a_star():\n    # TODO: 实现A*算法\n    # 使用曼哈顿距离作为启发函数\n    pass\n\na_star()"
+  },
+  "solution": "def a_star():\n    start = get_position()\n    goal = get_goal_position()\n    \n    open_set = [(0, start)]\n    came_from = {}\n    g_score = {start: 0}\n    \n    while open_set:\n        current = heapq.heappop(open_set)[1]\n        \n        if current == goal:\n            reconstruct_path(came_from, current)\n            return\n        \n        for neighbor in get_neighbors(current):\n            tentative_g = g_score[current] + 1\n            \n            if neighbor not in g_score or tentative_g < g_score[neighbor]:\n                came_from[neighbor] = current\n                g_score[neighbor] = tentative_g\n                f_score = tentative_g + manhattan_distance(neighbor, goal)\n                heapq.heappush(open_set, (f_score, neighbor))",
+  "assets": { "maze": ["############", "#S.........#", "#.########.#", "#........#.#", "########.#.#", "#........#.#", "#.########.#", "#..........#", "#.########E#", "############"], "maxSteps3Star": 30 },
+  "grader": {
+    "mode": "event",
+    "events": {
+      "channel": "maze",
+      "collectFromAPI": true
+    },
+    "checks": [
+      { "type": "goal", "name": "reach_end", "must": true },
+      { "type": "maxSteps", "value": 30 },
+      { "type": "optimalPath", "must": true }
+    ],
+    "constraints": {
+      "requireStructures": ["def", "import", "while", "for"]
+    }
+  },
+  "rewards": { "xp": 60, "coins": 25, "badges": ["AI算法专家"] },
+  "hints": ["使用优先队列", "曼哈顿距离作为启发函数", "记录最优路径"]
+}

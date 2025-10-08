@@ -1,0 +1,20 @@
+{
+  "id": "py-pixel-013",
+  "title": "绘制棋盘",
+  "lang": "python",
+  "gameType": "pixel",
+  "difficulty": 2,
+  "story": "绘制黑白相间的棋盘图案。",
+  "goals": ["绘制8×8的棋盘图案"],
+  "starter": { "blockly": "<xml/>", "code": "for i in range(8):\n    row = ''\n    for j in range(8):\n        if (i + j) % 2 == 0:\n            row += '1'\n        else:\n            row += '0'\n    print(row)" },
+  "solution": "for i in range(8):\n    row = ''\n    for j in range(8):\n        if (i + j) % 2 == 0:\n            row += '1'\n        else:\n            row += '0'\n    print(row)",
+  "assets": { "size": 8 },
+  "grader": {
+    "mode": "io",
+    "io": {
+      "cases": [{ "in": "", "out": "10101010\n01010101\n10101010\n01010101\n10101010\n01010101\n10101010\n01010101\n" }],
+      "match": "exact"
+    }
+  },
+  "rewards": { "xp": 32, "coins": 12, "badges": [] }
+}

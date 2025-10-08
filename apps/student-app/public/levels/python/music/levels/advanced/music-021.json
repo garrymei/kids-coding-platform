@@ -1,0 +1,26 @@
+{
+  "id": "py-music-021",
+  "title": "和声进行",
+  "lang": "python",
+  "gameType": "music",
+  "difficulty": 3,
+  "story": "演奏I-V-vi-IV和弦进行。",
+  "goals": ["演奏C-G-Am-F和弦进行"],
+  "starter": { "blockly": "<xml/>", "code": "# TODO: 演奏C-G-Am-F和弦进行\n# 每个和弦持续4拍" },
+  "solution": "chords = [('C', 0), ('G', 4), ('Am', 8), ('F', 12)]\n\nfor chord, start_tick in chords:\n    if chord == 'C':\n        print(f'note {start_tick} C 4')\n        print(f'note {start_tick} E 4')\n        print(f'note {start_tick} G 4')\n    elif chord == 'G':\n        print(f'note {start_tick} G 4')\n        print(f'note {start_tick} B 4')\n        print(f'note {start_tick} D 4')\n    elif chord == 'Am':\n        print(f'note {start_tick} A 4')\n        print(f'note {start_tick} C 4')\n        print(f'note {start_tick} E 4')\n    elif chord == 'F':\n        print(f'note {start_tick} F 4')\n        print(f'note {start_tick} A 4')\n        print(f'note {start_tick} C 4')",
+  "grader": {
+    "mode": "event",
+    "events": {
+      "channel": "music",
+      "collectFromStdout": true,
+      "mapRule": "stdout line 'note t p d'"
+    },
+    "checks": [{ "type": "eventSet", "expect": ["note 0 C 4", "note 0 E 4", "note 0 G 4", "note 4 G 4", "note 4 B 4", "note 4 D 4", "note 8 A 4", "note 8 C 4", "note 8 E 4", "note 12 F 4", "note 12 A 4", "note 12 C 4"] }],
+    "constraints": {
+      "maxTimeMs": 3000,
+      "maxMemMB": 64,
+      "requireStructures": ["def"]
+    }
+  },
+  "rewards": { "xp": 40, "coins": 20, "badges": ["和声大师"] }
+}

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { fetchLevel, fetchReference } from '../services/curriculum';
 import { execute, judge as judgeApi } from '../services/judge';
 import { useNavigate } from 'react-router-dom';
@@ -59,7 +59,7 @@ export default function StudyRunner({ language, game, level }: Props) {
           lv?.judge?.type === 'unit_tests'
             ? { result: null, expected: lv?.expected_io?.output }
             : { meta: { reached: true, steps: 3 }, events: [] },
-      });
+      }) as any;
       setPassed(!!j.pass);
 
       if (j.message) {

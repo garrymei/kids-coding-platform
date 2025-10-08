@@ -1,10 +1,14 @@
 ﻿import { NavLink } from 'react-router-dom';
+import { useState } from 'react';
+import { Avatar, UserProfile } from '@kids/ui-kit';
+import { useAuthStore } from '../stores/auth';
 
 export const NAV_ITEMS = [
   { href: '/', label: '首页' },
   { href: '/courses', label: '课程' },
   { href: '/map', label: '课程地图' },
   { href: '/works', label: '作品' },
+  { href: '/creative', label: '创作间' },
   { href: '/rank', label: '排行榜' },
 ];
 
@@ -13,6 +17,15 @@ interface AppHeaderProps {
 }
 
 export function AppHeader({ onToggleSidebar }: AppHeaderProps) {
+  const { user, logout } = useAuthStore();
+  const [isProfileOpen, setProfileOpen] = useState(false);
+
+  const handleLogout = () => {
+    logout();
+    // Consider a more robust routing solution in a real app
+    window.location.reload();
+  };
+
   return (
     <header className="kc-header">
       <div className="kc-container kc-header-row">
@@ -45,9 +58,19 @@ export function AppHeader({ onToggleSidebar }: AppHeaderProps) {
           <a className="btn btn-ghost" href="/tasks">
             今日任务
           </a>
-          <img src="/avatar.svg" width={32} height={32} className="kc-avatar" alt="当前用户头像" />
+          {user ? (
+            <div style={{ position: 'relative' }}>
+              <Avatar name={user.name} onClick={() => setProfileOpen((prev) => !prev)} />
+              {isProfileOpen && <UserProfile user={user} onLogout={handleLogout} />}
+            </div>
+          ) : (
+            <img src="/avatar.svg" width={32} height={32} className="kc-avatar" alt="当前用户头像" />
+          )}
         </div>
       </div>
     </header>
   );
 }
+
+
+

@@ -1,0 +1,31 @@
+{
+  "id": "py-maze-012",
+  "title": "智能探索",
+  "lang": "python",
+  "gameType": "maze",
+  "difficulty": 2,
+  "story": "使用传感器探测前方，智能选择路径。",
+  "goals": ["使用scan()函数探测障碍，到达终点"],
+  "starter": {
+    "blockly": "<xml/>",
+    "code": "# 使用 scan() 探测前方是否有障碍\n# scan() 返回 True 表示前方可通行\ndef navigate():\n    # TODO: 实现智能导航\n    pass\n\nnavigate()"
+  },
+  "solution": "def navigate():\n    while not at_goal():\n        if scan():\n            move()\n        else:\n            turn_right()",
+  "assets": { "maze": ["#######", "#S....#", "#.###.#", "#...E.#", "#######"], "maxSteps3Star": 12 },
+  "grader": {
+    "mode": "event",
+    "events": {
+      "channel": "maze",
+      "collectFromAPI": true
+    },
+    "checks": [
+      { "type": "goal", "name": "reach_end", "must": true },
+      { "type": "maxSteps", "value": 12 }
+    ],
+    "constraints": {
+      "requireStructures": ["def", "if", "while"]
+    }
+  },
+  "rewards": { "xp": 35, "coins": 12, "badges": ["智能导航"] },
+  "hints": ["使用while循环", "scan()检测前方", "遇到障碍就转弯"]
+}

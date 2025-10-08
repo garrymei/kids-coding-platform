@@ -1,0 +1,30 @@
+{
+  "id": "py-io-004",
+  "title": "信号长度",
+  "lang": "python",
+  "gameType": "io",
+  "difficulty": 1,
+  "story": "测量接收到的信号长度，帮助灯塔调节接收频率。",
+  "goals": ["读取一行文本，输出其字符数量"],
+  "starter": { 
+    "blockly": "<xml/>", 
+    "code": "text = input()\n# TODO: 输出 text 的长度" 
+  },
+  "grader": {
+    "mode": "io",
+    "io": {
+      "cases": [
+        { "in": "Hello\\n", "out": "5\\n" },
+        { "in": "Code Island\\n", "out": "11\\n" },
+        { "in": "Python\\n", "out": "6\\n" }
+      ],
+      "match": "exact"
+    },
+    "constraints": {
+      "maxTimeMs": 3000,
+      "maxMemMB": 64
+    }
+  },
+  "rewards": { "xp": 15, "coins": 6, "badges": [] },
+  "hints": ["len() 函数计算长度", "不要忘记 print()"]
+}

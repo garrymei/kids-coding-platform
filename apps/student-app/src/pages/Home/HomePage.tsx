@@ -4,6 +4,7 @@ import { useProgressStore } from '../../stores/progress';
 import { DailyTaskCard } from './DailyTaskCard';
 import { AchievementsCard } from './AchievementsCard';
 import { RecommendedNextLevel } from './RecommendedNextLevel';
+import { CreativeShowcaseCard } from './CreativeShowcaseCard';
 
 const MOCK_STUDENT_ID = 'stu_1';
 
@@ -78,6 +79,8 @@ export default function HomePage() {
         <DailyTaskCard tasks={mockDailyTasks} />
         <AchievementsCard achievements={mockAchievements} totalAchievements={20} />
       </section>
+
+      <CreativeShowcaseCard />
 
       <section className="card" style={{ padding: 24 }}>
         <div className="kc-section-title">课程概览</div>

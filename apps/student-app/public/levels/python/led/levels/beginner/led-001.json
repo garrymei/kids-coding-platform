@@ -4,9 +4,13 @@
   "lang": "python",
   "gameType": "led",
   "difficulty": 1,
-  "story": "能源站测试：点亮 0 号灯。",
+  "story": "能源站要确认灯阵线路正常，请输出 on0 信号。",
   "goals": ["输出事件 on0"],
-  "starter": { "blockly": "<xml/>", "code": "print('on0')  # 提示：事件以 on{i} 表示" },
+  "starter": {
+    "blockly": "<xml/>",
+    "code": "print('on0')  # 示例事件格式"
+  },
+  "solution": "print('on0')",
   "assets": { "gridWidth": 1, "gridHeight": 1 },
   "grader": {
     "mode": "event",
@@ -15,11 +19,10 @@
       "collectFromStdout": true,
       "mapRule": "stdout line 'on{i}' => event 'on{i}'"
     },
-    "checks": [{ "type": "eventSeq", "expect": ["on0"] }],
-    "constraints": {
-      "maxTimeMs": 3000,
-      "maxMemMB": 64
-    }
+    "checks": [
+      { "type": "eventSeq", "expect": ["on0"] }
+    ]
   },
-  "rewards": { "xp": 12, "coins": 5, "badges": [] }
+  "rewards": { "xp": 12, "coins": 5, "badges": [] },
+  "hints": ["事件可以通过 print() 输出", "文本必须完全匹配 on0"]
 }

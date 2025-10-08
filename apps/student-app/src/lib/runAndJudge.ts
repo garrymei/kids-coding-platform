@@ -127,14 +127,26 @@ function simulateIoOutput(code: string, input: string): string {
 }
 
 function generatePixelMatrix(level: Level): number[][] {
-  const visualization = (level as any).visualization ?? {};
-  const pixelInfo = visualization.pixel ?? {};
-  const size = pixelInfo.height ?? 8;
-  const width = pixelInfo.width ?? 8;
+  const grader = (level as any).grader;
+  const expectedOutput = grader?.io?.cases?.[0]?.out;
+  if (typeof expectedOutput === "string" && expectedOutput.trim() !== "") {
+    return parsePixelMatrixFromString(expectedOutput);
+  }
 
-  return Array.from({ length: size }).map((_, row) =>
-    Array.from({ length: width }).map((__, col) => ((row + col) % 2 === 0 ? 255 : 64)),
+  const assets = (level as any).assets ?? {};
+  const height = assets.height ?? assets.size ?? 8;
+  const width = assets.width ?? assets.size ?? 8;
+
+  return Array.from({ length: height }).map((_, row) =>
+    Array.from({ length: width }).map((__, col) => ((row + col) % 2 === 0 ? 1 : 0)),
   );
+}
+
+function parsePixelMatrixFromString(pattern: string): number[][] {
+  const rows = pattern.replace(/\r\n/g, "\n").trimEnd().split("\n");
+  return rows
+    .filter((row) => row.length > 0)
+    .map((row) => row.split("").map((char) => (char === "1" ? 1 : 0)));
 }
 
 function generateMusicSequence(level: Level): Array<{ pitch: string; duration: number }> {

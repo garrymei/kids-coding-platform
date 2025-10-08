@@ -1,0 +1,29 @@
+{
+  "id": "py-maze-003",
+  "title": "L型通道",
+  "lang": "python",
+  "gameType": "maze",
+  "difficulty": 1,
+  "story": "通道呈L型，需要两次转弯才能到达终点。",
+  "goals": ["到达终点"],
+  "starter": {
+    "blockly": "<xml/>",
+    "code": "# API: move(), turn_left(), turn_right(), scan()\n# TODO: 沿着L型路径到达终点\n"
+  },
+  "solution": "def solve():\n    move()\n    move()\n    turn_right()\n    move()\n    turn_right()\n    move()",
+  "assets": { "maze": ["######", "#S...#", "####.#", "###E.#", "######"], "maxSteps3Star": 7 },
+  "grader": {
+    "mode": "event",
+    "events": {
+      "channel": "maze",
+      "collectFromAPI": true,
+      "expectedGoal": "reach_end"
+    },
+    "checks": [
+      { "type": "goal", "name": "reach_end", "must": true },
+      { "type": "maxSteps", "value": 7 }
+    ]
+  },
+  "rewards": { "xp": 25, "coins": 10, "badges": [] },
+  "hints": ["先向右走到头", "然后向下转", "最后向左转到终点"]
+}

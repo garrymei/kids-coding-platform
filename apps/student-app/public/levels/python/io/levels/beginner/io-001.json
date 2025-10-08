@@ -4,13 +4,22 @@
   "lang": "python",
   "gameType": "io",
   "difficulty": 1,
-  "story": "灯塔需要一条测试讯息，确认你已到达。",
-  "goals": ["打印 Hello, Island!"],
-  "starter": { "blockly": "<xml/>", "code": "print('')  # TODO" },
+  "story": "灯塔控制台需要发送一条问候语，确认你已经抵达。",
+  "goals": ["输出完全一致的 Hello, Island!"],
+  "starter": {
+    "blockly": "<xml/>",
+    "code": "print('')  # TODO：输出问候语"
+  },
+  "solution": "print('Hello, Island!')",
   "grader": {
     "mode": "io",
     "io": {
-      "cases": [{ "in": "", "out": "Hello, Island!\\n" }],
+      "cases": [
+        {
+          "in": "",
+          "out": "Hello, Island!\n"
+        }
+      ],
       "match": "exact"
     },
     "constraints": {
@@ -19,6 +28,6 @@
       "forbiddenImports": ["os", "sys", "subprocess"]
     }
   },
-  "rewards": { "xp": 10, "coins": 5, "badges": ["启航者"] },
-  "hints": ["使用 print()", "注意大小写与标点"]
+  "rewards": { "xp": 10, "coins": 5, "badges": ["starter"] },
+  "hints": ["使用 print()", "注意大小写和标点需完全一致"]
 }

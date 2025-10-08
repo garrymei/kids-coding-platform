@@ -1,0 +1,28 @@
+{
+  "id": "py-maze-002",
+  "title": "左转探索",
+  "lang": "python",
+  "gameType": "maze",
+  "difficulty": 1,
+  "story": "前方有障碍，需要左转寻找新路径。",
+  "goals": ["到达终点"],
+  "starter": {
+    "blockly": "<xml/>",
+    "code": "# API: move(), turn_left(), scan()\n# TODO: 避开障碍到达终点\n"
+  },
+  "solution": "move()\nturn_left()\nmove()\nmove()",
+  "assets": { "maze": ["#####", "#S#.#", "#..E#", "#####"], "maxSteps3Star": 5 },
+  "grader": {
+    "mode": "event",
+    "events": {
+      "channel": "maze",
+      "collectFromAPI": true,
+      "expectedGoal": "reach_end"
+    },
+    "checks": [
+      { "type": "goal", "name": "reach_end", "must": true },
+      { "type": "maxSteps", "value": 5 }
+    ]
+  },
+  "rewards": { "xp": 25, "coins": 10, "badges": [] }
+}

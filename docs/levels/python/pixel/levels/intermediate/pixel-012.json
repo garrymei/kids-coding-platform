@@ -1,0 +1,27 @@
+{
+  "id": "py-pixel-012",
+  "title": "6×6 棋盘",
+  "lang": "python",
+  "gameType": "pixel",
+  "difficulty": 2,
+  "story": "创建一个6×6的棋盘图案，黑白相间。",
+  "goals": ["输出6行，每行由0/1组成，形成棋盘图案"],
+  "starter": {
+    "blockly": "<xml/>",
+    "code": "canvas = [[0]*6 for _ in range(6)]\n# TODO: 创建棋盘图案，(i+j)%2决定颜色"
+  },
+  "assets": { "size": 6 },
+  "grader": {
+    "mode": "io",
+    "io": {
+      "cases": [{ "in": "", "out": "101010\\n010101\\n101010\\n010101\\n101010\\n010101\\n" }],
+      "match": "exact"
+    },
+    "constraints": {
+      "maxTimeMs": 3000,
+      "maxMemMB": 64
+    }
+  },
+  "rewards": { "xp": 35, "coins": 12, "badges": [] },
+  "hints": ["(i+j) % 2 == 0 时为1", "嵌套循环遍历所有位置", "棋盘图案有规律性"]
+}

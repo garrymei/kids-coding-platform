@@ -1,4 +1,4 @@
-export type JudgeType = 'api_events' | 'svg_path_similarity' | 'unit_tests';
+export type JudgeType = 'api_events' | 'svg_path_similarity' | 'unit_tests' | 'stdout_compare';
 
 export interface ApiEventsPayload {
   events: Array<{ type: string; value?: any }>;

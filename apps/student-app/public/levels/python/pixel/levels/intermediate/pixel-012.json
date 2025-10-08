@@ -1,0 +1,20 @@
+{
+  "id": "py-pixel-012",
+  "title": "绘制菱形",
+  "lang": "python",
+  "gameType": "pixel",
+  "difficulty": 2,
+  "story": "在像素画布上绘制一个菱形图案。",
+  "goals": ["绘制7×7的菱形"],
+  "starter": { "blockly": "<xml/>", "code": "size = 7\ncenter = size // 2\nfor i in range(size):\n    row = ''\n    for j in range(size):\n        if abs(i - center) + abs(j - center) <= center:\n            row += '1'\n        else:\n            row += '0'\n    print(row)" },
+  "solution": "size = 7\ncenter = size // 2\nfor i in range(size):\n    row = ''\n    for j in range(size):\n        if abs(i - center) + abs(j - center) <= center:\n            row += '1'\n        else:\n            row += '0'\n    print(row)",
+  "assets": { "size": 7 },
+  "grader": {
+    "mode": "io",
+    "io": {
+      "cases": [{ "in": "", "out": "0001000\n0011100\n0111110\n1111111\n0111110\n0011100\n0001000\n" }],
+      "match": "exact"
+    }
+  },
+  "rewards": { "xp": 35, "coins": 15, "badges": [] }
+}

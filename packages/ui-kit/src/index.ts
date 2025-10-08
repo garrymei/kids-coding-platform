@@ -24,5 +24,11 @@ export type { PrivacyBannerProps } from './components/PrivacyBanner';
 export { default as StudentTrendChart } from './components/StudentTrendChart';
 export { default as StudentComparisonChart } from './components/StudentComparisonChart';
 
+export { default as Avatar } from './components/Avatar';
+export { default as UserProfile } from './components/UserProfile';
+export type { UserProfileData } from './components/UserProfile';
+
+export { LoginPage } from './components/LoginPage';
+
 export { tokens } from './theme/index.js';
 export type { DesignTokens } from './theme/index.js';

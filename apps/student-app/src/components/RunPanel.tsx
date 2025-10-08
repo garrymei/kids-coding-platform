@@ -4,6 +4,7 @@ import type { ReactNode } from 'react';
 import type { Level } from '@kids/types';
 import { runAndJudge, type RunAndJudgeResult } from '../lib/runAndJudge';
 import { RunFeedback } from './RunFeedback';
+import { progressStore } from '../store/progress';
 
 interface RunPanelProps {
   level: Level;
@@ -15,6 +16,8 @@ interface RunPanelProps {
   };
   nextLevelId?: string | null; // 下一关ID
   onGoNext?: () => void; // 进入下一关的回调
+
+  game?: string; // 游戏类型
 }
 
 /**
@@ -28,6 +31,7 @@ export function RunPanel({
   gameRunner,
   nextLevelId,
   onGoNext,
+  game,
 }: RunPanelProps) {
   const [busy, setBusy] = useState(false);
   const [result, setResult] = useState<RunAndJudgeResult | null>(null);
@@ -48,6 +52,17 @@ export function RunPanel({
       const data = await runAndJudge({ level, code });
       setResult(data);
       onResult?.(data);
+
+      // 如果通过判题，保存进度
+      if (data.judge?.passed) {
+        const levelId = (level as any).id || `${game}-${(level as any).level}`;
+        const xp = 10; // 基础经验值
+        const coins = 5; // 基础金币
+        
+        progressStore.completeLevel(levelId, xp, coins);
+        
+        console.log(`关卡 ${levelId} 通关成功！获得 ${xp} 经验值和 ${coins} 金币`);
+      }
     } catch (err) {
       const message = err instanceof Error ? err.message : '运行失败，请稍后再试';
       setError(message);
@@ -64,22 +79,14 @@ export function RunPanel({
   };
 
   const handleFillSolution = () => {
-    if (level.solution) {
-      onCodeChange(level.solution);
+    if (level.solution || (level as any).reference_solution) {
+      const solution = level.solution || (level as any).reference_solution;
+      onCodeChange(solution);
       setShowSolution(false);
     }
   };
 
-  const handleCopySolution = async () => {
-    if (level.solution) {
-      try {
-        await navigator.clipboard.writeText(level.solution);
-        alert('✅ 参考答案已复制到剪贴板');
-      } catch {
-        alert('❌ 复制失败，请手动复制');
-      }
-    }
-  };
+
 
   return (
     <div className="grid duo">
@@ -134,7 +141,7 @@ export function RunPanel({
             )}
           </button>
 
-          {level.solution && (
+          {(level.solution || (level as any).reference_solution) && (
             <button
               className="btn btn-secondary"
               onClick={() => setShowSolution((s) => !s)}
@@ -145,7 +152,7 @@ export function RunPanel({
             </button>
           )}
 
-          {level.solution && showSolution && (
+          {(level.solution || (level as any).reference_solution) && showSolution && (
             <button
               className="btn btn-primary"
               onClick={handleFillSolution}
@@ -185,16 +192,18 @@ export function RunPanel({
         </div>
 
         {/* 参考答案显示区 */}
-        {showSolution && level.solution && (
+        {showSolution && (level.solution || (level as any).reference_solution) && (
           <div style={{ marginTop: 16 }}>
             <div
               style={{
                 padding: 12,
                 background: '#fff3cd',
                 border: '1px solid #ffc107',
+                color: '#664d03',
                 borderRadius: 8,
                 marginBottom: 8,
                 fontSize: '0.9em',
+                fontWeight: 500,
               }}
             >
               ⚠️ 参考答案仅供学习，建议先独立思考再查看
@@ -211,7 +220,7 @@ export function RunPanel({
                 margin: 0,
               }}
             >
-              {level.solution}
+              {level.solution || (level as any).reference_solution}
             </pre>
           </div>
         )}
@@ -245,7 +254,7 @@ export function RunPanel({
             />
 
             {/* 通过判题后显示"进入下一关"按钮 */}
-            {result?.judgeResult?.pass && nextLevelId && onGoNext && (
+            {result?.judge?.passed && nextLevelId && onGoNext && (
               <div
                 style={{
                   marginTop: 16,
@@ -292,3 +301,5 @@ export function RunPanel({
     </div>
   );
 }
+
+

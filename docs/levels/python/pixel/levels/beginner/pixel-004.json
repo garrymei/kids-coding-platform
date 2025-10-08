@@ -1,0 +1,27 @@
+{
+  "id": "py-pixel-004",
+  "title": "5×5 对角线",
+  "lang": "python",
+  "gameType": "pixel",
+  "difficulty": 2,
+  "story": "在5×5画布上绘制从左上到右下的对角线。",
+  "goals": ["输出5行，每行由0/1组成，主对角线为1"],
+  "starter": {
+    "blockly": "<xml/>",
+    "code": "canvas = [[0]*5 for _ in range(5)]\n# TODO: 设置主对角线为1"
+  },
+  "assets": { "size": 5 },
+  "grader": {
+    "mode": "io",
+    "io": {
+      "cases": [{ "in": "", "out": "10000\\n01000\\n00100\\n00010\\n00001\\n" }],
+      "match": "exact"
+    },
+    "constraints": {
+      "maxTimeMs": 3000,
+      "maxMemMB": 64
+    }
+  },
+  "rewards": { "xp": 30, "coins": 10, "badges": [] },
+  "hints": ["主对角线上 i == j", "用循环 for i in range(5)", "canvas[i][i] = 1"]
+}

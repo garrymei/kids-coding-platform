@@ -1,0 +1,21 @@
+{
+  "id": "py-music-003",
+  "title": "节拍练习",
+  "lang": "python",
+  "gameType": "music",
+  "difficulty": 1,
+  "story": "学习不同的音符时值。",
+  "goals": ["播放不同节拍的音符：C(1拍), D(2拍), E(0.5拍)"],
+  "starter": { "blockly": "<xml/>", "code": "# TODO: 播放不同节拍的音符\nprint('note 0 C 1')" },
+  "solution": "print('note 0 C 1')\nprint('note 1 D 2')\nprint('note 3 E 0.5')",
+  "grader": {
+    "mode": "event",
+    "events": {
+      "channel": "music",
+      "collectFromStdout": true,
+      "mapRule": "stdout line 'note t p d'"
+    },
+    "checks": [{ "type": "eventSeq", "expect": ["note 0 C 1", "note 1 D 2", "note 3 E 0.5"] }]
+  },
+  "rewards": { "xp": 18, "coins": 8, "badges": [] }
+}

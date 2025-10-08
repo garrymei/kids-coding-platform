@@ -1,0 +1,24 @@
+{
+  "id": "py-music-012",
+  "title": "和弦大师",
+  "lang": "python",
+  "gameType": "music",
+  "difficulty": 2,
+  "story": "同时播放多个音符形成和弦，创造丰富的音乐层次。",
+  "goals": ["在tick=0同时播放C、E、G音符形成C大调和弦"],
+  "starter": {
+    "blockly": "<xml/>",
+    "code": "# C大调和弦：C E G\nchord = ['C', 'E', 'G']\n# TODO: 在同一时刻播放所有音符"
+  },
+  "grader": {
+    "mode": "event",
+    "events": {
+      "channel": "music",
+      "collectFromStdout": true,
+      "mapRule": "stdout line 'note t p d'"
+    },
+    "checks": [{ "type": "eventSeq", "expect": ["note 0 C 1", "note 0 E 1", "note 0 G 1"] }]
+  },
+  "rewards": { "xp": 25, "coins": 10, "badges": [] },
+  "hints": ["所有音符的tick都是0", "用循环遍历和弦音符", "同时播放多个音符形成和弦"]
+}

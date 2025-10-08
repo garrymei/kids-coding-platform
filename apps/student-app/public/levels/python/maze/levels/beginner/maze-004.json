@@ -1,0 +1,31 @@
+{
+  "id": "py-maze-004",
+  "title": "扫描判断",
+  "lang": "python",
+  "gameType": "maze",
+  "difficulty": 2,
+  "story": "使用扫描功能判断前方是否有障碍。",
+  "goals": ["使用scan()函数判断路径"],
+  "starter": {
+    "blockly": "<xml/>",
+    "code": "# API: move(), turn_left(), scan()\n# TODO: 使用scan()判断前方路径\n"
+  },
+  "solution": "while scan() == 'wall':\n    turn_left()\nmove()\nmove()\nmove()",
+  "assets": { "maze": ["#####", "#S..#", "##.E#", "#####"], "maxSteps3Star": 6 },
+  "grader": {
+    "mode": "event",
+    "events": {
+      "channel": "maze",
+      "collectFromAPI": true,
+      "expectedGoal": "reach_end"
+    },
+    "checks": [
+      { "type": "goal", "name": "reach_end", "must": true },
+      { "type": "maxSteps", "value": 6 }
+    ],
+    "constraints": {
+      "requireStructures": ["def"]
+    }
+  },
+  "rewards": { "xp": 35, "coins": 15, "badges": ["扫描专家"] }
+}

@@ -82,6 +82,13 @@ class ProgressStore {
       
       this.state.lastActivityDate = today;
       this.saveToStorage();
+      
+      // 触发自定义事件，通知其他组件进度已更新
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(
+          new CustomEvent('progress-updated', { detail: { levelId, xp, coins } })
+        );
+      }
     }
   }
 

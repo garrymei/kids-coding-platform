@@ -1,0 +1,31 @@
+{
+  "id": "py-maze-022",
+  "title": "复杂迷宫",
+  "lang": "python",
+  "gameType": "maze",
+  "difficulty": 3,
+  "story": "复杂迷宫结构，需要综合运用所有技巧。",
+  "goals": ["综合运用扫描、转向、循环等技巧"],
+  "starter": {
+    "blockly": "<xml/>",
+    "code": "# API: move(), turn_left(), scan()\n# TODO: 综合运用所有技巧通过复杂迷宫\n"
+  },
+  "solution": "def solve():\n    while not at_goal():\n        if scan() == 'clear':\n            move()\n        else:\n            turn_left()\n            if scan() == 'clear':\n                move()\n            else:\n                turn_left()\n                turn_left()\n\nsolve()",
+  "assets": { "maze": ["#########", "#S.....#.#", "#.###.#.#", "#...#...#", "###.#.###", "#...#...E#", "#########"], "maxSteps3Star": 25 },
+  "grader": {
+    "mode": "event",
+    "events": {
+      "channel": "maze",
+      "collectFromAPI": true,
+      "expectedGoal": "reach_end"
+    },
+    "checks": [
+      { "type": "goal", "name": "reach_end", "must": true },
+      { "type": "maxSteps", "value": 25 }
+    ],
+    "constraints": {
+      "requireStructures": ["def"]
+    }
+  },
+  "rewards": { "xp": 60, "coins": 30, "badges": ["迷宫大师"] }
+}

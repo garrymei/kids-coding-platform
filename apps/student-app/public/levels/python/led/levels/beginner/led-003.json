@@ -1,0 +1,27 @@
+{
+  "id": "py-led-003",
+  "title": "循环闪烁",
+  "lang": "python",
+  "gameType": "led",
+  "difficulty": 1,
+  "story": "能源站测试：用循环让0号灯闪烁3次。",
+  "goals": ["使用循环让0号灯闪烁3次"],
+  "starter": { "blockly": "<xml/>", "code": "# TODO: 用for循环让0号灯闪烁3次\nfor i in range(3):\n    print('on0')\n    # 添加关闭命令" },
+  "solution": "for i in range(3):\n    print('on0')\n    print('off0')",
+  "assets": { "gridWidth": 1, "gridHeight": 1 },
+  "grader": {
+    "mode": "event",
+    "events": {
+      "channel": "led",
+      "collectFromStdout": true,
+      "mapRule": "stdout line 'on{i}' => event 'on{i}'"
+    },
+    "checks": [{ "type": "eventSeq", "expect": ["on0", "off0", "on0", "off0", "on0", "off0"] }],
+    "constraints": {
+      "maxTimeMs": 3000,
+      "maxMemMB": 64,
+      "requireStructures": ["def"]
+    }
+  },
+  "rewards": { "xp": 18, "coins": 8, "badges": [] }
+}

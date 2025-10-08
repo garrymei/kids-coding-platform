@@ -4,16 +4,26 @@
   "lang": "python",
   "gameType": "pixel",
   "difficulty": 3,
-  "story": "修复简单几何拼接图案。",
-  "goals": ["构造指定矩阵并输出"],
-  "starter": { "blockly": "<xml/>", "code": "# 提示：分模块函数生成局部" },
-  "assets": { "size": 8, "target": "matrix://预置或在判题侧存储" },
+  "story": "修复受损的几何地砖，恢复对称的块状图案。",
+  "goals": ["输出 8×8 的块状拼图"],
+  "starter": {
+    "blockly": "<xml/>",
+    "code": "pattern = [\n    '11110000',\n    '11110000',\n    '11000011',\n    '11000011',\n    '00111100',\n    '00111100',\n    '00001111',\n    '00001111',\n]\nfor row in pattern:\n    print(row)"
+  },
+  "solution": "pattern = [\n    '11110000',\n    '11110000',\n    '11000011',\n    '11000011',\n    '00111100',\n    '00111100',\n    '00001111',\n    '00001111',\n]\nfor row in pattern:\n    print(row)",
+  "assets": { "size": 8 },
   "grader": {
     "mode": "io",
     "io": {
-      "cases": [{ "in": "", "out": "<由判题侧输出期望>" }],
+      "cases": [
+        {
+          "in": "",
+          "out": "11110000\n11110000\n11000011\n11000011\n00111100\n00111100\n00001111\n00001111\n"
+        }
+      ],
       "match": "exact"
     }
   },
-  "rewards": { "xp": 32, "coins": 12, "badges": [] }
+  "rewards": { "xp": 32, "coins": 12, "badges": [] },
+  "hints": ["可以把每一行写成字符串列表", "记得按顺序打印所有行"]
 }

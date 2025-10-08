@@ -183,7 +183,15 @@ export function RunFeedback({ result, error, visualization }: RunFeedbackProps) 
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
             {result.artifacts.ioCases.map((testCase, index) => {
-              const passed = testCase.actual === testCase.expected;
+              const passed = typeof testCase.passed === 'boolean'
+                ? testCase.passed
+                : testCase.actual === testCase.expected;
+              
+              // 将JSON字符串中的转义字符转换为真实字符
+              const unescapeString = (str: string): string => {
+                return str.replace(/\\n/g, '\n').replace(/\\t/g, '\t').replace(/\\r/g, '\r');
+              };
+              
               return (
                 <div
                   key={index}
@@ -201,48 +209,130 @@ export function RunFeedback({ result, error, visualization }: RunFeedbackProps) 
                   <div style={{ fontSize: 13, color: 'var(--text-secondary)' }}>
                     <div style={{ marginBottom: 4 }}>
                       <strong>输入：</strong>
-                      <code
+                      <pre
                         style={{
                           background: 'rgba(15, 23, 42, 0.2)',
                           padding: '2px 6px',
                           borderRadius: 4,
                           marginLeft: 8,
+                          display: 'inline',
+                          whiteSpace: 'pre-wrap',
+                          fontFamily: 'inherit',
+                          maxHeight: '200px',
+                          overflowY: 'auto',
+                          maxWidth: '100%',
+                          overflowX: 'auto',
                         }}
                       >
-                        {testCase.input || '(空)'}
-                      </code>
+                        {testCase.input ? unescapeString(testCase.input) : '(空)'}
+                      </pre>
                     </div>
                     <div style={{ marginBottom: 4 }}>
                       <strong>期望输出：</strong>
-                      <code
+                      <pre
                         style={{
                           background: 'rgba(15, 23, 42, 0.2)',
                           padding: '2px 6px',
                           borderRadius: 4,
                           marginLeft: 8,
+                          display: 'inline',
+                          whiteSpace: 'pre-wrap',
+                          fontFamily: 'inherit',
+                          maxHeight: '200px',
+                          overflowY: 'auto',
+                          maxWidth: '100%',
+                          overflowX: 'auto',
                         }}
                       >
-                        {testCase.expected}
-                      </code>
+                        {unescapeString(testCase.expected)}
+                      </pre>
                     </div>
                     <div>
                       <strong>实际输出：</strong>
-                      <code
+                      <pre
                         style={{
                           background: 'rgba(15, 23, 42, 0.2)',
                           padding: '2px 6px',
                           borderRadius: 4,
                           marginLeft: 8,
+                          display: 'inline',
+                          whiteSpace: 'pre-wrap',
+                          fontFamily: 'inherit',
                           color: passed ? '#22c55e' : '#ef4444',
+                          maxHeight: '200px',
+                          overflowY: 'auto',
+                          maxWidth: '100%',
+                          overflowX: 'auto',
                         }}
                       >
                         {testCase.actual}
-                      </code>
+                      </pre>
                     </div>
                   </div>
                 </div>
               );
             })}
+          </div>
+        </div>
+      )}
+
+      {/* 事件序列比对（音乐 / LED 等） */}
+      {result.artifacts.eventCases && result.artifacts.eventCases.length > 0 && (
+        <div className="alert" style={{ background: 'rgba(56, 189, 248, 0.08)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
+            <span style={{ fontSize: 18 }}>🎼</span>
+            <strong>事件序列校验</strong>
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+            {result.artifacts.eventCases.map((eventCase, idx) => (
+              <div
+                key={`${eventCase.label}-${idx}`}
+                style={{
+                  padding: 12,
+                  background: eventCase.passed ? 'rgba(34, 197, 94, 0.1)' : 'rgba(239, 68, 68, 0.1)',
+                  borderRadius: 8,
+                  borderLeft: `4px solid ${eventCase.passed ? '#22c55e' : '#ef4444'}`,
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+                  <span style={{ fontSize: 16 }}>{eventCase.passed ? '✅' : '❌'}</span>
+                  <strong style={{ fontSize: 14 }}>{eventCase.label}</strong>
+                </div>
+                <div style={{ display: 'grid', gap: 8 }}>
+                  <div>
+                    <strong>期望事件：</strong>
+                    <pre
+                      style={{
+                        background: 'rgba(15, 23, 42, 0.2)',
+                        padding: '6px 8px',
+                        borderRadius: 4,
+                        marginTop: 4,
+                        whiteSpace: 'pre-wrap',
+                        fontFamily: 'inherit',
+                      }}
+                    >
+                      {eventCase.expected.length ? eventCase.expected.join('\n') : '（暂无数据）'}
+                    </pre>
+                  </div>
+                  <div>
+                    <strong>实际事件：</strong>
+                    <pre
+                      style={{
+                        background: 'rgba(15, 23, 42, 0.2)',
+                        padding: '6px 8px',
+                        borderRadius: 4,
+                        marginTop: 4,
+                        whiteSpace: 'pre-wrap',
+                        fontFamily: 'inherit',
+                        color: eventCase.passed ? '#22c55e' : '#ef4444',
+                      }}
+                    >
+                      {eventCase.actual.length ? eventCase.actual.join('\n') : '（未捕获事件）'}
+                    </pre>
+                  </div>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       )}

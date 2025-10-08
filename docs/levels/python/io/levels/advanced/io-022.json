@@ -1,0 +1,30 @@
+{
+  "id": "py-io-022",
+  "title": "数据统计师",
+  "lang": "python",
+  "gameType": "io",
+  "difficulty": 3,
+  "story": "分析灯塔传感器数据，计算平均值、最大值和最小值。",
+  "goals": ["读取多个数字直到输入0，输出平均值、最大值、最小值"],
+  "starter": { 
+    "blockly": "<xml/>", 
+    "code": "# 读取数字直到0，计算统计信息\nnumbers = []\nwhile True:\n    n = int(input())\n    if n == 0:\n        break\n    numbers.append(n)\n# TODO: 计算并输出统计信息" 
+  },
+  "grader": {
+    "mode": "io",
+    "io": {
+      "cases": [
+        { "in": "10\\n20\\n30\\n0\\n", "out": "20.0\\n30\\n10\\n" },
+        { "in": "5\\n15\\n25\\n35\\n0\\n", "out": "20.0\\n35\\n5\\n" }
+      ],
+      "match": "tolerance",
+      "tolerance": 0.01
+    },
+    "constraints": {
+      "maxTimeMs": 5000,
+      "maxMemMB": 64
+    }
+  },
+  "rewards": { "xp": 35, "coins": 15, "badges": ["数据分析师"] },
+  "hints": ["sum()/len() 计算平均值", "max() 和 min() 函数", "分别输出三行"]
+}

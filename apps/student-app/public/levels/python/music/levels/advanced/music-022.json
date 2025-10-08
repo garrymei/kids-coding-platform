@@ -1,0 +1,26 @@
+{
+  "id": "py-music-022",
+  "title": "旋律生成器",
+  "lang": "python",
+  "gameType": "music",
+  "difficulty": 3,
+  "story": "用算法生成美妙的旋律。",
+  "goals": ["用算法生成音阶旋律"],
+  "starter": { "blockly": "<xml/>", "code": "# TODO: 用算法生成旋律\n# 创建渐强然后渐弱的旋律" },
+  "solution": "def generate_melody():\n    # 音阶上升\n    notes = ['C', 'D', 'E', 'F', 'G', 'A', 'B']\n    for i, note in enumerate(notes):\n        dur = 1 + i * 0.2  # 渐强\n        print(f'note {i} {note} {dur}')\n    \n    # 音阶下降\n    for i, note in enumerate(reversed(notes[:-1])):\n        dur = 2.4 - i * 0.2  # 渐弱\n        print(f'note {i + 7} {note} {dur}')\n\ngenerate_melody()",
+  "grader": {
+    "mode": "event",
+    "events": {
+      "channel": "music",
+      "collectFromStdout": true,
+      "mapRule": "stdout line 'note t p d'"
+    },
+    "checks": [{ "type": "eventSet", "expect": ["note 0 C 1.0", "note 1 D 1.2", "note 2 E 1.4", "note 3 F 1.6", "note 4 G 1.8", "note 5 A 2.0", "note 6 B 2.2", "note 7 G 2.2", "note 8 F 2.0", "note 9 E 1.8", "note 10 D 1.6", "note 11 C 1.4"] }],
+    "constraints": {
+      "maxTimeMs": 3000,
+      "maxMemMB": 64,
+      "requireStructures": ["def"]
+    }
+  },
+  "rewards": { "xp": 45, "coins": 22, "badges": ["算法作曲家"] }
+}

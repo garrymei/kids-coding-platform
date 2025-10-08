@@ -63,9 +63,7 @@ export class JudgeService {
   private normalizeStdout(s: string): string {
     return (s ?? '')
       .replace(/\r\n/g, '\n')
-      .replace(/[ \t]+$/gm, '') // 去除行尾空格
-      .replace(/\n+$/, '') // 去除尾部空行
-      .trim();
+      .replace(/[ \t]+$/gm, ''); // 去除行尾空格，但保留末尾换行符
   }
 
   private lines(s: string): string[] {

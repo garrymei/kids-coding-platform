@@ -1,0 +1,21 @@
+{
+  "id": "py-music-002",
+  "title": "简单旋律",
+  "lang": "python",
+  "gameType": "music",
+  "difficulty": 1,
+  "story": "演奏一段简单的旋律。",
+  "goals": ["播放 C-D-E-F 四个音符"],
+  "starter": { "blockly": "<xml/>", "code": "# TODO: 播放 C-D-E-F 四个音符\nprint('note 0 C 1')" },
+  "solution": "print('note 0 C 1')\nprint('note 1 D 1')\nprint('note 2 E 1')\nprint('note 3 F 1')",
+  "grader": {
+    "mode": "event",
+    "events": {
+      "channel": "music",
+      "collectFromStdout": true,
+      "mapRule": "stdout line 'note t p d'"
+    },
+    "checks": [{ "type": "eventSeq", "expect": ["note 0 C 1", "note 1 D 1", "note 2 E 1", "note 3 F 1"] }]
+  },
+  "rewards": { "xp": 15, "coins": 6, "badges": [] }
+}

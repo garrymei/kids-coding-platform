@@ -1,4 +1,4 @@
-﻿import type { CSSProperties } from 'react';
+import type { CSSProperties } from 'react';
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import type { GamePack } from '@kids/types';
@@ -27,7 +27,7 @@ export function CoursesPage() {
   useEffect(() => {
     let cancelled = false;
 
-    (async () => {
+    const loadData = async () => {
       setState({ status: 'loading' });
       try {
         actions.refreshStats();
@@ -40,12 +40,35 @@ export function CoursesPage() {
         const message = error instanceof Error ? error.message : '加载课程失败';
         setState({ status: 'error', message });
       }
-    })();
+    };
+
+    loadData();
+
+    // 监听进度更新事件，自动刷新
+    const handleProgressUpdate = () => {
+      if (state.status === 'ready') {
+        // 重新计算进度，但不显示 loading 状态
+        (async () => {
+          try {
+            const packs = await levelRepo.getPacks('python');
+            const progress = await computeProgress(packs);
+            if (!cancelled) {
+              setState({ status: 'ready', packs, progress });
+            }
+          } catch (error) {
+            console.warn('更新进度显示失败:', error);
+          }
+        })();
+      }
+    };
+
+    window.addEventListener('progress-updated', handleProgressUpdate);
 
     return () => {
       cancelled = true;
+      window.removeEventListener('progress-updated', handleProgressUpdate);
     };
-  }, [actions]);
+  }, [actions, state.status]);
 
   const readyState = state.status === 'ready' ? state : null;
 
@@ -58,6 +81,12 @@ export function CoursesPage() {
     try {
       setLaunching(pack.gameType);
       const levels = await levelRepo.getLevels(pack.lang, pack.gameType);
+      if (levels.length === 0) {
+        if (typeof window !== 'undefined') {
+          window.alert('该课程正在建设中，敬请期待 🎨');
+        }
+        return;
+      }
       const first = levels[0];
       if (first) {
         navigate(`/play/${first.id}`);
@@ -183,9 +212,17 @@ export function CoursesPage() {
                     type="button"
                     className="btn btn-cta"
                     onClick={() => startPack(pack)}
-                    disabled={launching === pack.gameType}
+                    disabled={
+                      launching === pack.gameType ||
+                      (readyState.progress[pack.gameType]?.total ?? 0) === 0
+                    }
                   >
-                    {launching === pack.gameType ? '跳转中…' : '开始学习'}
+                    {launching === pack.gameType
+                      ? '跳转中…'
+                      : (readyState.progress[pack.gameType]?.total ?? 0) === 0
+                        ? '敬请期待'
+                        : '开始学习'
+                    }
                   </button>
                 </div>
               </div>

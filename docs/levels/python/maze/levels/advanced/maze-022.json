@@ -1,0 +1,31 @@
+{
+  "id": "py-maze-022",
+  "title": "递归探索",
+  "lang": "python",
+  "gameType": "maze",
+  "difficulty": 3,
+  "story": "使用递归算法探索复杂迷宫，展现算法的优雅。",
+  "goals": ["使用递归算法解决迷宫"],
+  "starter": {
+    "blockly": "<xml/>",
+    "code": "# 使用递归深度优先搜索\ndef dfs_solve():\n    # TODO: 实现递归迷宫求解\n    if at_goal():\n        return True\n    # 尝试四个方向\n    pass\n\ndfs_solve()"
+  },
+  "solution": "def dfs_solve():\n    if at_goal():\n        return True\n    \n    for direction in ['front', 'right', 'back', 'left']:\n        if can_move(direction):\n            move_direction(direction)\n            if dfs_solve():\n                return True\n            move_back()\n    \n    return False",
+  "assets": { "maze": ["##########", "#S.......#", "#.#####.##", "#.....#..#", "###.#.#.##", "#...#...E#", "##########"], "maxSteps3Star": 25 },
+  "grader": {
+    "mode": "event",
+    "events": {
+      "channel": "maze",
+      "collectFromAPI": true
+    },
+    "checks": [
+      { "type": "goal", "name": "reach_end", "must": true },
+      { "type": "maxSteps", "value": 25 }
+    ],
+    "constraints": {
+      "requireStructures": ["def", "if", "for", "return"]
+    }
+  },
+  "rewards": { "xp": 50, "coins": 20, "badges": ["递归大师"] },
+  "hints": ["递归基础情况：到达终点", "尝试所有可能方向", "回溯时撤销移动"]
+}

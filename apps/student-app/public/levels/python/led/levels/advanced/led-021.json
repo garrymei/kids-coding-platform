@@ -4,17 +4,23 @@
   "lang": "python",
   "gameType": "led",
   "difficulty": 3,
-  "story": "按奇亮偶灭点亮 8 盏灯。",
-  "goals": ["终局输出 10101010"],
-  "starter": { "blockly": "<xml/>", "code": "# 生成 '10101010' 并 print\n" },
+  "story": "8 盏灯需要恢复交替亮灭的图案，请重新生成最终状态。",
+  "goals": ["输出最终的 10101010"],
+  "starter": {
+    "blockly": "<xml/>",
+    "code": "# 生成交替的字符串并打印\n"
+  },
+  "solution": "pattern = ''.join('1' if i % 2 == 0 else '0' for i in range(8))\nprint(pattern)",
   "assets": { "gridWidth": 8, "gridHeight": 1 },
   "grader": {
     "mode": "io",
     "io": {
-      "cases": [{ "in": "", "out": "10101010\\n" }],
+      "cases": [
+        { "in": "", "out": "10101010\n" }
+      ],
       "match": "exact"
     }
   },
   "rewards": { "xp": 26, "coins": 10, "badges": [] },
-  "hints": ["i%2 判奇偶", "字符串拼接"]
+  "hints": ["利用循环和取模判断奇偶", "最后统一打印一次结果字符串"]
 }

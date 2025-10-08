@@ -1,0 +1,20 @@
+{
+  "id": "py-pixel-004",
+  "title": "绘制边框",
+  "lang": "python",
+  "gameType": "pixel",
+  "difficulty": 1,
+  "story": "绘制一个空心方块边框。",
+  "goals": ["绘制5×5的空心边框"],
+  "starter": { "blockly": "<xml/>", "code": "# TODO: 绘制空心边框\n# 只在边缘绘制1" },
+  "solution": "for i in range(5):\n    row = ''\n    for j in range(5):\n        if i == 0 or i == 4 or j == 0 or j == 4:  # 边缘\n            row += '1'\n        else:\n            row += '0'\n    print(row)",
+  "assets": { "size": 5 },
+  "grader": {
+    "mode": "io",
+    "io": {
+      "cases": [{ "in": "", "out": "11111\n10001\n10001\n10001\n11111\n" }],
+      "match": "exact"
+    }
+  },
+  "rewards": { "xp": 25, "coins": 10, "badges": [] }
+}

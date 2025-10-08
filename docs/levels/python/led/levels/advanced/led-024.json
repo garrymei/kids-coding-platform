@@ -1,0 +1,27 @@
+{
+  "id": "py-led-024",
+  "title": "动态图案",
+  "lang": "python",
+  "gameType": "led",
+  "difficulty": 3,
+  "story": "能源站挑战：根据输入创建动态 LED 边框图案。",
+  "goals": ["根据输入 n，在 n×n 网格中点亮边框"],
+  "starter": { "blockly": "<xml/>", "code": "n = int(input())\n# TODO: 创建 n×n 网格的边框\nfor x in range(n):\n    for y in range(n):\n        if x == 0 or x == n-1 or y == 0 or y == n-1:\n            print(f'on{x},{y}')" },
+  "assets": { "gridWidth": 6, "gridHeight": 6 },
+  "grader": {
+    "mode": "event",
+    "events": {
+      "channel": "led",
+      "collectFromStdout": true,
+      "mapRule": "stdout line 'on{x},{y}' => event 'on{x},{y}'"
+    },
+    "checks": [{ "type": "eventSet", "expect": ["on0,0", "on0,1", "on0,2", "on1,0", "on1,2", "on2,0", "on2,1", "on2,2"] }],
+    "constraints": {
+      "maxTimeMs": 3000,
+      "maxMemMB": 64,
+      "requireStructures": ["for", "if"]
+    }
+  },
+  "rewards": { "xp": 50, "coins": 25, "badges": ["动态控制专家"] },
+  "hints": ["使用 input() 获取输入", "边框条件：x==0 或 x==n-1 或 y==0 或 y==n-1"]
+}

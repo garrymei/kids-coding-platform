@@ -1,0 +1,26 @@
+{
+  "id": "py-led-023",
+  "title": "函数控制",
+  "lang": "python",
+  "gameType": "led",
+  "difficulty": 3,
+  "story": "能源站模块化：创建函数来控制 LED 十字形图案。",
+  "goals": ["使用函数在 5×5 网格中创建十字形"],
+  "starter": { "blockly": "<xml/>", "code": "def light_cross(size):\n    # TODO: 实现十字形点亮函数\n    center = size // 2\n    # 点亮水平线\n    for x in range(size):\n        print(f'on{x},{center}')\n    # 点亮垂直线\n    for y in range(size):\n        print(f'on{center},{y}')\n\nlight_cross(5)" },
+  "assets": { "gridWidth": 5, "gridHeight": 5 },
+  "grader": {
+    "mode": "event",
+    "events": {
+      "channel": "led",
+      "collectFromStdout": true,
+      "mapRule": "stdout line 'on{x},{y}' => event 'on{x},{y}'"
+    },
+    "checks": [{ "type": "eventSet", "expect": ["on0,2", "on1,2", "on2,2", "on3,2", "on4,2", "on2,0", "on2,1", "on2,3", "on2,4"] }],
+    "constraints": {
+      "maxTimeMs": 3000,
+      "maxMemMB": 64,
+      "requireStructures": ["def", "for"]
+    }
+  },
+  "rewards": { "xp": 45, "coins": 22, "badges": ["函数大师"] }
+}

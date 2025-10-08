@@ -1,0 +1,20 @@
+{
+  "id": "py-pixel-002",
+  "title": "绘制方块",
+  "lang": "python",
+  "gameType": "pixel",
+  "difficulty": 1,
+  "story": "在像素画布上绘制一个实心方块。",
+  "goals": ["绘制3×3的实心方块"],
+  "starter": { "blockly": "<xml/>", "code": "for i in range(5):\n    row = ''\n    for j in range(5):\n        if 1 <= i <= 3 and 1 <= j <= 3:\n            row += '1'\n        else:\n            row += '0'\n    print(row)" },
+  "solution": "for i in range(5):\n    row = ''\n    for j in range(5):\n        if 1 <= i <= 3 and 1 <= j <= 3:\n            row += '1'\n        else:\n            row += '0'\n    print(row)",
+  "assets": { "size": 5 },
+  "grader": {
+    "mode": "io",
+    "io": {
+      "cases": [{ "in": "", "out": "00000\n01110\n01110\n01110\n00000\n" }],
+      "match": "exact"
+    }
+  },
+  "rewards": { "xp": 20, "coins": 8, "badges": [] }
+}

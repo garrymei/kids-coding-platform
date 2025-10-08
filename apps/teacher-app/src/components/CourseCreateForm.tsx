@@ -117,32 +117,34 @@ export function CourseCreateForm({ onSubmit, isLoading = false, onCancel }: Cour
         />
       </FormField>
 
-      <FormField
-        label="课程标签"
-        error={Array.isArray(errors.tags) ? errors.tags[0] : errors.tags}
-        required
-        helpText="选择与课程相关的标签，最多可选择 5 个"
-      >
-        <div className="tag-selector">
-          {commonTags.map((tag) => (
-            <FormCheckbox
-              key={tag}
-              register={{
-                ...tagsRegister,
-                value: tag,
-                onChange: (event) => {
-                  tagsRegister.onChange(event);
-                  handleTagToggle(tag);
-                },
-              }}
-              label={tag}
-              checked={selectedTags.includes(tag)}
-              disabled={isBusy || (!selectedTags.includes(tag) && selectedTags.length >= 5)}
-            />
-          ))}
+      <div className="form-field">
+        <label className="form-field__label">
+          课程标签
+          <span className="form-field__required">*</span>
+        </label>
+        <div className="form-field__input">
+          <div className="tag-selector">
+            {commonTags.map((tag) => (
+              <FormCheckbox
+                key={tag}
+                register={{
+                  ...tagsRegister,
+                  onChange: async (event) => {
+                    await tagsRegister.onChange(event);
+                    handleTagToggle(tag);
+                  },
+                }}
+                value={tag}
+                label={tag}
+                checked={selectedTags.includes(tag)}
+                disabled={isBusy || (!selectedTags.includes(tag) && selectedTags.length >= 5)}
+              />
+            ))}
+          </div>
+          <div className="tag-info">已选择 {selectedTags.length}/5 个标签</div>
         </div>
-        <div className="tag-info">已选择 {selectedTags.length}/5 个标签</div>
-      </FormField>
+        <div className="form-field__help">选择与课程相关的标签，最多可选择 5 个</div>
+      </div>
 
       <FormField
         label="预计学习时长（分钟）"

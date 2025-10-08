@@ -1,0 +1,29 @@
+{
+  "id": "py-io-022",
+  "title": "数据聚合",
+  "lang": "python",
+  "gameType": "io",
+  "difficulty": 3,
+  "story": "岛上数据站需要计算一组数字的平均值和最大值。",
+  "goals": ["读取一行数字，输出平均值和最大值"],
+  "starter": { "blockly": "<xml/>", "code": "nums = list(map(int, input().split()))\n# TODO: 计算平均值和最大值" },
+  "solution": "nums = list(map(int, input().split()))\navg = sum(nums) / len(nums)\nmax_val = max(nums)\nprint(f'{avg:.1f} {max_val}')",
+  "grader": {
+    "mode": "io",
+    "io": {
+      "cases": [
+        { "in": "10 20 30\n", "out": "20.0 30\n" },
+        { "in": "5 15 25 35\n", "out": "20.0 35\n" }
+      ],
+      "match": "tolerance",
+      "tolerance": 0.1
+    },
+    "constraints": {
+      "maxTimeMs": 3000,
+      "maxMemMB": 64,
+      "requireStructures": ["def"]
+    }
+  },
+  "rewards": { "xp": 40, "coins": 18, "badges": ["数据分析师"] },
+  "hints": ["sum() 求和", "len() 计数", "max() 最大值", "f-string 格式化"]
+}

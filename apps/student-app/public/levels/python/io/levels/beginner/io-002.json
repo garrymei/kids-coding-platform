@@ -4,13 +4,26 @@
   "lang": "python",
   "gameType": "io",
   "difficulty": 1,
-  "story": "灯塔回声频道被动监听，请把输入原样回传。",
+  "story": "灯塔回声频道会回传讯息，请把收到的内容原样送回。",
   "goals": ["读取一行输入并原样输出"],
-  "starter": { "blockly": "<xml/>", "code": "s = input().strip()\n# TODO: 回显 s" },
+  "starter": {
+    "blockly": "<xml/>",
+    "code": "message = input().strip()\n# TODO：原样输出 message"
+  },
+  "solution": "message = input().strip()\nprint(message)",
   "grader": {
     "mode": "io",
     "io": {
-      "cases": [{ "in": "Code Island\\n", "out": "Code Island\\n" }],
+      "cases": [
+        {
+          "in": "Code Island\n",
+          "out": "Code Island\n"
+        },
+        {
+          "in": "hello world\n",
+          "out": "hello world\n"
+        }
+      ],
       "match": "exact"
     },
     "constraints": {
@@ -19,5 +32,5 @@
     }
   },
   "rewards": { "xp": 12, "coins": 5, "badges": [] },
-  "hints": ["input() 读取一行", "print(s) 输出"]
+  "hints": ["使用 input() 读取内容", "print(message) 输出即可"]
 }

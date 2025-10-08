@@ -1,0 +1,31 @@
+{
+  "id": "py-io-013",
+  "title": "密码验证",
+  "lang": "python",
+  "gameType": "io",
+  "difficulty": 2,
+  "story": "检查输入的密码是否包含数字，确保灯塔系统安全。",
+  "goals": ["读取密码字符串，如果包含数字输出YES，否则输出NO"],
+  "starter": { 
+    "blockly": "<xml/>", 
+    "code": "password = input()\n# TODO: 检查是否包含数字" 
+  },
+  "grader": {
+    "mode": "io",
+    "io": {
+      "cases": [
+        { "in": "abc123\\n", "out": "YES\\n" },
+        { "in": "hello\\n", "out": "NO\\n" },
+        { "in": "test9\\n", "out": "YES\\n" },
+        { "in": "PASSWORD\\n", "out": "NO\\n" }
+      ],
+      "match": "exact"
+    },
+    "constraints": {
+      "maxTimeMs": 3000,
+      "maxMemMB": 64
+    }
+  },
+  "rewards": { "xp": 25, "coins": 10, "badges": [] },
+  "hints": ["any() 和 char.isdigit() 组合使用", "或者用 for 循环检查每个字符"]
+}

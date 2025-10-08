@@ -1,5 +1,7 @@
 import { NavLink, Outlet } from 'react-router-dom';
-import { Badge, Button } from '@kids/ui-kit';
+import { Badge, Button, Avatar, UserProfile } from '@kids/ui-kit';
+import { useState } from 'react';
+import { useAuthStore } from '../stores/auth';
 
 const navItems = [
   { to: '/classes', label: '班级概览' },
@@ -8,6 +10,14 @@ const navItems = [
 ];
 
 export function AppLayout() {
+  const { user, logout } = useAuthStore();
+  const [isProfileOpen, setProfileOpen] = useState(false);
+
+  const handleLogout = () => {
+    logout();
+    window.location.reload();
+  };
+
   return (
     <div className="app-shell">
       <header className="app-shell__nav">
@@ -33,8 +43,14 @@ export function AppLayout() {
             </NavLink>
           ))}
         </nav>
-        <div className="app-shell__cta">
+        <div className="app-shell__cta" style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
           <Button variant="primary">新建任务</Button>
+          {user && (
+            <div style={{ position: 'relative' }}>
+              <Avatar name={user.name} onClick={() => setProfileOpen((prev) => !prev)} />
+              {isProfileOpen && <UserProfile user={user} onLogout={handleLogout} />}
+            </div>
+          )}
         </div>
       </header>
       <main className="app-shell__main">

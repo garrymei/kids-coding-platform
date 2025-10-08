@@ -3,7 +3,6 @@ import { useMetricsStore } from '../../stores/metrics';
 import { HeatmapMatrix } from '../../components/charts/HeatmapMatrix';
 import type { Dim, Period } from '@kids/utils';
 import { Card, Skeleton } from 'antd';
-import { useNavigate } from 'react-router-dom';
 const classId = 'class_1'; // Mock classId
 
 // Simple quantile color scale function

@@ -19,6 +19,7 @@
     "@kids/judge-stub": "workspace:*",
     "@kids/types": "workspace:*",
     "@kids/ui-kit": "workspace:*",
+    "@kids/utils": "workspace:*",
     "@sentry/react": "^8.33.1",
     "@types/dagre": "^0.7.53",
     "antd": "^5.23.1",

@@ -1,0 +1,28 @@
+{
+  "id": "py-maze-003",
+  "title": "双重转弯",
+  "lang": "python",
+  "gameType": "maze",
+  "difficulty": 1,
+  "story": "路径曲折，需要连续转弯才能到达终点。",
+  "goals": ["到达终点"],
+  "starter": {
+    "blockly": "<xml/>",
+    "code": "# API: move(), turn_left(), scan()\n# TODO: 找到正确路径\n"
+  },
+  "solution": "move()\nturn_left()\nmove()\nturn_left()\nmove()\nmove()",
+  "assets": { "maze": ["######", "#S...#", "#.#.#", "#..E#", "######"], "maxSteps3Star": 8 },
+  "grader": {
+    "mode": "event",
+    "events": {
+      "channel": "maze",
+      "collectFromAPI": true,
+      "expectedGoal": "reach_end"
+    },
+    "checks": [
+      { "type": "goal", "name": "reach_end", "must": true },
+      { "type": "maxSteps", "value": 8 }
+    ]
+  },
+  "rewards": { "xp": 30, "coins": 12, "badges": [] }
+}

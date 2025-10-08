@@ -3,8 +3,8 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider = "sqlite"
+  url      = "file:./dev.db"
 }
 
 model User {
@@ -120,14 +120,14 @@ model LearnEvent {
   levelId    String
   passed     Boolean
   timeMs     Int?
-  ts         DateTime @db.Timestamp(6)
+  ts         DateTime
 
   student    User     @relation(fields: [studentId], references: [id], onDelete: Cascade)
 }
 
 model DailyStat {
   id             String   @id @default(cuid())
-  date           DateTime @db.Date
+  date           DateTime
   studentId      String
   studyMinutes   Int      @default(0)
   attempts       Int      @default(0)
@@ -177,7 +177,7 @@ model Consent {
   studentId   String
   requesterId String
   purpose     String
-  scope       String[] // array of permission scopes
+  scope       String // array of permission scopes
   status      String   // "pending", "approved", "rejected"
   reason      String?  // rejection or revocation reason
   createdAt   DateTime @default(now())
@@ -195,7 +195,7 @@ model AccessGrant {
   studentId      String
   granteeId      String
   relationshipId String?
-  scope          String[] // array of permission scopes
+  scope          String // array of permission scopes
   status         String   // "active", "revoked", "expired"
   grantedAt      DateTime @default(now())
   grantedBy      String?  // user ID who granted access
@@ -226,7 +226,7 @@ model AuditLog {
   ipAddress  String?
   userAgent  String?
   severity   String?  // "info", "warning", "critical"
-  ts         DateTime @default(now()) @db.Timestamp(6)
+  ts         DateTime
   createdAt  DateTime @default(now())
 
   actor User @relation("AuditActor", fields: [actorId], references: [id], onDelete: Cascade)
@@ -241,7 +241,7 @@ model MetricsSnapshot {
   id           String   @id @default(cuid())
   studentId    String
   chapterId    String?
-  date         DateTime @db.Date
+  date         DateTime
   tasksDone    Int      @default(0)
   accuracy     Float?
   timeSpentMin Int      @default(0)

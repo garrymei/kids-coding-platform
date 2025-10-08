@@ -1,0 +1,31 @@
+{
+  "id": "py-maze-013",
+  "title": "函数封装",
+  "lang": "python",
+  "gameType": "maze",
+  "difficulty": 2,
+  "story": "重复的路径模式，用函数封装更优雅。",
+  "goals": ["使用函数封装重复动作"],
+  "starter": {
+    "blockly": "<xml/>",
+    "code": "# API: move(), turn_left(), scan()\n# TODO: 封装函数简化代码\n"
+  },
+  "solution": "def move_two():\n    move()\n    move()\n\nmove_two()\nturn_left()\nmove_two()\nturn_left()\nmove_two()",
+  "assets": { "maze": ["########", "#S......#", "##.####.#", "#.......E#", "########"], "maxSteps3Star": 15 },
+  "grader": {
+    "mode": "event",
+    "events": {
+      "channel": "maze",
+      "collectFromAPI": true,
+      "expectedGoal": "reach_end"
+    },
+    "checks": [
+      { "type": "goal", "name": "reach_end", "must": true },
+      { "type": "maxSteps", "value": 15 }
+    ],
+    "constraints": {
+      "requireStructures": ["def"]
+    }
+  },
+  "rewards": { "xp": 50, "coins": 25, "badges": ["函数专家"] }
+}

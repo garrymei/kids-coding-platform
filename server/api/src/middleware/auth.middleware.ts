@@ -24,6 +24,17 @@ export class AuthMiddleware implements NestMiddleware {
   }
 
   use(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+    // 开发模式下跳过认证检查
+    if (process.env.NODE_ENV === 'development') {
+      req.user = {
+        userId: 'stu_1',
+        role: 'student',
+        iat: Date.now() / 1000,
+        exp: Date.now() / 1000 + 86400 // 24小时
+      };
+      return next();
+    }
+
     // 跳过健康检查和公开路由
     if (this.isPublicRoute(req.path)) {
       return next();

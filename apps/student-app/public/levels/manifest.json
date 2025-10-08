@@ -4,114 +4,249 @@
       "lang": "python",
       "gameType": "pixel",
       "world": "像素画廊",
-      "name": "壁画修复组",
-      "summary": "用代码填色修复文明壁画。",
+      "name": "像素创作课",
+      "summary": "通过 Python 控制像素，绘制属于你的图案。",
       "unlock": {
-        "requires": ["python/maze"],
-        "minLevel": 4
+        "requires": [
+          "python/io"
+        ],
+        "minLevel": 2
       },
       "rewards": {
-        "badges": ["壁画修复师"],
+        "badges": [],
         "firstClearBonusXP": 50
       },
-      "levelCount": 2
-    },
-    {
-      "lang": "python",
-      "gameType": "open",
-      "world": "创意工坊",
-      "name": "自由创作间",
-      "summary": "将所学融会贯通，创作你的实验岛作品。",
-      "unlock": {
-        "requires": ["python/music"],
-        "minLevel": 6
-      },
-      "rewards": {
-        "badges": ["创意新星"],
-        "firstClearBonusXP": 80
-      },
-      "levelCount": 0
+      "levelCount": 10
     },
     {
       "lang": "python",
       "gameType": "music",
       "world": "音乐森林",
-      "name": "旋律唤醒队",
-      "summary": "用音符序列唤醒沉睡的岛灵。",
+      "name": "旋律工坊",
+      "summary": "使用音符事件编排旋律与节奏。",
       "unlock": {
-        "requires": ["python/pixel"],
-        "minLevel": 5
+        "requires": [
+          "python/pixel"
+        ],
+        "minLevel": 3
       },
       "rewards": {
-        "badges": ["旋律使者"],
-        "firstClearBonusXP": 60
+        "badges": [],
+        "firstClearBonusXP": 50
       },
-      "levelCount": 2
+      "levelCount": 10
     },
     {
       "lang": "python",
       "gameType": "maze",
       "world": "遗迹迷宫",
-      "name": "遗迹探索队",
-      "summary": "控制机器人探索通道，寻找能量核心。",
+      "name": "迷宫挑战",
+      "summary": "编写算法引导机器人走出迷宫。",
       "unlock": {
-        "requires": ["python/led"],
-        "minLevel": 3
+        "requires": [
+          "python/music"
+        ],
+        "minLevel": 4
       },
       "rewards": {
-        "badges": ["迷宫探险家"],
-        "firstClearBonusXP": 70
+        "badges": [],
+        "firstClearBonusXP": 50
       },
-      "levelCount": 3
+      "levelCount": 10
     },
     {
       "lang": "python",
       "gameType": "led",
-      "world": "能源站",
-      "name": "LED 能源恢复中心",
-      "summary": "电路失灵，通过程序控制灯阵恢复供电。",
+      "world": "能源中枢",
+      "name": "灯阵控制课",
+      "summary": "编排 LED 运行顺序，修复能源信号。",
       "unlock": {
-        "requires": ["python/io"],
-        "minLevel": 2
+        "requires": [
+          "python/maze"
+        ],
+        "minLevel": 5
       },
       "rewards": {
-        "badges": ["能源修复者"],
-        "firstClearBonusXP": 60
+        "badges": [],
+        "firstClearBonusXP": 50
       },
-      "levelCount": 3
+      "levelCount": 10
     },
     {
       "lang": "python",
       "gameType": "io",
-      "world": "灯塔区",
-      "name": "IO 输出型 · 灯塔信号中心",
-      "summary": "灯塔失去通讯，学徒从输出、输入到数据整理，逐步恢复信号与外界联系。",
+      "world": "灯塔信号站",
+      "name": "信号塔训练营",
+      "summary": "掌握输入输出基础，处理各类数据。",
       "unlock": {
         "requires": [],
         "minLevel": 1
       },
       "rewards": {
-        "badges": ["灯塔信使"],
+        "badges": [],
         "firstClearBonusXP": 50
       },
-      "levelCount": 5
+      "levelCount": 10
     }
   ],
+  "games": {
+    "pixel": {
+      "name": "像素创作课",
+      "description": "通过 Python 控制像素，绘制属于你的图案。",
+      "levelCount": 10,
+      "icon": "pixel.png",
+      "color": "#3b82f6"
+    },
+    "music": {
+      "name": "旋律工坊",
+      "description": "使用音符事件编排旋律与节奏。",
+      "levelCount": 10,
+      "icon": "music.png",
+      "color": "#3b82f6"
+    },
+    "maze": {
+      "name": "迷宫挑战",
+      "description": "编写算法引导机器人走出迷宫。",
+      "levelCount": 10,
+      "icon": "maze.png",
+      "color": "#3b82f6"
+    },
+    "led": {
+      "name": "灯阵控制课",
+      "description": "编排 LED 运行顺序，修复能源信号。",
+      "levelCount": 10,
+      "icon": "led.png",
+      "color": "#3b82f6"
+    },
+    "io": {
+      "name": "信号塔训练营",
+      "description": "掌握输入输出基础，处理各类数据。",
+      "levelCount": 10,
+      "icon": "io.png",
+      "color": "#3b82f6"
+    }
+  },
   "levels": [
+    {
+      "id": "py-pixel-021",
+      "title": "绘制圆形",
+      "lang": "python",
+      "gameType": "pixel",
+      "difficulty": 3,
+      "goals": [
+        "绘制15×15的圆形"
+      ],
+      "story": "在像素画布上绘制一个圆形。",
+      "rewards": {
+        "xp": 45,
+        "coins": 20,
+        "badges": []
+      },
+      "path": "python/pixel/levels/advanced/pixel-021.json"
+    },
     {
       "id": "py-pixel-001",
       "title": "5×5 笑脸",
       "lang": "python",
       "gameType": "pixel",
       "difficulty": 2,
-      "goals": ["输出5行，每行由0/1组成，构成笑脸"],
-      "story": "从最简单的笑脸开始修复。",
+      "goals": [
+        "输出 5×5 的笑脸图案"
+      ],
+      "story": "用 5×5 的像素重新绘制一张笑脸迎接旅人。",
       "rewards": {
         "xp": 35,
         "coins": 12,
-        "badges": ["嵌套循环"]
+        "badges": [
+          "像素新手"
+        ]
       },
       "path": "python/pixel/levels/beginner/pixel-001.json"
+    },
+    {
+      "id": "py-pixel-002",
+      "title": "绘制方块",
+      "lang": "python",
+      "gameType": "pixel",
+      "difficulty": 1,
+      "goals": [
+        "绘制3×3的实心方块"
+      ],
+      "story": "在像素画布上绘制一个实心方块。",
+      "rewards": {
+        "xp": 20,
+        "coins": 8,
+        "badges": []
+      },
+      "path": "python/pixel/levels/beginner/pixel-002.json"
+    },
+    {
+      "id": "py-pixel-003",
+      "title": "绘制十字",
+      "lang": "python",
+      "gameType": "pixel",
+      "difficulty": 1,
+      "goals": [
+        "绘制十字图案"
+      ],
+      "story": "在像素画布上绘制十字图案。",
+      "rewards": {
+        "xp": 22,
+        "coins": 9,
+        "badges": []
+      },
+      "path": "python/pixel/levels/beginner/pixel-003.json"
+    },
+    {
+      "id": "py-pixel-004",
+      "title": "绘制边框",
+      "lang": "python",
+      "gameType": "pixel",
+      "difficulty": 1,
+      "goals": [
+        "绘制5×5的空心边框"
+      ],
+      "story": "绘制一个空心方块边框。",
+      "rewards": {
+        "xp": 25,
+        "coins": 10,
+        "badges": []
+      },
+      "path": "python/pixel/levels/beginner/pixel-004.json"
+    },
+    {
+      "id": "py-pixel-005",
+      "title": "绘制箭头",
+      "lang": "python",
+      "gameType": "pixel",
+      "difficulty": 1,
+      "goals": [
+        "绘制7×7的右箭头"
+      ],
+      "story": "绘制一个指向右侧的箭头。",
+      "rewards": {
+        "xp": 28,
+        "coins": 11,
+        "badges": []
+      },
+      "path": "python/pixel/levels/beginner/pixel-005.json"
+    },
+    {
+      "id": "py-pixel-031",
+      "title": "动态波浪",
+      "lang": "python",
+      "gameType": "pixel",
+      "difficulty": 4,
+      "goals": [
+        "生成动态波浪图案"
+      ],
+      "story": "创建动态波浪效果图案。",
+      "rewards": {
+        "xp": 60,
+        "coins": 30,
+        "badges": []
+      },
+      "path": "python/pixel/levels/challenge/pixel-031.json"
     },
     {
       "id": "py-pixel-011",
@@ -119,8 +254,10 @@
       "lang": "python",
       "gameType": "pixel",
       "difficulty": 3,
-      "goals": ["构造指定矩阵并输出"],
-      "story": "修复简单几何拼接图案。",
+      "goals": [
+        "输出 8×8 的块状拼图"
+      ],
+      "story": "修复受损的几何地砖，恢复对称的块状图案。",
       "rewards": {
         "xp": 32,
         "coins": 12,
@@ -129,28 +266,87 @@
       "path": "python/pixel/levels/intermediate/pixel-011.json"
     },
     {
-      "id": "py-music-011",
-      "title": "节拍练习",
+      "id": "py-pixel-012",
+      "title": "绘制菱形",
       "lang": "python",
-      "gameType": "music",
+      "gameType": "pixel",
       "difficulty": 2,
-      "goals": ["形成等间隔四拍"],
-      "story": "按 0、1、2、3 Tick 播放 C D E F。",
+      "goals": [
+        "绘制7×7的菱形"
+      ],
+      "story": "在像素画布上绘制一个菱形图案。",
       "rewards": {
-        "xp": 22,
-        "coins": 8,
+        "xp": 35,
+        "coins": 15,
         "badges": []
       },
-      "path": "python/music/levels/intermediate/music-011.json"
+      "path": "python/pixel/levels/intermediate/pixel-012.json"
+    },
+    {
+      "id": "py-pixel-013",
+      "title": "绘制棋盘",
+      "lang": "python",
+      "gameType": "pixel",
+      "difficulty": 2,
+      "goals": [
+        "绘制8×8的棋盘图案"
+      ],
+      "story": "绘制黑白相间的棋盘图案。",
+      "rewards": {
+        "xp": 32,
+        "coins": 12,
+        "badges": []
+      },
+      "path": "python/pixel/levels/intermediate/pixel-013.json"
+    },
+    {
+      "id": "py-music-021",
+      "title": "和声进行",
+      "lang": "python",
+      "gameType": "music",
+      "difficulty": 3,
+      "goals": [
+        "演奏C-G-Am-F和弦进行"
+      ],
+      "story": "演奏I-V-vi-IV和弦进行。",
+      "rewards": {
+        "xp": 40,
+        "coins": 20,
+        "badges": [
+          "和声大师"
+        ]
+      },
+      "path": "python/music/levels/advanced/music-021.json"
+    },
+    {
+      "id": "py-music-022",
+      "title": "旋律生成器",
+      "lang": "python",
+      "gameType": "music",
+      "difficulty": 3,
+      "goals": [
+        "用算法生成音阶旋律"
+      ],
+      "story": "用算法生成美妙的旋律。",
+      "rewards": {
+        "xp": 45,
+        "coins": 22,
+        "badges": [
+          "算法作曲家"
+        ]
+      },
+      "path": "python/music/levels/advanced/music-022.json"
     },
     {
       "id": "py-music-001",
-      "title": "第一声",
+      "title": "森林第一音",
       "lang": "python",
       "gameType": "music",
       "difficulty": 1,
-      "goals": ["在 tick=0 播放 C 音符，时值=1"],
-      "story": "奏出森林的第一声。",
+      "goals": [
+        "输出事件 note 0 C 1"
+      ],
+      "story": "奏响森林的第一声音符，唤醒沉睡的岛灵。",
       "rewards": {
         "xp": 12,
         "coins": 5,
@@ -159,19 +355,169 @@
       "path": "python/music/levels/beginner/music-001.json"
     },
     {
-      "id": "py-maze-011",
-      "title": "右转再前",
+      "id": "py-music-002",
+      "title": "简单旋律",
+      "lang": "python",
+      "gameType": "music",
+      "difficulty": 1,
+      "goals": [
+        "播放 C-D-E-F 四个音符"
+      ],
+      "story": "演奏一段简单的旋律。",
+      "rewards": {
+        "xp": 15,
+        "coins": 6,
+        "badges": []
+      },
+      "path": "python/music/levels/beginner/music-002.json"
+    },
+    {
+      "id": "py-music-003",
+      "title": "节拍练习",
+      "lang": "python",
+      "gameType": "music",
+      "difficulty": 1,
+      "goals": [
+        "播放不同节拍的音符：C(1拍), D(2拍), E(0.5拍)"
+      ],
+      "story": "学习不同的音符时值。",
+      "rewards": {
+        "xp": 18,
+        "coins": 8,
+        "badges": []
+      },
+      "path": "python/music/levels/beginner/music-003.json"
+    },
+    {
+      "id": "py-music-004",
+      "title": "循环旋律",
+      "lang": "python",
+      "gameType": "music",
+      "difficulty": 1,
+      "goals": [
+        "用循环播放 C-D-E 三次"
+      ],
+      "story": "用循环演奏重复的旋律。",
+      "rewards": {
+        "xp": 22,
+        "coins": 10,
+        "badges": [
+          "循环音乐家"
+        ]
+      },
+      "path": "python/music/levels/beginner/music-004.json"
+    },
+    {
+      "id": "py-music-031",
+      "title": "交互式作曲",
+      "lang": "python",
+      "gameType": "music",
+      "difficulty": 3,
+      "goals": [
+        "根据输入的音阶和节拍生成旋律"
+      ],
+      "story": "根据用户输入创作音乐。",
+      "rewards": {
+        "xp": 50,
+        "coins": 25,
+        "badges": [
+          "交互作曲家"
+        ]
+      },
+      "path": "python/music/levels/challenge/music-031.json"
+    },
+    {
+      "id": "py-music-011",
+      "title": "节拍练习",
+      "lang": "python",
+      "gameType": "music",
+      "difficulty": 2,
+      "goals": [
+        "输出 note 0 C 1、note 1 D 1、note 2 E 1、note 3 F 1"
+      ],
+      "story": "保持稳定的节拍，演奏四个等间隔的音符支撑旋律。",
+      "rewards": {
+        "xp": 22,
+        "coins": 8,
+        "badges": []
+      },
+      "path": "python/music/levels/intermediate/music-011.json"
+    },
+    {
+      "id": "py-music-012",
+      "title": "旋律生成器",
+      "lang": "python",
+      "gameType": "music",
+      "difficulty": 2,
+      "goals": [
+        "定义函数生成音阶"
+      ],
+      "story": "用函数生成旋律模式。",
+      "rewards": {
+        "xp": 28,
+        "coins": 14,
+        "badges": [
+          "函数音乐家"
+        ]
+      },
+      "path": "python/music/levels/intermediate/music-012.json"
+    },
+    {
+      "id": "py-music-013",
+      "title": "节奏模式",
+      "lang": "python",
+      "gameType": "music",
+      "difficulty": 2,
+      "goals": [
+        "创建强-弱-次强-弱的节奏模式"
+      ],
+      "story": "创建复杂的节奏模式。",
+      "rewards": {
+        "xp": 32,
+        "coins": 16,
+        "badges": [
+          "节奏大师"
+        ]
+      },
+      "path": "python/music/levels/intermediate/music-013.json"
+    },
+    {
+      "id": "py-maze-021",
+      "title": "右手法则",
       "lang": "python",
       "gameType": "maze",
-      "difficulty": 2,
-      "goals": ["抵达终点，步数≤10 获 3 星"],
-      "story": "路径有转角，观察再行动。",
+      "difficulty": 3,
+      "goals": [
+        "实现函数封装并到达终点"
+      ],
+      "story": "复杂通道，尝试右手法则探索。",
       "rewards": {
-        "xp": 30,
-        "coins": 10,
-        "badges": ["函数小能手"]
+        "xp": 40,
+        "coins": 12,
+        "badges": [
+          "算法入门"
+        ]
       },
-      "path": "python/maze/levels/intermediate/maze-011.json"
+      "path": "python/maze/levels/advanced/maze-021.json"
+    },
+    {
+      "id": "py-maze-022",
+      "title": "复杂迷宫",
+      "lang": "python",
+      "gameType": "maze",
+      "difficulty": 3,
+      "goals": [
+        "综合运用扫描、转向、循环等技巧"
+      ],
+      "story": "复杂迷宫结构，需要综合运用所有技巧。",
+      "rewards": {
+        "xp": 60,
+        "coins": 30,
+        "badges": [
+          "迷宫大师"
+        ]
+      },
+      "path": "python/maze/levels/advanced/maze-022.json"
     },
     {
       "id": "py-maze-001",
@@ -179,7 +525,9 @@
       "lang": "python",
       "gameType": "maze",
       "difficulty": 1,
-      "goals": ["到达终点"],
+      "goals": [
+        "到达终点"
+      ],
       "story": "遗迹入口通畅，直达第一检查点。",
       "rewards": {
         "xp": 20,
@@ -189,34 +537,133 @@
       "path": "python/maze/levels/beginner/maze-001.json"
     },
     {
-      "id": "py-maze-021",
-      "title": "右手法则",
+      "id": "py-maze-002",
+      "title": "左转探索",
       "lang": "python",
       "gameType": "maze",
-      "difficulty": 3,
-      "goals": ["实现函数封装并到达终点"],
-      "story": "复杂通道，尝试右手法则探索。",
+      "difficulty": 1,
+      "goals": [
+        "到达终点"
+      ],
+      "story": "前方有障碍，需要左转寻找新路径。",
       "rewards": {
-        "xp": 40,
-        "coins": 12,
-        "badges": ["算法入门"]
+        "xp": 25,
+        "coins": 10,
+        "badges": []
       },
-      "path": "python/maze/levels/advanced/maze-021.json"
+      "path": "python/maze/levels/beginner/maze-002.json"
     },
     {
-      "id": "py-led-011",
-      "title": "依次点亮 5 盏灯",
+      "id": "py-maze-003",
+      "title": "双重转弯",
       "lang": "python",
-      "gameType": "led",
+      "gameType": "maze",
+      "difficulty": 1,
+      "goals": [
+        "到达终点"
+      ],
+      "story": "路径曲折，需要连续转弯才能到达终点。",
+      "rewards": {
+        "xp": 30,
+        "coins": 12,
+        "badges": []
+      },
+      "path": "python/maze/levels/beginner/maze-003.json"
+    },
+    {
+      "id": "py-maze-004",
+      "title": "扫描判断",
+      "lang": "python",
+      "gameType": "maze",
       "difficulty": 2,
-      "goals": ["on0→on1→on2→on3→on4"],
-      "story": "恢复一段电路：从 0 到 4 依次点亮。",
+      "goals": [
+        "使用scan()函数判断路径"
+      ],
+      "story": "使用扫描功能判断前方是否有障碍。",
+      "rewards": {
+        "xp": 35,
+        "coins": 15,
+        "badges": [
+          "扫描专家"
+        ]
+      },
+      "path": "python/maze/levels/beginner/maze-004.json"
+    },
+    {
+      "id": "py-maze-005",
+      "title": "循环前进",
+      "lang": "python",
+      "gameType": "maze",
+      "difficulty": 2,
+      "goals": [
+        "使用循环语句前进"
+      ],
+      "story": "长直线路径，使用循环更高效。",
+      "rewards": {
+        "xp": 40,
+        "coins": 18,
+        "badges": [
+          "循环新手"
+        ]
+      },
+      "path": "python/maze/levels/beginner/maze-005.json"
+    },
+    {
+      "id": "py-maze-011",
+      "title": "右转再前",
+      "lang": "python",
+      "gameType": "maze",
+      "difficulty": 2,
+      "goals": [
+        "抵达终点，步数≤10 获 3 星"
+      ],
+      "story": "路径有转角，观察再行动。",
       "rewards": {
         "xp": 30,
         "coins": 10,
-        "badges": ["循环达人"]
+        "badges": [
+          "函数小能手"
+        ]
       },
-      "path": "python/led/levels/intermediate/led-011.json"
+      "path": "python/maze/levels/intermediate/maze-011.json"
+    },
+    {
+      "id": "py-maze-012",
+      "title": "迷宫回溯",
+      "lang": "python",
+      "gameType": "maze",
+      "difficulty": 2,
+      "goals": [
+        "学会回溯和重新选择路径"
+      ],
+      "story": "死胡同需要回头重新选择路径。",
+      "rewards": {
+        "xp": 45,
+        "coins": 20,
+        "badges": [
+          "回溯大师"
+        ]
+      },
+      "path": "python/maze/levels/intermediate/maze-012.json"
+    },
+    {
+      "id": "py-maze-013",
+      "title": "函数封装",
+      "lang": "python",
+      "gameType": "maze",
+      "difficulty": 2,
+      "goals": [
+        "使用函数封装重复动作"
+      ],
+      "story": "重复的路径模式，用函数封装更优雅。",
+      "rewards": {
+        "xp": 50,
+        "coins": 25,
+        "badges": [
+          "函数专家"
+        ]
+      },
+      "path": "python/maze/levels/intermediate/maze-013.json"
     },
     {
       "id": "py-led-021",
@@ -224,8 +671,10 @@
       "lang": "python",
       "gameType": "led",
       "difficulty": 3,
-      "goals": ["终局输出 10101010"],
-      "story": "按奇亮偶灭点亮 8 盏灯。",
+      "goals": [
+        "输出最终的 10101010"
+      ],
+      "story": "8 盏灯需要恢复交替亮灭的图案，请重新生成最终状态。",
       "rewards": {
         "xp": 26,
         "coins": 10,
@@ -234,13 +683,34 @@
       "path": "python/led/levels/advanced/led-021.json"
     },
     {
+      "id": "py-led-022",
+      "title": "动态图案",
+      "lang": "python",
+      "gameType": "led",
+      "difficulty": 3,
+      "goals": [
+        "创建从左到右的扫描线效果"
+      ],
+      "story": "能源站测试：创建动态变化的LED图案。",
+      "rewards": {
+        "xp": 45,
+        "coins": 22,
+        "badges": [
+          "LED艺术家"
+        ]
+      },
+      "path": "python/led/levels/advanced/led-022.json"
+    },
+    {
       "id": "py-led-001",
       "title": "点亮第一盏灯",
       "lang": "python",
       "gameType": "led",
       "difficulty": 1,
-      "goals": ["输出事件 on0"],
-      "story": "能源站测试：点亮 0 号灯。",
+      "goals": [
+        "输出事件 on0"
+      ],
+      "story": "能源站要确认灯阵线路正常，请输出 on0 信号。",
       "rewards": {
         "xp": 12,
         "coins": 5,
@@ -249,19 +719,186 @@
       "path": "python/led/levels/beginner/led-001.json"
     },
     {
-      "id": "py-io-011",
-      "title": "营养液配比",
+      "id": "py-led-002",
+      "title": "交替闪烁",
       "lang": "python",
-      "gameType": "io",
-      "difficulty": 2,
-      "goals": ["读取两数，输出 a/(a+b) 保留两位小数"],
-      "story": "岛上植物需要精准营养，计算配比以恢复生机。",
+      "gameType": "led",
+      "difficulty": 1,
+      "goals": [
+        "输出 on0, off0, on1, off1 序列"
+      ],
+      "story": "能源站测试：让两盏灯交替闪烁。",
       "rewards": {
-        "xp": 20,
+        "xp": 15,
+        "coins": 6,
+        "badges": []
+      },
+      "path": "python/led/levels/beginner/led-002.json"
+    },
+    {
+      "id": "py-led-003",
+      "title": "循环闪烁",
+      "lang": "python",
+      "gameType": "led",
+      "difficulty": 1,
+      "goals": [
+        "使用循环让0号灯闪烁3次"
+      ],
+      "story": "能源站测试：用循环让0号灯闪烁3次。",
+      "rewards": {
+        "xp": 18,
         "coins": 8,
         "badges": []
       },
-      "path": "python/io/levels/intermediate/io-011.json"
+      "path": "python/led/levels/beginner/led-003.json"
+    },
+    {
+      "id": "py-led-004",
+      "title": "数字显示",
+      "lang": "python",
+      "gameType": "led",
+      "difficulty": 1,
+      "goals": [
+        "在5x5网格中显示数字5的LED模式"
+      ],
+      "story": "能源站测试：显示数字5的LED模式。",
+      "rewards": {
+        "xp": 20,
+        "coins": 10,
+        "badges": []
+      },
+      "path": "python/led/levels/beginner/led-004.json"
+    },
+    {
+      "id": "py-led-031",
+      "title": "音乐节奏灯",
+      "lang": "python",
+      "gameType": "led",
+      "difficulty": 3,
+      "goals": [
+        "创建节拍感LED序列"
+      ],
+      "story": "能源站挑战：创建跟随音乐节拍的LED效果。",
+      "rewards": {
+        "xp": 50,
+        "coins": 25,
+        "badges": [
+          "节拍大师"
+        ]
+      },
+      "path": "python/led/levels/challenge/led-031.json"
+    },
+    {
+      "id": "py-led-032",
+      "title": "智能响应灯",
+      "lang": "python",
+      "gameType": "led",
+      "difficulty": 3,
+      "goals": [
+        "根据输入数字n，创建n×n的LED方阵"
+      ],
+      "story": "能源站挑战：创建能响应输入的智能LED系统。",
+      "rewards": {
+        "xp": 55,
+        "coins": 28,
+        "badges": [
+          "智能控制专家"
+        ]
+      },
+      "path": "python/led/levels/challenge/led-032.json"
+    },
+    {
+      "id": "py-led-011",
+      "title": "顺序点灯",
+      "lang": "python",
+      "gameType": "led",
+      "difficulty": 2,
+      "goals": [
+        "按顺序输出 on0,on1,on2,on3,on4"
+      ],
+      "story": "依次点亮 0 到 4 号灯，检查主灯带是否正常工作。",
+      "rewards": {
+        "xp": 30,
+        "coins": 10,
+        "badges": [
+          "循环达人"
+        ]
+      },
+      "path": "python/led/levels/intermediate/led-011.json"
+    },
+    {
+      "id": "py-led-012",
+      "title": "波浪效果",
+      "lang": "python",
+      "gameType": "led",
+      "difficulty": 2,
+      "goals": [
+        "创建从左到右的波浪效果"
+      ],
+      "story": "能源站测试：创建波浪流动效果。",
+      "rewards": {
+        "xp": 28,
+        "coins": 13,
+        "badges": []
+      },
+      "path": "python/led/levels/intermediate/led-012.json"
+    },
+    {
+      "id": "py-io-021",
+      "title": "日志筛选官",
+      "lang": "python",
+      "gameType": "io",
+      "difficulty": 3,
+      "goals": [
+        "持续读取到空行，输出包含 [WARN] 或 [ERROR] 的行"
+      ],
+      "story": "灯塔日志过于嘈杂，请把告警和错误行筛选出来转发给控制室。",
+      "rewards": {
+        "xp": 28,
+        "coins": 10,
+        "badges": [
+          "signal-keeper"
+        ]
+      },
+      "path": "python/io/levels/advanced/io-021.json"
+    },
+    {
+      "id": "py-io-022",
+      "title": "数据聚合",
+      "lang": "python",
+      "gameType": "io",
+      "difficulty": 3,
+      "goals": [
+        "读取一行数字，输出平均值和最大值"
+      ],
+      "story": "岛上数据站需要计算一组数字的平均值和最大值。",
+      "rewards": {
+        "xp": 40,
+        "coins": 18,
+        "badges": [
+          "数据分析师"
+        ]
+      },
+      "path": "python/io/levels/advanced/io-022.json"
+    },
+    {
+      "id": "py-io-001",
+      "title": "你好，实验岛！",
+      "lang": "python",
+      "gameType": "io",
+      "difficulty": 1,
+      "goals": [
+        "输出完全一致的 Hello, Island!"
+      ],
+      "story": "灯塔控制台需要发送一条问候语，确认你已经抵达。",
+      "rewards": {
+        "xp": 10,
+        "coins": 5,
+        "badges": [
+          "starter"
+        ]
+      },
+      "path": "python/io/levels/beginner/io-001.json"
     },
     {
       "id": "py-io-002",
@@ -269,8 +906,10 @@
       "lang": "python",
       "gameType": "io",
       "difficulty": 1,
-      "goals": ["读取一行输入并原样输出"],
-      "story": "灯塔回声频道被动监听，请把输入原样回传。",
+      "goals": [
+        "读取一行输入并原样输出"
+      ],
+      "story": "灯塔回声频道会回传讯息，请把收到的内容原样送回。",
       "rewards": {
         "xp": 12,
         "coins": 5,
@@ -279,49 +918,21 @@
       "path": "python/io/levels/beginner/io-002.json"
     },
     {
-      "id": "py-io-001",
-      "title": "你好，实验岛！",
+      "id": "py-io-003",
+      "title": "数字相加",
       "lang": "python",
       "gameType": "io",
       "difficulty": 1,
-      "goals": ["打印 Hello, Island!"],
-      "story": "灯塔需要一条测试讯息，确认你已到达。",
+      "goals": [
+        "读取两个整数，输出它们的和"
+      ],
+      "story": "灯塔需要计算两个数字的和来校准信号强度。",
       "rewards": {
-        "xp": 10,
-        "coins": 5,
-        "badges": ["启航者"]
+        "xp": 15,
+        "coins": 6,
+        "badges": []
       },
-      "path": "python/io/levels/beginner/io-001.json"
-    },
-    {
-      "id": "py-io-021",
-      "title": "日志筛选官",
-      "lang": "python",
-      "gameType": "io",
-      "difficulty": 3,
-      "goals": ["读取多行，输出含关键字的行"],
-      "story": "筛选灯塔日志中的告警行（包含 [WARN] 或 [ERROR]）。",
-      "rewards": {
-        "xp": 28,
-        "coins": 10,
-        "badges": ["灯塔信使"]
-      },
-      "path": "python/io/levels/advanced/io-021.json"
-    },
-    {
-      "id": "py-io-031",
-      "title": "电报码解码",
-      "lang": "python",
-      "gameType": "io",
-      "difficulty": 4,
-      "goals": ["解析如 C1-D2 → C D D"],
-      "story": "信号被编码为 A3-B1… 还原为字母序列。",
-      "rewards": {
-        "xp": 35,
-        "coins": 12,
-        "badges": ["字符串能手"]
-      },
-      "path": "python/io/levels/challenge/io-031.json"
+      "path": "python/io/levels/beginner/io-003.json"
     },
     {
       "id": "loops-1",
@@ -329,12 +940,16 @@
       "lang": "python",
       "gameType": "io",
       "difficulty": 1,
-      "goals": ["打印 1 到 5，每个数字单独占一行"],
-      "story": "灯塔测试控制台需要连续的 1-5 信号，请使用循环输出。",
+      "goals": [
+        "打印 1 到 5，每个数字单独占一行"
+      ],
+      "story": "使用 for 循环从 1 开始计数，熟悉循环的打印形式。",
       "rewards": {
         "xp": 25,
         "coins": 10,
-        "badges": ["循环起步"]
+        "badges": [
+          "循环起步"
+        ]
       },
       "path": "python/io/levels/beginner/loops-1.json"
     },
@@ -344,14 +959,71 @@
       "lang": "python",
       "gameType": "io",
       "difficulty": 2,
-      "goals": ["输出 1 到 10 的平方，每行一个数字"],
-      "story": "能源塔需要 10 个平方能量脉冲，请用循环计算输出。",
+      "goals": [
+        "输出 1 到 10 的平方，每行一个数字"
+      ],
+      "story": "使用循环和表达式，生成平方数序列。",
       "rewards": {
         "xp": 35,
         "coins": 14,
-        "badges": ["循环进阶"]
+        "badges": [
+          "循环进阶"
+        ]
       },
       "path": "python/io/levels/beginner/loops-2.json"
+    },
+    {
+      "id": "py-io-031",
+      "title": "信号译码员",
+      "lang": "python",
+      "gameType": "io",
+      "difficulty": 4,
+      "goals": [
+        "将形如 C1-D2 的字符串展开为 C D D"
+      ],
+      "story": "灯塔使用压缩字母编码发送指令，请将其还原为字母序列。",
+      "rewards": {
+        "xp": 35,
+        "coins": 12,
+        "badges": [
+          "字符串高手"
+        ]
+      },
+      "path": "python/io/levels/challenge/io-031.json"
+    },
+    {
+      "id": "py-io-011",
+      "title": "营养液配比",
+      "lang": "python",
+      "gameType": "io",
+      "difficulty": 2,
+      "goals": [
+        "读取 a、b 两个数，输出 a/(a+b)，保留两位小数"
+      ],
+      "story": "岛上的植物需要精准调配营养液，请计算配方 A 所占比例。",
+      "rewards": {
+        "xp": 20,
+        "coins": 8,
+        "badges": []
+      },
+      "path": "python/io/levels/intermediate/io-011.json"
+    },
+    {
+      "id": "py-io-012",
+      "title": "温度转换",
+      "lang": "python",
+      "gameType": "io",
+      "difficulty": 2,
+      "goals": [
+        "读取摄氏度，转换为华氏度并输出"
+      ],
+      "story": "岛上气象站需要将摄氏度转换为华氏度。",
+      "rewards": {
+        "xp": 25,
+        "coins": 10,
+        "badges": []
+      },
+      "path": "python/io/levels/intermediate/io-012.json"
     }
   ]
 }

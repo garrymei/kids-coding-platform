@@ -4,19 +4,23 @@
   "lang": "python",
   "gameType": "pixel",
   "difficulty": 2,
-  "story": "从最简单的笑脸开始修复。",
-  "goals": ["输出5行，每行由0/1组成，构成笑脸"],
+  "story": "用 5×5 的像素重新绘制一张笑脸迎接旅人。",
+  "goals": ["输出 5×5 的笑脸图案"],
   "starter": {
     "blockly": "<xml/>",
-    "code": "canvas=[[0]*5 for _ in range(5)]\n# TODO: 填 1 并逐行打印字符串"
+    "code": "canvas = [[0] * 5 for _ in range(5)]\ncanvas[0][1:4] = [1, 1, 1]\ncanvas[1][0] = canvas[1][4] = 1\ncanvas[3][0] = canvas[3][4] = 1\ncanvas[4][1:4] = [1, 1, 1]\nfor row in canvas:\n    print(''.join(str(cell) for cell in row))"
   },
+  "solution": "canvas = [[0] * 5 for _ in range(5)]\ncanvas[0][1:4] = [1, 1, 1]\ncanvas[1][0] = canvas[1][4] = 1\ncanvas[3][0] = canvas[3][4] = 1\ncanvas[4][1:4] = [1, 1, 1]\nfor row in canvas:\n    print(''.join(str(cell) for cell in row))",
   "assets": { "size": 5 },
   "grader": {
     "mode": "io",
     "io": {
-      "cases": [{ "in": "", "out": "01110\\n01010\\n00000\\n10001\\n01110\\n" }],
+      "cases": [
+        { "in": "", "out": "01110\n10001\n00000\n10001\n01110\n" }
+      ],
       "match": "exact"
     }
   },
-  "rewards": { "xp": 35, "coins": 12, "badges": ["嵌套循环"] }
+  "rewards": { "xp": 35, "coins": 12, "badges": ["像素新手"] },
+  "hints": ["可以用二维列表保存像素", "打印前先把每行 join 成字符串"]
 }

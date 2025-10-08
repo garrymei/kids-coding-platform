@@ -1,0 +1,31 @@
+{
+  "id": "py-maze-013",
+  "title": "循环迷宫",
+  "lang": "python",
+  "gameType": "maze",
+  "difficulty": 2,
+  "story": "迷宫中有循环路径，需要找到正确的出口。",
+  "goals": ["在有循环的迷宫中找到终点"],
+  "starter": {
+    "blockly": "<xml/>",
+    "code": "# 迷宫中可能有循环路径\ndef solve_maze():\n    # TODO: 实现迷宫求解算法\n    pass\n\nsolve_maze()"
+  },
+  "solution": "def solve_maze():\n    visited = set()\n    while not at_goal():\n        pos = get_position()\n        if pos in visited:\n            turn_left()\n        else:\n            visited.add(pos)\n            if scan():\n                move()\n            else:\n                turn_right()",
+  "assets": { "maze": ["########", "#S.....#", "#.###..#", "#.#.#.E#", "#...#..#", "########"], "maxSteps3Star": 20 },
+  "grader": {
+    "mode": "event",
+    "events": {
+      "channel": "maze",
+      "collectFromAPI": true
+    },
+    "checks": [
+      { "type": "goal", "name": "reach_end", "must": true },
+      { "type": "maxSteps", "value": 20 }
+    ],
+    "constraints": {
+      "requireStructures": ["def", "while", "if"]
+    }
+  },
+  "rewards": { "xp": 40, "coins": 15, "badges": ["迷宫大师"] },
+  "hints": ["记录访问过的位置", "避免无限循环", "使用集合存储位置"]
+}

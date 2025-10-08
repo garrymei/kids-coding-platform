@@ -1,0 +1,23 @@
+{
+  "id": "py-led-012",
+  "title": "循环点亮",
+  "lang": "python",
+  "gameType": "led",
+  "difficulty": 2,
+  "story": "能源站维护：使用循环点亮 0 到 3 号灯。",
+  "goals": ["使用 for 循环输出 on0→on1→on2→on3"],
+  "starter": { "blockly": "<xml/>", "code": "# TODO: 使用 for 循环点亮 0-3 号灯\nfor i in range(4):\n    print(f'on{i}')" },
+  "assets": { "gridWidth": 4, "gridHeight": 1 },
+  "grader": {
+    "mode": "event",
+    "events": {
+      "channel": "led",
+      "collectFromStdout": true
+    },
+    "checks": [{ "type": "eventSeq", "expect": ["on0", "on1", "on2", "on3"] }],
+    "constraints": {
+      "requireStructures": ["for"]
+    }
+  },
+  "rewards": { "xp": 25, "coins": 12, "badges": [] }
+}

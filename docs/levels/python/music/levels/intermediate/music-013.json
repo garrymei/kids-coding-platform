@@ -1,0 +1,24 @@
+{
+  "id": "py-music-013",
+  "title": "节奏变奏",
+  "lang": "python",
+  "gameType": "music",
+  "difficulty": 2,
+  "story": "创造有趣的节奏变化，让音乐更有动感。",
+  "goals": ["播放C-D-E-F，但时值分别为1、2、1、2"],
+  "starter": {
+    "blockly": "<xml/>",
+    "code": "# 不同时值的音符\nnotes = [('C', 1), ('D', 2), ('E', 1), ('F', 2)]\ntick = 0\n# TODO: 播放音符并累加tick"
+  },
+  "grader": {
+    "mode": "event",
+    "events": {
+      "channel": "music",
+      "collectFromStdout": true,
+      "mapRule": "stdout line 'note t p d'"
+    },
+    "checks": [{ "type": "eventSeq", "expect": ["note 0 C 1", "note 1 D 2", "note 3 E 1", "note 4 F 2"] }]
+  },
+  "rewards": { "xp": 28, "coins": 11, "badges": [] },
+  "hints": ["每个音符播放后，tick要加上该音符的时值", "C播放完后tick=1", "D时值为2，播放完后tick=3"]
+}

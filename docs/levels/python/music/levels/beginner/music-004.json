@@ -1,0 +1,24 @@
+{
+  "id": "py-music-004",
+  "title": "回音效果",
+  "lang": "python",
+  "gameType": "music",
+  "difficulty": 2,
+  "story": "创造回音效果，让同一个音符在不同时间重复播放。",
+  "goals": ["播放C音符3次，分别在tick=0、2、4"],
+  "starter": {
+    "blockly": "<xml/>",
+    "code": "# 创建回音效果\n# TODO: 在0、2、4时刻播放C音符"
+  },
+  "grader": {
+    "mode": "event",
+    "events": {
+      "channel": "music",
+      "collectFromStdout": true,
+      "mapRule": "stdout line 'note t p d'"
+    },
+    "checks": [{ "type": "eventSeq", "expect": ["note 0 C 1", "note 2 C 1", "note 4 C 1"] }]
+  },
+  "rewards": { "xp": 20, "coins": 8, "badges": [] },
+  "hints": ["使用循环，range(0, 6, 2)", "每次间隔2个tick", "同样的音符可以重复播放"]
+}

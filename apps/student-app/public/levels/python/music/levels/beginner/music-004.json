@@ -1,0 +1,26 @@
+{
+  "id": "py-music-004",
+  "title": "循环旋律",
+  "lang": "python",
+  "gameType": "music",
+  "difficulty": 1,
+  "story": "用循环演奏重复的旋律。",
+  "goals": ["用循环播放 C-D-E 三次"],
+  "starter": { "blockly": "<xml/>", "code": "# TODO: 用循环播放 C-D-E 三次\nfor i in range(3):\n    print('note 0 C 1')" },
+  "solution": "for i in range(3):\n    print(f'note {i*3} C 1')\n    print(f'note {i*3+1} D 1')\n    print(f'note {i*3+2} E 1')",
+  "grader": {
+    "mode": "event",
+    "events": {
+      "channel": "music",
+      "collectFromStdout": true,
+      "mapRule": "stdout line 'note t p d'"
+    },
+    "checks": [{ "type": "eventSeq", "expect": ["note 0 C 1", "note 1 D 1", "note 2 E 1", "note 3 C 1", "note 4 D 1", "note 5 E 1", "note 6 C 1", "note 7 D 1", "note 8 E 1"] }],
+    "constraints": {
+      "maxTimeMs": 3000,
+      "maxMemMB": 64,
+      "requireStructures": ["for"]
+    }
+  },
+  "rewards": { "xp": 22, "coins": 10, "badges": ["循环音乐家"] }
+}

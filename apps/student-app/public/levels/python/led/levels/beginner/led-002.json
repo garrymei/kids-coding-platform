@@ -1,0 +1,26 @@
+{
+  "id": "py-led-002",
+  "title": "交替闪烁",
+  "lang": "python",
+  "gameType": "led",
+  "difficulty": 1,
+  "story": "能源站测试：让两盏灯交替闪烁。",
+  "goals": ["输出 on0, off0, on1, off1 序列"],
+  "starter": { "blockly": "<xml/>", "code": "# TODO: 让0号和1号灯交替闪烁\nprint('on0')" },
+  "solution": "print('on0')\nprint('off0')\nprint('on1')\nprint('off1')",
+  "assets": { "gridWidth": 2, "gridHeight": 1 },
+  "grader": {
+    "mode": "event",
+    "events": {
+      "channel": "led",
+      "collectFromStdout": true,
+      "mapRule": "stdout line 'on{i}' => event 'on{i}'"
+    },
+    "checks": [{ "type": "eventSeq", "expect": ["on0", "off0", "on1", "off1"] }],
+    "constraints": {
+      "maxTimeMs": 3000,
+      "maxMemMB": 64
+    }
+  },
+  "rewards": { "xp": 15, "coins": 6, "badges": [] }
+}

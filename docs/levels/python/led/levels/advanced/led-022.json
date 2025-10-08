@@ -1,0 +1,26 @@
+{
+  "id": "py-led-022",
+  "title": "条件点亮",
+  "lang": "python",
+  "gameType": "led",
+  "difficulty": 3,
+  "story": "能源站智能控制：只点亮坐标和为偶数的位置。",
+  "goals": ["在 4×4 网格中点亮坐标和为偶数的位置"],
+  "starter": { "blockly": "<xml/>", "code": "# TODO: 点亮坐标和为偶数的位置\nfor x in range(4):\n    for y in range(4):\n        if (x + y) % 2 == 0:\n            print(f'on{x},{y}')" },
+  "assets": { "gridWidth": 4, "gridHeight": 4 },
+  "grader": {
+    "mode": "event",
+    "events": {
+      "channel": "led",
+      "collectFromStdout": true,
+      "mapRule": "stdout line 'on{x},{y}' => event 'on{x},{y}'"
+    },
+    "checks": [{ "type": "eventSet", "expect": ["on0,0", "on0,2", "on1,1", "on1,3", "on2,0", "on2,2", "on3,1", "on3,3"] }],
+    "constraints": {
+      "maxTimeMs": 3000,
+      "maxMemMB": 64,
+      "requireStructures": ["for", "if"]
+    }
+  },
+  "rewards": { "xp": 40, "coins": 20, "badges": ["条件控制专家"] }
+}

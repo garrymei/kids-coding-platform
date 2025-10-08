@@ -1,0 +1,27 @@
+{
+  "id": "py-pixel-013",
+  "title": "7×7 三角形",
+  "lang": "python",
+  "gameType": "pixel",
+  "difficulty": 2,
+  "story": "在7×7画布上绘制一个等腰三角形。",
+  "goals": ["输出7行，每行由0/1组成，形成三角形"],
+  "starter": {
+    "blockly": "<xml/>",
+    "code": "canvas = [[0]*7 for _ in range(7)]\n# TODO: 绘制三角形，顶点在中间"
+  },
+  "assets": { "size": 7 },
+  "grader": {
+    "mode": "io",
+    "io": {
+      "cases": [{ "in": "", "out": "0001000\\n0011100\\n0111110\\n1111111\\n0000000\\n0000000\\n0000000\\n" }],
+      "match": "exact"
+    },
+    "constraints": {
+      "maxTimeMs": 3000,
+      "maxMemMB": 64
+    }
+  },
+  "rewards": { "xp": 38, "coins": 13, "badges": [] },
+  "hints": ["三角形每行宽度递增", "中心列是3（索引3）", "第i行从 3-i 到 3+i 填充1"]
+}

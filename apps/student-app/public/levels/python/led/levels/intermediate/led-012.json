@@ -1,0 +1,27 @@
+{
+  "id": "py-led-012",
+  "title": "波浪效果",
+  "lang": "python",
+  "gameType": "led",
+  "difficulty": 2,
+  "story": "能源站测试：创建波浪流动效果。",
+  "goals": ["创建从左到右的波浪效果"],
+  "starter": { "blockly": "<xml/>", "code": "# TODO: 创建波浪效果\n# 从左到右依次点亮" },
+  "solution": "for i in range(5):\n    print(f'on{i}')\n    print(f'off{i}')",
+  "assets": { "gridWidth": 5, "gridHeight": 1 },
+  "grader": {
+    "mode": "event",
+    "events": {
+      "channel": "led",
+      "collectFromStdout": true,
+      "mapRule": "stdout line 'on{i}' => event 'on{i}'"
+    },
+    "checks": [{ "type": "eventSeq", "expect": ["on0", "off0", "on1", "off1", "on2", "off2", "on3", "off3", "on4", "off4"] }],
+    "constraints": {
+      "maxTimeMs": 3000,
+      "maxMemMB": 64,
+      "requireStructures": ["def"]
+    }
+  },
+  "rewards": { "xp": 28, "coins": 13, "badges": [] }
+}

@@ -1,0 +1,25 @@
+{
+  "id": "py-led-002",
+  "title": "双灯闪烁",
+  "lang": "python",
+  "gameType": "led",
+  "difficulty": 1,
+  "story": "能源站测试：同时点亮 0 号和 1 号灯。",
+  "goals": ["输出事件 on0 和 on1"],
+  "starter": { "blockly": "<xml/>", "code": "print('on0')\nprint('on1')  # TODO: 点亮两盏灯" },
+  "assets": { "gridWidth": 2, "gridHeight": 1 },
+  "grader": {
+    "mode": "event",
+    "events": {
+      "channel": "led",
+      "collectFromStdout": true,
+      "mapRule": "stdout line 'on{i}' => event 'on{i}'"
+    },
+    "checks": [{ "type": "eventSet", "expect": ["on0", "on1"] }],
+    "constraints": {
+      "maxTimeMs": 3000,
+      "maxMemMB": 64
+    }
+  },
+  "rewards": { "xp": 15, "coins": 6, "badges": [] }
+}

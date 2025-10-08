@@ -1,0 +1,21 @@
+{
+  "id": "py-music-013",
+  "title": "节奏模式",
+  "lang": "python",
+  "gameType": "music",
+  "difficulty": 2,
+  "story": "创建复杂的节奏模式。",
+  "goals": ["创建强-弱-次强-弱的节奏模式"],
+  "starter": { "blockly": "<xml/>", "code": "# TODO: 创建强-弱-次强-弱的节奏模式\n# 使用不同的时值表示强弱" },
+  "solution": "print('note 0 C 2')  # 强拍\nprint('note 2 C 1')  # 弱拍\nprint('note 4 C 1.5')  # 次强拍\nprint('note 6 C 1')  # 弱拍",
+  "grader": {
+    "mode": "event",
+    "events": {
+      "channel": "music",
+      "collectFromStdout": true,
+      "mapRule": "stdout line 'note t p d'"
+    },
+    "checks": [{ "type": "eventSeq", "expect": ["note 0 C 2", "note 2 C 1", "note 4 C 1.5", "note 6 C 1"] }]
+  },
+  "rewards": { "xp": 32, "coins": 16, "badges": ["节奏大师"] }
+}

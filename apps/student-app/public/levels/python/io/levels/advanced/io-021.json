@@ -4,17 +4,25 @@
   "lang": "python",
   "gameType": "io",
   "difficulty": 3,
-  "story": "筛选灯塔日志中的告警行（包含 [WARN] 或 [ERROR]）。",
-  "goals": ["读取多行，输出含关键字的行"],
-  "starter": { "blockly": "<xml/>", "code": "# 连续读取直到空行，输出含 [WARN] 或 [ERROR] 的行\n" },
+  "story": "灯塔日志过于嘈杂，请把告警和错误行筛选出来转发给控制室。",
+  "goals": ["持续读取到空行，输出包含 [WARN] 或 [ERROR] 的行"],
+  "starter": {
+    "blockly": "<xml/>",
+    "code": "# 读取到空行为止，只输出包含 [WARN] 或 [ERROR] 的行\n"
+  },
+  "solution": "lines = []\nwhile True:\n    try:\n        line = input()\n    except EOFError:\n        break\n    if line == \"\":\n        break\n    if \"[WARN]\" in line or \"[ERROR]\" in line:\n        lines.append(line)\nprint(\"\\n\".join(lines))",
   "grader": {
     "mode": "io",
     "io": {
-      "cases": [{ "in": "[INFO] ok\\n[WARN] low\\n\\n", "out": "[WARN] low\\n" }],
-      "match": "regex",
-      "pattern": "(?s).*"
+      "cases": [
+        {
+          "in": "[INFO] ready\n[WARN] low battery\n[ERROR] offline\n\n",
+          "out": "[WARN] low battery\n[ERROR] offline\n"
+        }
+      ],
+      "match": "exact"
     }
   },
-  "rewards": { "xp": 28, "coins": 10, "badges": ["灯塔信使"] },
-  "hints": ["in 子串判断", "循环读取，空行结束"]
+  "rewards": { "xp": 28, "coins": 10, "badges": ["signal-keeper"] },
+  "hints": ["使用 while 循环读取并遇空行停止", "可以通过 \"[WARN]\" in line 判断是否包含"]
 }

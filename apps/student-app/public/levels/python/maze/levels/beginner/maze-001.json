@@ -10,6 +10,7 @@
     "blockly": "<xml/>",
     "code": "# API: move(), turn_left(), scan()\n# TODO: 前进到终点\n"
   },
+  "solution": "def solve():\n    move()\n    move()\n    move()",
   "assets": { "maze": ["#####", "#S..E#", "#####"], "maxSteps3Star": 4 },
   "grader": {
     "mode": "event",

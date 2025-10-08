@@ -1,12 +1,16 @@
 {
   "id": "py-led-011",
-  "title": "依次点亮 5 盏灯",
+  "title": "顺序点灯",
   "lang": "python",
   "gameType": "led",
   "difficulty": 2,
-  "story": "恢复一段电路：从 0 到 4 依次点亮。",
-  "goals": ["on0→on1→on2→on3→on4"],
-  "starter": { "blockly": "<xml/>", "code": "for i in range(5):\n    print(f'on{i}')" },
+  "story": "依次点亮 0 到 4 号灯，检查主灯带是否正常工作。",
+  "goals": ["按顺序输出 on0,on1,on2,on3,on4"],
+  "starter": {
+    "blockly": "<xml/>",
+    "code": "for i in range(5):\n    print(f'on{i}')"
+  },
+  "solution": "for i in range(5):\n    print(f'on{i}')",
   "assets": { "gridWidth": 5, "gridHeight": 1 },
   "grader": {
     "mode": "event",
@@ -14,10 +18,13 @@
       "channel": "led",
       "collectFromStdout": true
     },
-    "checks": [{ "type": "eventSeq", "expect": ["on0", "on1", "on2", "on3", "on4"] }],
+    "checks": [
+      { "type": "eventSeq", "expect": ["on0", "on1", "on2", "on3", "on4"] }
+    ],
     "constraints": {
       "requireStructures": ["for"]
     }
   },
-  "rewards": { "xp": 30, "coins": 10, "badges": ["循环达人"] }
+  "rewards": { "xp": 30, "coins": 10, "badges": ["循环达人"] },
+  "hints": ["使用 for i in range(5)", "在循环中打印 on{i}"]
 }

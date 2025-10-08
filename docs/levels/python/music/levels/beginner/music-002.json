@@ -1,0 +1,24 @@
+{
+  "id": "py-music-002",
+  "title": "双音和谐",
+  "lang": "python",
+  "gameType": "music",
+  "difficulty": 1,
+  "story": "让两个音符和谐共鸣，奏出美妙的和声。",
+  "goals": ["在tick=0播放C音符，在tick=2播放E音符，时值都为1"],
+  "starter": {
+    "blockly": "<xml/>",
+    "code": "# 事件格式：note <tick> <pitch> <dur>\n# TODO: 播放C和E音符"
+  },
+  "grader": {
+    "mode": "event",
+    "events": {
+      "channel": "music",
+      "collectFromStdout": true,
+      "mapRule": "stdout line 'note t p d'"
+    },
+    "checks": [{ "type": "eventSeq", "expect": ["note 0 C 1", "note 2 E 1"] }]
+  },
+  "rewards": { "xp": 15, "coins": 6, "badges": [] },
+  "hints": ["先播放C音符", "间隔2个tick后播放E音符", "使用print输出事件"]
+}

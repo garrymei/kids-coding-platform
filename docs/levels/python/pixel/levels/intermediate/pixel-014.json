@@ -1,0 +1,27 @@
+{
+  "id": "py-pixel-014",
+  "title": "8×8 圆形",
+  "lang": "python",
+  "gameType": "pixel",
+  "difficulty": 3,
+  "story": "在8×8画布上绘制一个近似圆形。",
+  "goals": ["输出8行，每行由0/1组成，形成圆形"],
+  "starter": {
+    "blockly": "<xml/>",
+    "code": "canvas = [[0]*8 for _ in range(8)]\n# TODO: 使用距离公式绘制圆形"
+  },
+  "assets": { "size": 8 },
+  "grader": {
+    "mode": "io",
+    "io": {
+      "cases": [{ "in": "", "out": "00111100\\n01111110\\n11111111\\n11111111\\n11111111\\n11111111\\n01111110\\n00111100\\n" }],
+      "match": "exact"
+    },
+    "constraints": {
+      "maxTimeMs": 3000,
+      "maxMemMB": 64
+    }
+  },
+  "rewards": { "xp": 42, "coins": 15, "badges": ["几何大师"] },
+  "hints": ["圆心在(3.5, 3.5)", "计算每点到圆心距离", "距离小于3.5的点设为1"]
+}

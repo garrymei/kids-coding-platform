@@ -1,0 +1,27 @@
+{
+  "id": "py-pixel-021",
+  "title": "9×9 分形",
+  "lang": "python",
+  "gameType": "pixel",
+  "difficulty": 3,
+  "story": "创建一个简单的分形图案，展现数学之美。",
+  "goals": ["输出9行，每行由0/1组成，形成分形图案"],
+  "starter": {
+    "blockly": "<xml/>",
+    "code": "canvas = [[0]*9 for _ in range(9)]\n# TODO: 创建分形图案，可以是谢尔宾斯基三角形的一部分"
+  },
+  "assets": { "size": 9 },
+  "grader": {
+    "mode": "io",
+    "io": {
+      "cases": [{ "in": "", "out": "000010000\\n000111000\\n001010100\\n001111100\\n010000010\\n010111010\\n011010110\\n011111110\\n100000001\\n" }],
+      "match": "exact"
+    },
+    "constraints": {
+      "maxTimeMs": 5000,
+      "maxMemMB": 64
+    }
+  },
+  "rewards": { "xp": 50, "coins": 20, "badges": ["分形艺术家"] },
+  "hints": ["可以用递归思想", "或者用位运算规律", "观察每行的对称性"]
+}

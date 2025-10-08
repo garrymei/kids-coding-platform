@@ -1,23 +1,29 @@
 {
   "id": "py-io-031",
-  "title": "电报码解码",
+  "title": "信号译码员",
   "lang": "python",
   "gameType": "io",
   "difficulty": 4,
-  "story": "信号被编码为 A3-B1… 还原为字母序列。",
-  "goals": ["解析如 C1-D2 → C D D"],
-  "starter": { "blockly": "<xml/>", "code": "code=input().strip()\n# TODO: 解析并空格连接" },
+  "story": "灯塔使用压缩字母编码发送指令，请将其还原为字母序列。",
+  "goals": ["将形如 C1-D2 的字符串展开为 C D D"],
+  "starter": {
+    "blockly": "<xml/>",
+    "code": "code = input().strip()\n# TODO：展开编码并用空格连接\n"
+  },
+  "solution": "code = input().strip()\nparts = code.split('-')\nletters = []\nfor part in parts:\n    if not part:\n        continue\n    letter = part[0]\n    count = int(part[1:])\n    letters.extend([letter] * count)\nprint(' '.join(letters))",
   "grader": {
     "mode": "io",
     "io": {
-      "cases": [{ "in": "C1-D2\\n", "out": "C D D\\n" }],
-      "match": "regex",
-      "pattern": "^([A-Z][0-9]+)(-[A-Z][0-9]+)*\\n$"
+      "cases": [
+        { "in": "C1-D2\n", "out": "C D D\n" },
+        { "in": "A3\n", "out": "A A A\n" }
+      ],
+      "match": "exact"
     },
     "constraints": {
       "forbiddenImports": ["re", "os", "sys", "subprocess"]
     }
   },
-  "rewards": { "xp": 35, "coins": 12, "badges": ["字符串能手"] },
-  "hints": ["split('-')", "s[0] 字母，s[1:] 次数"]
+  "rewards": { "xp": 35, "coins": 12, "badges": ["字符串高手"] },
+  "hints": ["用 split('-') 拆开编码块", "part[0] 是字母，part[1:] 是重复次数"]
 }

@@ -1,0 +1,27 @@
+{
+  "id": "py-pixel-002",
+  "title": "3×3 十字",
+  "lang": "python",
+  "gameType": "pixel",
+  "difficulty": 1,
+  "story": "在3×3画布上绘制一个简单的十字图案。",
+  "goals": ["输出3行，每行由0/1组成，构成十字形状"],
+  "starter": {
+    "blockly": "<xml/>",
+    "code": "canvas = [[0]*3 for _ in range(3)]\n# TODO: 在中间行和中间列填入1"
+  },
+  "assets": { "size": 3 },
+  "grader": {
+    "mode": "io",
+    "io": {
+      "cases": [{ "in": "", "out": "010\\n111\\n010\\n" }],
+      "match": "exact"
+    },
+    "constraints": {
+      "maxTimeMs": 3000,
+      "maxMemMB": 64
+    }
+  },
+  "rewards": { "xp": 25, "coins": 8, "badges": [] },
+  "hints": ["中间行是第1行（索引1）", "中间列是第1列（索引1）", "用嵌套循环或直接赋值"]
+}

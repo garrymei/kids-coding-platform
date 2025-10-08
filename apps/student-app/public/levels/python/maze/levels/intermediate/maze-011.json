@@ -7,6 +7,7 @@
   "story": "路径有转角，观察再行动。",
   "goals": ["抵达终点，步数≤10 获 3 星"],
   "starter": { "blockly": "<xml/>", "code": "# 使用 scan() 判断障碍\n" },
+  "solution": "def solve():\n    move()\n    move()\n    right()\n    move()\n    move()",
   "assets": { "maze": ["######", "#S...#", "#.##E#", "######"], "maxSteps3Star": 10 },
   "grader": {
     "mode": "event",

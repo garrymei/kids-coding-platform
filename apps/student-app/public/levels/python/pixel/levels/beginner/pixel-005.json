@@ -1,0 +1,20 @@
+{
+  "id": "py-pixel-005",
+  "title": "绘制箭头",
+  "lang": "python",
+  "gameType": "pixel",
+  "difficulty": 1,
+  "story": "绘制一个指向右侧的箭头。",
+  "goals": ["绘制7×7的右箭头"],
+  "starter": { "blockly": "<xml/>", "code": "for i in range(7):\n    row = ''\n    for j in range(7):\n        if i == 3 or (j <= 3 and (i == j or i == 6 - j)):\n            row += '1'\n        else:\n            row += '0'\n    print(row)" },
+  "solution": "for i in range(7):\n    row = ''\n    for j in range(7):\n        if i == 3 or (j <= 3 and (i == j or i == 6 - j)):\n            row += '1'\n        else:\n            row += '0'\n    print(row)",
+  "assets": { "size": 7 },
+  "grader": {
+    "mode": "io",
+    "io": {
+      "cases": [{ "in": "", "out": "1000000\n0100000\n0010000\n1111111\n0010000\n0100000\n1000000\n" }],
+      "match": "exact"
+    }
+  },
+  "rewards": { "xp": 28, "coins": 11, "badges": [] }
+}

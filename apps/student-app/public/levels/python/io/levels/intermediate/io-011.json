@@ -4,18 +4,19 @@
   "lang": "python",
   "gameType": "io",
   "difficulty": 2,
-  "story": "岛上植物需要精准营养，计算配比以恢复生机。",
-  "goals": ["读取两数，输出 a/(a+b) 保留两位小数"],
+  "story": "岛上的植物需要精准调配营养液，请计算配方 A 所占比例。",
+  "goals": ["读取 a、b 两个数，输出 a/(a+b)，保留两位小数"],
   "starter": {
     "blockly": "<xml/>",
-    "code": "a=float(input()); b=float(input())\n# 输出比例，保留两位小数"
+    "code": "a = float(input())\nb = float(input())\n# TODO：输出配方 A 的占比"
   },
+  "solution": "a = float(input())\nb = float(input())\ntotal = a + b\nratio = a / total if total else 0.0\nprint(f\"{ratio:.2f}\")",
   "grader": {
     "mode": "io",
     "io": {
       "cases": [
-        { "in": "30\\n70\\n", "out": "0.30\\n" },
-        { "in": "3\\n2\\n", "out": "0.60\\n" }
+        { "in": "30\n70\n", "out": "0.30\n" },
+        { "in": "3\n2\n", "out": "0.60\n" }
       ],
       "match": "tolerance",
       "tolerance": 0.005
@@ -26,5 +27,5 @@
     }
   },
   "rewards": { "xp": 20, "coins": 8, "badges": [] },
-  "hints": ["round(x,2)", "用 float 避免整除"]
+  "hints": ["记得使用 float() 防止整除", "可用 f\"{值:.2f}\" 来格式化小数"]
 }

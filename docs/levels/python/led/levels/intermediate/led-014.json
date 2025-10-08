@@ -1,0 +1,24 @@
+{
+  "id": "py-led-014",
+  "title": "矩形填充",
+  "lang": "python",
+  "gameType": "led",
+  "difficulty": 2,
+  "story": "能源站测试：点亮整个 2×3 矩形区域。",
+  "goals": ["点亮所有 2×3 网格位置"],
+  "starter": { "blockly": "<xml/>", "code": "# TODO: 使用嵌套循环点亮 2x3 矩形\nfor x in range(2):\n    for y in range(3):\n        print(f'on{x},{y}')" },
+  "assets": { "gridWidth": 2, "gridHeight": 3 },
+  "grader": {
+    "mode": "event",
+    "events": {
+      "channel": "led",
+      "collectFromStdout": true,
+      "mapRule": "stdout line 'on{x},{y}' => event 'on{x},{y}'"
+    },
+    "checks": [{ "type": "eventSet", "expect": ["on0,0", "on0,1", "on0,2", "on1,0", "on1,1", "on1,2"] }],
+    "constraints": {
+      "requireStructures": ["for"]
+    }
+  },
+  "rewards": { "xp": 32, "coins": 16, "badges": ["网格大师"] }
+}

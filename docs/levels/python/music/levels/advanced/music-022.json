@@ -1,0 +1,33 @@
+{
+  "id": "py-music-022",
+  "title": "算法作曲家",
+  "lang": "python",
+  "gameType": "music",
+  "difficulty": 3,
+  "story": "使用算法生成音乐，让数学与艺术完美融合。",
+  "goals": ["使用斐波那契数列生成音乐节奏"],
+  "starter": {
+    "blockly": "<xml/>",
+    "code": "# 使用斐波那契数列生成节奏\ndef fibonacci(n):\n    if n <= 1:\n        return n\n    return fibonacci(n-1) + fibonacci(n-2)\n\nnotes = ['C', 'D', 'E', 'F', 'G']\n# TODO: 使用斐波那契数列作为tick时间"
+  },
+  "grader": {
+    "mode": "event",
+    "events": {
+      "channel": "music",
+      "collectFromStdout": true,
+      "mapRule": "stdout line 'note t p d'"
+    },
+    "checks": [{ 
+      "type": "eventSeq", 
+      "expect": [
+        "note 0 C 1",
+        "note 1 D 1", 
+        "note 1 E 1",
+        "note 2 F 1",
+        "note 3 G 1"
+      ] 
+    }]
+  },
+  "rewards": { "xp": 50, "coins": 20, "badges": ["算法音乐家"] },
+  "hints": ["斐波那契数列：0,1,1,2,3,5,8...", "前5个数作为tick时间", "对应播放5个音符"]
+}

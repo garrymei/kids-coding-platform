@@ -1,13 +1,53 @@
-﻿// Mock seed script for development mode without a database connection.
-// This simply logs the intention to seed and exits successfully.
+import { PrismaClient, Role } from '@prisma/client';
+import * as bcrypt from 'bcrypt';
+
+const prisma = new PrismaClient();
 
 async function main() {
-  // eslint-disable-next-line no-console
-  console.log('[seed] Prisma client seed skipped (no database connection available).');
+  console.log(`Start seeding ...`);
+
+  const saltRounds = 10;
+  const password = 'password123';
+  const passwordHash = await bcrypt.hash(password, saltRounds);
+
+  const users = [
+    {
+      email: 'student@example.com',
+      name: '小明同学',
+      role: Role.student,
+      passwordHash: passwordHash,
+    },
+    {
+      email: 'teacher@example.com',
+      name: '王老师',
+      role: Role.teacher,
+      passwordHash: passwordHash,
+    },
+    {
+      email: 'parent@example.com',
+      name: '小明家长',
+      role: Role.parent,
+      passwordHash: passwordHash,
+    },
+  ];
+
+  for (const u of users) {
+    const user = await prisma.user.upsert({
+      where: { email: u.email },
+      update: {},
+      create: u,
+    });
+    console.log(`Created user with id: ${user.id}`);
+  }
+
+  console.log(`Seeding finished.`);
 }
 
-main().catch((error) => {
-  // eslint-disable-next-line no-console
-  console.error('[seed] Unexpected error in mock seed script:', error);
-  process.exit(1);
-});
+main()
+  .catch((e) => {
+    console.error(e);
+    process.exit(1);
+  })
+  .finally(async () => {
+    await prisma.$disconnect();
+  });

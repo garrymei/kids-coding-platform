@@ -1,0 +1,31 @@
+{
+  "id": "py-io-012",
+  "title": "温度转换器",
+  "lang": "python",
+  "gameType": "io",
+  "difficulty": 2,
+  "story": "岛上气象站需要将摄氏度转换为华氏度来校准设备。",
+  "goals": ["读取摄氏度，输出华氏度，保留一位小数"],
+  "starter": { 
+    "blockly": "<xml/>", 
+    "code": "celsius = float(input())\n# TODO: 转换为华氏度 F = C * 9/5 + 32" 
+  },
+  "grader": {
+    "mode": "io",
+    "io": {
+      "cases": [
+        { "in": "0\\n", "out": "32.0\\n" },
+        { "in": "100\\n", "out": "212.0\\n" },
+        { "in": "25\\n", "out": "77.0\\n" }
+      ],
+      "match": "tolerance",
+      "tolerance": 0.1
+    },
+    "constraints": {
+      "maxTimeMs": 3000,
+      "maxMemMB": 64
+    }
+  },
+  "rewards": { "xp": 22, "coins": 9, "badges": [] },
+  "hints": ["华氏度 = 摄氏度 * 9/5 + 32", "round(x, 1) 保留一位小数"]
+}

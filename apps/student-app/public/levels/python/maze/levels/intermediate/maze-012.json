@@ -1,0 +1,31 @@
+{
+  "id": "py-maze-012",
+  "title": "迷宫回溯",
+  "lang": "python",
+  "gameType": "maze",
+  "difficulty": 2,
+  "story": "死胡同需要回头重新选择路径。",
+  "goals": ["学会回溯和重新选择路径"],
+  "starter": {
+    "blockly": "<xml/>",
+    "code": "# API: move(), turn_left(), scan()\n# TODO: 遇到死胡同时回头\n"
+  },
+  "solution": "move()\nmove()\nturn_left()\nmove()\nmove()\nturn_left()\nmove()\nmove()",
+  "assets": { "maze": ["#######", "#S#...#", "#.#.#.#", "#...#E#", "#######"], "maxSteps3Star": 12 },
+  "grader": {
+    "mode": "event",
+    "events": {
+      "channel": "maze",
+      "collectFromAPI": true,
+      "expectedGoal": "reach_end"
+    },
+    "checks": [
+      { "type": "goal", "name": "reach_end", "must": true },
+      { "type": "maxSteps", "value": 12 }
+    ],
+    "constraints": {
+      "requireStructures": ["def"]
+    }
+  },
+  "rewards": { "xp": 45, "coins": 20, "badges": ["回溯大师"] }
+}

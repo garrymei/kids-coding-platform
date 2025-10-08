@@ -1,0 +1,24 @@
+{
+  "id": "py-music-014",
+  "title": "音乐循环",
+  "lang": "python",
+  "gameType": "music",
+  "difficulty": 3,
+  "story": "创建一个重复的音乐片段，让旋律循环播放。",
+  "goals": ["播放C-D-E模式两次，第二次从tick=4开始"],
+  "starter": {
+    "blockly": "<xml/>",
+    "code": "# 重复播放音乐片段\npattern = ['C', 'D', 'E']\n# TODO: 播放两遍，第二遍从tick=4开始"
+  },
+  "grader": {
+    "mode": "event",
+    "events": {
+      "channel": "music",
+      "collectFromStdout": true,
+      "mapRule": "stdout line 'note t p d'"
+    },
+    "checks": [{ "type": "eventSeq", "expect": ["note 0 C 1", "note 1 D 1", "note 2 E 1", "note 4 C 1", "note 5 D 1", "note 6 E 1"] }]
+  },
+  "rewards": { "xp": 30, "coins": 12, "badges": ["循环大师"] },
+  "hints": ["第一遍：tick 0,1,2", "第二遍：tick 4,5,6", "使用嵌套循环或重复代码"]
+}

@@ -1,0 +1,29 @@
+{
+  "id": "py-maze-002",
+  "title": "左转弯道",
+  "lang": "python",
+  "gameType": "maze",
+  "difficulty": 1,
+  "story": "遇到第一个转弯，学会改变方向。",
+  "goals": ["到达终点"],
+  "starter": {
+    "blockly": "<xml/>",
+    "code": "# API: move(), turn_left(), turn_right(), scan()\n# TODO: 前进然后左转到达终点\n"
+  },
+  "solution": "def solve():\n    move()\n    turn_left()\n    move()\n    move()",
+  "assets": { "maze": ["#####", "#S.##", "#..E#", "#####"], "maxSteps3Star": 5 },
+  "grader": {
+    "mode": "event",
+    "events": {
+      "channel": "maze",
+      "collectFromAPI": true,
+      "expectedGoal": "reach_end"
+    },
+    "checks": [
+      { "type": "goal", "name": "reach_end", "must": true },
+      { "type": "maxSteps", "value": 5 }
+    ]
+  },
+  "rewards": { "xp": 22, "coins": 9, "badges": [] },
+  "hints": ["先向前走一步", "然后左转", "继续前进到终点"]
+}

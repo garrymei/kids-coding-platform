@@ -1,0 +1,27 @@
+{
+  "id": "py-pixel-003",
+  "title": "4×4 边框",
+  "lang": "python",
+  "gameType": "pixel",
+  "difficulty": 1,
+  "story": "为4×4画布绘制边框，保护内部区域。",
+  "goals": ["输出4行，每行由0/1组成，只有边缘为1"],
+  "starter": {
+    "blockly": "<xml/>",
+    "code": "canvas = [[0]*4 for _ in range(4)]\n# TODO: 设置边框为1，内部保持0"
+  },
+  "assets": { "size": 4 },
+  "grader": {
+    "mode": "io",
+    "io": {
+      "cases": [{ "in": "", "out": "1111\\n1001\\n1001\\n1111\\n" }],
+      "match": "exact"
+    },
+    "constraints": {
+      "maxTimeMs": 3000,
+      "maxMemMB": 64
+    }
+  },
+  "rewards": { "xp": 28, "coins": 9, "badges": [] },
+  "hints": ["第一行和最后一行全为1", "中间行只有首尾为1", "用条件判断 i==0 or i==3 or j==0 or j==3"]
+}

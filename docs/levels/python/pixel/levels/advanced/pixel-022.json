@@ -1,0 +1,27 @@
+{
+  "id": "py-pixel-022",
+  "title": "10×10 螺旋",
+  "lang": "python",
+  "gameType": "pixel",
+  "difficulty": 3,
+  "story": "绘制一个从外向内的螺旋图案，考验算法思维。",
+  "goals": ["输出10行，每行由0/1组成，形成螺旋图案"],
+  "starter": {
+    "blockly": "<xml/>",
+    "code": "canvas = [[0]*10 for _ in range(10)]\n# TODO: 创建螺旋图案，从边缘向中心"
+  },
+  "assets": { "size": 10 },
+  "grader": {
+    "mode": "io",
+    "io": {
+      "cases": [{ "in": "", "out": "1111111111\\n0000000001\\n0111111101\\n0100000101\\n0101111101\\n0101000101\\n0101011101\\n0101010001\\n0101111111\\n0100000000\\n" }],
+      "match": "exact"
+    },
+    "constraints": {
+      "maxTimeMs": 5000,
+      "maxMemMB": 64
+    }
+  },
+  "rewards": { "xp": 55, "coins": 22, "badges": ["螺旋大师"] },
+  "hints": ["从外边界开始", "按顺时针方向填充", "每圈缩小范围"]
+}

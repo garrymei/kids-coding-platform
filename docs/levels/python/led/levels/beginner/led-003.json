@@ -1,0 +1,24 @@
+{
+  "id": "py-led-003",
+  "title": "三灯序列",
+  "lang": "python",
+  "gameType": "led",
+  "difficulty": 1,
+  "story": "能源站测试：按顺序点亮 0、1、2 号灯。",
+  "goals": ["按顺序输出 on0→on1→on2"],
+  "starter": { "blockly": "<xml/>", "code": "# TODO: 按顺序点亮三盏灯\nprint('on0')\nprint('on1')\nprint('on2')" },
+  "assets": { "gridWidth": 3, "gridHeight": 1 },
+  "grader": {
+    "mode": "event",
+    "events": {
+      "channel": "led",
+      "collectFromStdout": true
+    },
+    "checks": [{ "type": "eventSeq", "expect": ["on0", "on1", "on2"] }],
+    "constraints": {
+      "maxTimeMs": 3000,
+      "maxMemMB": 64
+    }
+  },
+  "rewards": { "xp": 18, "coins": 7, "badges": [] }
+}

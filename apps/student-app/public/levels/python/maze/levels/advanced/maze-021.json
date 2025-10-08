@@ -7,6 +7,7 @@
   "story": "复杂通道，尝试右手法则探索。",
   "goals": ["实现函数封装并到达终点"],
   "starter": { "blockly": "<xml/>", "code": "def step():\n    pass\n# TODO: 右手法则" },
+  "solution": "def solve():\n    while not at_goal():\n        if right_is_clear():\n            right()\n            move()\n        elif front_is_clear():\n            move()\n        else:\n            left()",
   "assets": { "maze": ["########", "#S....E#", "########"], "maxSteps3Star": 8 },
   "grader": {
     "mode": "event",

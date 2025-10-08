@@ -1,0 +1,20 @@
+{
+  "id": "py-pixel-003",
+  "title": "绘制十字",
+  "lang": "python",
+  "gameType": "pixel",
+  "difficulty": 1,
+  "story": "在像素画布上绘制十字图案。",
+  "goals": ["绘制十字图案"],
+  "starter": { "blockly": "<xml/>", "code": "for i in range(5):\n    row = ''\n    for j in range(5):\n        if i == 2 or j == 2:  # 中心线\n            row += '1'\n        else:\n            row += '0'\n    print(row)" },
+  "solution": "for i in range(5):\n    row = ''\n    for j in range(5):\n        if i == 2 or j == 2:  # 中心线\n            row += '1'\n        else:\n            row += '0'\n    print(row)",
+  "assets": { "size": 5 },
+  "grader": {
+    "mode": "io",
+    "io": {
+      "cases": [{ "in": "", "out": "00100\n00100\n11111\n00100\n00100\n" }],
+      "match": "exact"
+    }
+  },
+  "rewards": { "xp": 22, "coins": 9, "badges": [] }
+}

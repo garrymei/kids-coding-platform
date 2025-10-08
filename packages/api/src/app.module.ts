@@ -23,6 +23,8 @@ import { ProgressModule } from './modules/progress/progress.module';
 import { CacheModule } from './modules/cache/cache.module';
 import { SecurityModule } from './modules/security/security.module';
 import { JudgeModule } from './modules/judge/judge.module';
+import { UsersModule } from './users/users.module';
+import { AuthModule } from './auth/auth.module';
 
 @Module({
   imports: [

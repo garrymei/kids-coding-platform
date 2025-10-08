@@ -1,0 +1,31 @@
+{
+  "id": "py-maze-005",
+  "title": "循环前进",
+  "lang": "python",
+  "gameType": "maze",
+  "difficulty": 2,
+  "story": "长直线路径，使用循环更高效。",
+  "goals": ["使用循环语句前进"],
+  "starter": {
+    "blockly": "<xml/>",
+    "code": "# API: move(), turn_left(), scan()\n# TODO: 使用循环前进\n"
+  },
+  "solution": "for i in range(5):\n    move()",
+  "assets": { "maze": ["#######", "#S....E#", "#######"], "maxSteps3Star": 7 },
+  "grader": {
+    "mode": "event",
+    "events": {
+      "channel": "maze",
+      "collectFromAPI": true,
+      "expectedGoal": "reach_end"
+    },
+    "checks": [
+      { "type": "goal", "name": "reach_end", "must": true },
+      { "type": "maxSteps", "value": 7 }
+    ],
+    "constraints": {
+      "requireStructures": ["def"]
+    }
+  },
+  "rewards": { "xp": 40, "coins": 18, "badges": ["循环新手"] }
+}
