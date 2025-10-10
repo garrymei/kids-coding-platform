@@ -6,9 +6,15 @@
   "difficulty": 3,
   "story": "能源站测试：创建动态变化的LED图案。",
   "goals": ["创建从左到右的扫描线效果"],
-  "starter": { "blockly": "<xml/>", "code": "# TODO: 创建扫描线效果\n# 逐列点亮LED" },
-  "solution": "def scan_line():\n    for col in range(8):\n        # 点亮当前列\n        for row in range(4):\n            print(f'on{col},{row}')\n        # 熄灭当前列\n        for row in range(4):\n            print(f'off{col},{row}')\n\nscan_line()",
-  "assets": { "gridWidth": 8, "gridHeight": 4 },
+  "starter": {
+    "blockly": "<xml/>",
+    "code": "# TODO: 创建扫描线效果\n# 逐列点亮LED"
+  },
+  "solution": "# 提示：逐列点亮 4 行再熄灭，形成扫描线。",
+  "assets": {
+    "gridWidth": 8,
+    "gridHeight": 4
+  },
   "grader": {
     "mode": "event",
     "events": {
@@ -16,12 +22,87 @@
       "collectFromStdout": true,
       "mapRule": "stdout line 'on{x},{y}' => event 'on{x},{y}'"
     },
-    "checks": [{ "type": "eventSeq", "expect": ["on0,0", "on0,1", "on0,2", "on0,3", "off0,0", "off0,1", "off0,2", "off0,3", "on1,0", "on1,1", "on1,2", "on1,3", "off1,0", "off1,1", "off1,2", "off1,3", "on2,0", "on2,1", "on2,2", "on2,3", "off2,0", "off2,1", "off2,2", "off2,3", "on3,0", "on3,1", "on3,2", "on3,3", "off3,0", "off3,1", "off3,2", "off3,3", "on4,0", "on4,1", "on4,2", "on4,3", "off4,0", "off4,1", "off4,2", "off4,3", "on5,0", "on5,1", "on5,2", "on5,3", "off5,0", "off5,1", "off5,2", "off5,3", "on6,0", "on6,1", "on6,2", "on6,3", "off6,0", "off6,1", "off6,2", "off6,3", "on7,0", "on7,1", "on7,2", "on7,3", "off7,0", "off7,1", "off7,2", "off7,3"] }],
+    "checks": [
+      {
+        "type": "eventSeq",
+        "expect": [
+          "on0,0",
+          "on0,1",
+          "on0,2",
+          "on0,3",
+          "off0,0",
+          "off0,1",
+          "off0,2",
+          "off0,3",
+          "on1,0",
+          "on1,1",
+          "on1,2",
+          "on1,3",
+          "off1,0",
+          "off1,1",
+          "off1,2",
+          "off1,3",
+          "on2,0",
+          "on2,1",
+          "on2,2",
+          "on2,3",
+          "off2,0",
+          "off2,1",
+          "off2,2",
+          "off2,3",
+          "on3,0",
+          "on3,1",
+          "on3,2",
+          "on3,3",
+          "off3,0",
+          "off3,1",
+          "off3,2",
+          "off3,3",
+          "on4,0",
+          "on4,1",
+          "on4,2",
+          "on4,3",
+          "off4,0",
+          "off4,1",
+          "off4,2",
+          "off4,3",
+          "on5,0",
+          "on5,1",
+          "on5,2",
+          "on5,3",
+          "off5,0",
+          "off5,1",
+          "off5,2",
+          "off5,3",
+          "on6,0",
+          "on6,1",
+          "on6,2",
+          "on6,3",
+          "off6,0",
+          "off6,1",
+          "off6,2",
+          "off6,3",
+          "on7,0",
+          "on7,1",
+          "on7,2",
+          "on7,3",
+          "off7,0",
+          "off7,1",
+          "off7,2",
+          "off7,3"
+        ]
+      }
+    ],
     "constraints": {
       "maxTimeMs": 3000,
       "maxMemMB": 64,
       "requireStructures": ["def"]
-    }
+    },
+    "referenceHash": "54281162"
   },
-  "rewards": { "xp": 45, "coins": 22, "badges": ["LED艺术家"] }
+  "rewards": {
+    "xp": 45,
+    "coins": 22,
+    "badges": ["LED艺术家"]
+  }
 }

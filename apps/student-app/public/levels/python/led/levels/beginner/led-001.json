@@ -8,10 +8,13 @@
   "goals": ["输出事件 on0"],
   "starter": {
     "blockly": "<xml/>",
-    "code": "print('on0')  # 示例事件格式"
+    "code": "# TODO: 使用 print() 输出灯阵指令，例如 print('on<index>') 或 print('on<x,y>')\n# 根据目标图案控制灯光\n"
   },
-  "solution": "print('on0')",
-  "assets": { "gridWidth": 1, "gridHeight": 1 },
+  "solution": "# 提示：输出一次点亮第 0 号灯的指令。",
+  "assets": {
+    "gridWidth": 1,
+    "gridHeight": 1
+  },
   "grader": {
     "mode": "event",
     "events": {
@@ -20,9 +23,17 @@
       "mapRule": "stdout line 'on{i}' => event 'on{i}'"
     },
     "checks": [
-      { "type": "eventSeq", "expect": ["on0"] }
-    ]
+      {
+        "type": "eventSeq",
+        "expect": ["on0"]
+      }
+    ],
+    "referenceHash": "3ab65344"
   },
-  "rewards": { "xp": 12, "coins": 5, "badges": [] },
+  "rewards": {
+    "xp": 12,
+    "coins": 5,
+    "badges": []
+  },
   "hints": ["事件可以通过 print() 输出", "文本必须完全匹配 on0"]
 }

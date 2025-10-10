@@ -10,8 +10,11 @@
     "blockly": "<xml/>",
     "code": "# API: move(), turn_left(), scan()\n# TODO: 遇到死胡同时回头\n"
   },
-  "solution": "move()\nmove()\nturn_left()\nmove()\nmove()\nturn_left()\nmove()\nmove()",
-  "assets": { "maze": ["#######", "#S#...#", "#.#.#.#", "#...#E#", "#######"], "maxSteps3Star": 12 },
+  "solution": "# 提示：按照路径分段移动与转向。",
+  "assets": {
+    "maze": ["#######", "#S#...#", "#.#.#.#", "#...#E#", "#######"],
+    "maxSteps3Star": 12
+  },
   "grader": {
     "mode": "event",
     "events": {
@@ -20,12 +23,24 @@
       "expectedGoal": "reach_end"
     },
     "checks": [
-      { "type": "goal", "name": "reach_end", "must": true },
-      { "type": "maxSteps", "value": 12 }
+      {
+        "type": "goal",
+        "name": "reach_end",
+        "must": true
+      },
+      {
+        "type": "maxSteps",
+        "value": 12
+      }
     ],
     "constraints": {
       "requireStructures": ["def"]
-    }
+    },
+    "referenceHash": "e559cb0b"
   },
-  "rewards": { "xp": 45, "coins": 20, "badges": ["回溯大师"] }
+  "rewards": {
+    "xp": 45,
+    "coins": 20,
+    "badges": ["回溯大师"]
+  }
 }

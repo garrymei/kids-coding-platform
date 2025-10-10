@@ -8,9 +8,9 @@
   "goals": ["输出 note 0 C 1、note 1 D 1、note 2 E 1、note 3 F 1"],
   "starter": {
     "blockly": "<xml/>",
-    "code": "notes = [('C', 0), ('D', 1), ('E', 2), ('F', 3)]\nfor pitch, tick in notes:\n    print(f'note {tick} {pitch} 1')"
+    "code": "# TODO: 使用 print() 输出音符命令，例如 print('note <tick> <pitch> <duration>')\n# 根据节奏提示完成旋律\n"
   },
-  "solution": "notes = [('C', 0), ('D', 1), ('E', 2), ('F', 3)]\nfor pitch, tick in notes:\n    print(f'note {tick} {pitch} 1')",
+  "solution": "# 提示：遍历音符列表生成 note 事件。",
   "grader": {
     "mode": "event",
     "events": {
@@ -22,8 +22,13 @@
         "type": "eventSeq",
         "expect": ["note 0 C 1", "note 1 D 1", "note 2 E 1", "note 3 F 1"]
       }
-    ]
+    ],
+    "referenceHash": "2ad644e9"
   },
-  "rewards": { "xp": 22, "coins": 8, "badges": [] },
+  "rewards": {
+    "xp": 22,
+    "coins": 8,
+    "badges": []
+  },
   "hints": ["先把音符存进列表", "用循环逐个打印事件"]
 }
