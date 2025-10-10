@@ -6,9 +6,15 @@
   "difficulty": 1,
   "story": "能源站测试：用循环让0号灯闪烁3次。",
   "goals": ["使用循环让0号灯闪烁3次"],
-  "starter": { "blockly": "<xml/>", "code": "# TODO: 用for循环让0号灯闪烁3次\nfor i in range(3):\n    print('on0')\n    # 添加关闭命令" },
-  "solution": "for i in range(3):\n    print('on0')\n    print('off0')",
-  "assets": { "gridWidth": 1, "gridHeight": 1 },
+  "starter": {
+    "blockly": "<xml/>",
+    "code": "# TODO: 使用 print() 输出灯阵指令，例如 print('on<index>') 或 print('on<x,y>')\n# 根据目标图案控制灯光\n"
+  },
+  "solution": "# 提示：使用循环重复闪烁序列三次。",
+  "assets": {
+    "gridWidth": 1,
+    "gridHeight": 1
+  },
   "grader": {
     "mode": "event",
     "events": {
@@ -16,12 +22,22 @@
       "collectFromStdout": true,
       "mapRule": "stdout line 'on{i}' => event 'on{i}'"
     },
-    "checks": [{ "type": "eventSeq", "expect": ["on0", "off0", "on0", "off0", "on0", "off0"] }],
+    "checks": [
+      {
+        "type": "eventSeq",
+        "expect": ["on0", "off0", "on0", "off0", "on0", "off0"]
+      }
+    ],
     "constraints": {
       "maxTimeMs": 3000,
       "maxMemMB": 64,
       "requireStructures": ["def"]
-    }
+    },
+    "referenceHash": "4c33cdfb"
   },
-  "rewards": { "xp": 18, "coins": 8, "badges": [] }
+  "rewards": {
+    "xp": 18,
+    "coins": 8,
+    "badges": []
+  }
 }

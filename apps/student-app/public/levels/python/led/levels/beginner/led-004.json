@@ -6,9 +6,15 @@
   "difficulty": 1,
   "story": "能源站测试：显示数字5的LED模式。",
   "goals": ["在5x5网格中显示数字5的LED模式"],
-  "starter": { "blockly": "<xml/>", "code": "# TODO: 在5x5网格中显示数字5\n# 用坐标(x,y)点亮LED" },
-  "solution": "print('on0,0')\nprint('on1,0')\nprint('on2,0')\nprint('on3,0')\nprint('on4,0')\nprint('on0,1')\nprint('on0,2')\nprint('on1,2')\nprint('on2,2')\nprint('on3,2')\nprint('on4,2')\nprint('on4,3')\nprint('on4,4')\nprint('on3,4')\nprint('on2,4')\nprint('on1,4')\nprint('on0,4')",
-  "assets": { "gridWidth": 5, "gridHeight": 5 },
+  "starter": {
+    "blockly": "<xml/>",
+    "code": "# TODO: 在5x5网格中显示数字5\n# 用坐标(x,y)点亮LED"
+  },
+  "solution": "# 提示：按坐标逐点描绘数字 5 的轮廓。",
+  "assets": {
+    "gridWidth": 5,
+    "gridHeight": 5
+  },
   "grader": {
     "mode": "event",
     "events": {
@@ -16,11 +22,39 @@
       "collectFromStdout": true,
       "mapRule": "stdout line 'on{x},{y}' => event 'on{x},{y}'"
     },
-    "checks": [{ "type": "eventSet", "expect": ["on0,0", "on1,0", "on2,0", "on3,0", "on4,0", "on0,1", "on0,2", "on1,2", "on2,2", "on3,2", "on4,2", "on4,3", "on4,4", "on3,4", "on2,4", "on1,4", "on0,4"] }],
+    "checks": [
+      {
+        "type": "eventSet",
+        "expect": [
+          "on0,0",
+          "on1,0",
+          "on2,0",
+          "on3,0",
+          "on4,0",
+          "on0,1",
+          "on0,2",
+          "on1,2",
+          "on2,2",
+          "on3,2",
+          "on4,2",
+          "on4,3",
+          "on4,4",
+          "on3,4",
+          "on2,4",
+          "on1,4",
+          "on0,4"
+        ]
+      }
+    ],
     "constraints": {
       "maxTimeMs": 3000,
       "maxMemMB": 64
-    }
+    },
+    "referenceHash": "03cd3ae8"
   },
-  "rewards": { "xp": 20, "coins": 10, "badges": [] }
+  "rewards": {
+    "xp": 20,
+    "coins": 10,
+    "badges": []
+  }
 }

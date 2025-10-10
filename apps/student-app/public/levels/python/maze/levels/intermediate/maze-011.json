@@ -6,9 +6,15 @@
   "difficulty": 2,
   "story": "路径有转角，观察再行动。",
   "goals": ["抵达终点，步数≤10 获 3 星"],
-  "starter": { "blockly": "<xml/>", "code": "# 使用 scan() 判断障碍\n" },
-  "solution": "def solve():\n    move()\n    move()\n    right()\n    move()\n    move()",
-  "assets": { "maze": ["######", "#S...#", "#.##E#", "######"], "maxSteps3Star": 10 },
+  "starter": {
+    "blockly": "<xml/>",
+    "code": "# 使用 scan() 判断障碍\n"
+  },
+  "solution": "# 提示：拆出 solve() 函数并规划右转路径。",
+  "assets": {
+    "maze": ["######", "#S...#", "#.##E#", "######"],
+    "maxSteps3Star": 10
+  },
   "grader": {
     "mode": "event",
     "events": {
@@ -16,12 +22,24 @@
       "collectFromAPI": true
     },
     "checks": [
-      { "type": "goal", "name": "reach_end", "must": true },
-      { "type": "maxSteps", "value": 10 }
+      {
+        "type": "goal",
+        "name": "reach_end",
+        "must": true
+      },
+      {
+        "type": "maxSteps",
+        "value": 10
+      }
     ],
     "constraints": {
       "requireStructures": ["def"]
-    }
+    },
+    "referenceHash": "f58a105f"
   },
-  "rewards": { "xp": 30, "coins": 10, "badges": ["函数小能手"] }
+  "rewards": {
+    "xp": 30,
+    "coins": 10,
+    "badges": ["函数小能手"]
+  }
 }

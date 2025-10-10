@@ -6,9 +6,15 @@
   "difficulty": 1,
   "story": "能源站测试：让两盏灯交替闪烁。",
   "goals": ["输出 on0, off0, on1, off1 序列"],
-  "starter": { "blockly": "<xml/>", "code": "# TODO: 让0号和1号灯交替闪烁\nprint('on0')" },
-  "solution": "print('on0')\nprint('off0')\nprint('on1')\nprint('off1')",
-  "assets": { "gridWidth": 2, "gridHeight": 1 },
+  "starter": {
+    "blockly": "<xml/>",
+    "code": "# TODO: 使用 print() 输出灯阵指令，例如 print('on<index>') 或 print('on<x,y>')\n# 根据目标图案控制灯光\n"
+  },
+  "solution": "# 提示：交替输出 on/off 控制两个灯闪烁。",
+  "assets": {
+    "gridWidth": 2,
+    "gridHeight": 1
+  },
   "grader": {
     "mode": "event",
     "events": {
@@ -16,11 +22,21 @@
       "collectFromStdout": true,
       "mapRule": "stdout line 'on{i}' => event 'on{i}'"
     },
-    "checks": [{ "type": "eventSeq", "expect": ["on0", "off0", "on1", "off1"] }],
+    "checks": [
+      {
+        "type": "eventSeq",
+        "expect": ["on0", "off0", "on1", "off1"]
+      }
+    ],
     "constraints": {
       "maxTimeMs": 3000,
       "maxMemMB": 64
-    }
+    },
+    "referenceHash": "8ae38817"
   },
-  "rewards": { "xp": 15, "coins": 6, "badges": [] }
+  "rewards": {
+    "xp": 15,
+    "coins": 6,
+    "badges": []
+  }
 }

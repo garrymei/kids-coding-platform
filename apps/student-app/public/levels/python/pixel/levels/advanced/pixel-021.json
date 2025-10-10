@@ -6,15 +6,30 @@
   "difficulty": 3,
   "story": "在像素画布上绘制一个圆形。",
   "goals": ["绘制15×15的圆形"],
-  "starter": { "blockly": "<xml/>", "code": "import math\nsize = 15\ncenter = size // 2\nradius = 6\nfor i in range(size):\n    row = ''\n    for j in range(size):\n        dist = math.sqrt((i - center)**2 + (j - center)**2)\n        if dist <= radius:\n            row += '1'\n        else:\n            row += '0'\n    print(row)" },
-  "solution": "import math\nsize = 15\ncenter = size // 2\nradius = 6\nfor i in range(size):\n    row = ''\n    for j in range(size):\n        dist = math.sqrt((i - center)**2 + (j - center)**2)\n        if dist <= radius:\n            row += '1'\n        else:\n            row += '0'\n    print(row)",
-  "assets": { "size": 15 },
+  "starter": {
+    "blockly": "<xml/>",
+    "code": "# TODO: 使用循环和 print() 输出由 0/1 组成的像素图案\n# 提示：可以先为每一行构造字符串再打印\n"
+  },
+  "solution": "# 提示：计算与圆心距离，距离小于半径时输出 1。",
+  "assets": {
+    "size": 15
+  },
   "grader": {
     "mode": "io",
     "io": {
-      "cases": [{ "in": "", "out": "000000000000000\n000000010000000\n000011111110000\n000111111111000\n001111111111100\n001111111111100\n001111111111100\n011111111111110\n001111111111100\n001111111111100\n001111111111100\n000111111111000\n000011111110000\n000000010000000\n000000000000000\n" }],
+      "cases": [
+        {
+          "in": "",
+          "out": "000000000000000\n000000010000000\n000011111110000\n000111111111000\n001111111111100\n001111111111100\n001111111111100\n011111111111110\n001111111111100\n001111111111100\n001111111111100\n000111111111000\n000011111110000\n000000010000000\n000000000000000\n"
+        }
+      ],
       "match": "exact"
-    }
+    },
+    "referenceHash": "900b6170"
   },
-  "rewards": { "xp": 45, "coins": 20, "badges": [] }
+  "rewards": {
+    "xp": 45,
+    "coins": 20,
+    "badges": []
+  }
 }

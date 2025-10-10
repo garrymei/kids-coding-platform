@@ -8,10 +8,12 @@
   "goals": ["输出 8×8 的块状拼图"],
   "starter": {
     "blockly": "<xml/>",
-    "code": "pattern = [\n    '11110000',\n    '11110000',\n    '11000011',\n    '11000011',\n    '00111100',\n    '00111100',\n    '00001111',\n    '00001111',\n]\nfor row in pattern:\n    print(row)"
+    "code": "# TODO: 使用循环和 print() 输出由 0/1 组成的像素图案\n# 提示：可以先为每一行构造字符串再打印\n"
   },
-  "solution": "pattern = [\n    '11110000',\n    '11110000',\n    '11000011',\n    '11000011',\n    '00111100',\n    '00111100',\n    '00001111',\n    '00001111',\n]\nfor row in pattern:\n    print(row)",
-  "assets": { "size": 8 },
+  "solution": "# 提示：预先写出目标行字符串数组并逐行输出。",
+  "assets": {
+    "size": 8
+  },
   "grader": {
     "mode": "io",
     "io": {
@@ -22,8 +24,13 @@
         }
       ],
       "match": "exact"
-    }
+    },
+    "referenceHash": "8babfec0"
   },
-  "rewards": { "xp": 32, "coins": 12, "badges": [] },
+  "rewards": {
+    "xp": 32,
+    "coins": 12,
+    "badges": []
+  },
   "hints": ["可以把每一行写成字符串列表", "记得按顺序打印所有行"]
 }

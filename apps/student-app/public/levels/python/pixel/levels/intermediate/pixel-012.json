@@ -6,15 +6,30 @@
   "difficulty": 2,
   "story": "在像素画布上绘制一个菱形图案。",
   "goals": ["绘制7×7的菱形"],
-  "starter": { "blockly": "<xml/>", "code": "size = 7\ncenter = size // 2\nfor i in range(size):\n    row = ''\n    for j in range(size):\n        if abs(i - center) + abs(j - center) <= center:\n            row += '1'\n        else:\n            row += '0'\n    print(row)" },
-  "solution": "size = 7\ncenter = size // 2\nfor i in range(size):\n    row = ''\n    for j in range(size):\n        if abs(i - center) + abs(j - center) <= center:\n            row += '1'\n        else:\n            row += '0'\n    print(row)",
-  "assets": { "size": 7 },
+  "starter": {
+    "blockly": "<xml/>",
+    "code": "# TODO: 使用循环和 print() 输出由 0/1 组成的像素图案\n# 提示：可以先为每一行构造字符串再打印\n"
+  },
+  "solution": "# 提示：使用 abs(i-center)+abs(j-center) 构造菱形。",
+  "assets": {
+    "size": 7
+  },
   "grader": {
     "mode": "io",
     "io": {
-      "cases": [{ "in": "", "out": "0001000\n0011100\n0111110\n1111111\n0111110\n0011100\n0001000\n" }],
+      "cases": [
+        {
+          "in": "",
+          "out": "0001000\n0011100\n0111110\n1111111\n0111110\n0011100\n0001000\n"
+        }
+      ],
       "match": "exact"
-    }
+    },
+    "referenceHash": "11aceb96"
   },
-  "rewards": { "xp": 35, "coins": 15, "badges": [] }
+  "rewards": {
+    "xp": 35,
+    "coins": 15,
+    "badges": []
+  }
 }

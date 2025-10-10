@@ -10,8 +10,11 @@
     "blockly": "<xml/>",
     "code": "# API: move(), turn_left(), scan()\n# TODO: 使用循环前进\n"
   },
-  "solution": "for i in range(5):\n    move()",
-  "assets": { "maze": ["#######", "#S....E#", "#######"], "maxSteps3Star": 7 },
+  "solution": "# 提示：用 for 循环多次调用 move()。",
+  "assets": {
+    "maze": ["#######", "#S....E#", "#######"],
+    "maxSteps3Star": 7
+  },
   "grader": {
     "mode": "event",
     "events": {
@@ -20,12 +23,24 @@
       "expectedGoal": "reach_end"
     },
     "checks": [
-      { "type": "goal", "name": "reach_end", "must": true },
-      { "type": "maxSteps", "value": 7 }
+      {
+        "type": "goal",
+        "name": "reach_end",
+        "must": true
+      },
+      {
+        "type": "maxSteps",
+        "value": 7
+      }
     ],
     "constraints": {
       "requireStructures": ["def"]
-    }
+    },
+    "referenceHash": "bfd2b47f"
   },
-  "rewards": { "xp": 40, "coins": 18, "badges": ["循环新手"] }
+  "rewards": {
+    "xp": 40,
+    "coins": 18,
+    "badges": ["循环新手"]
+  }
 }

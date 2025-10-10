@@ -6,9 +6,15 @@
   "difficulty": 3,
   "story": "能源站挑战：创建能响应输入的智能LED系统。",
   "goals": ["根据输入数字n，创建n×n的LED方阵"],
-  "starter": { "blockly": "<xml/>", "code": "n = int(input())\n# TODO: 创建n×n的LED方阵" },
-  "solution": "n = int(input())\n\ndef create_square(size):\n    for row in range(size):\n        for col in range(size):\n            print(f'on{col},{row}')\n\ncreate_square(n)",
-  "assets": { "gridWidth": 8, "gridHeight": 8 },
+  "starter": {
+    "blockly": "<xml/>",
+    "code": "n = int(input())\n# TODO: 创建n×n的LED方阵"
+  },
+  "solution": "# 提示：根据输入 n 用双重循环点亮方阵。",
+  "assets": {
+    "gridWidth": 8,
+    "gridHeight": 8
+  },
   "grader": {
     "mode": "event",
     "events": {
@@ -16,12 +22,22 @@
       "collectFromStdout": true,
       "mapRule": "stdout line 'on{x},{y}' => event 'on{x},{y}'"
     },
-    "checks": [{ "type": "eventSet", "expect": ["on0,0", "on1,0", "on2,0", "on0,1", "on1,1", "on2,1", "on0,2", "on1,2", "on2,2"] }],
+    "checks": [
+      {
+        "type": "eventSet",
+        "expect": ["on0,0", "on1,0", "on2,0", "on0,1", "on1,1", "on2,1", "on0,2", "on1,2", "on2,2"]
+      }
+    ],
     "constraints": {
       "maxTimeMs": 3000,
       "maxMemMB": 64,
       "requireStructures": ["def"]
-    }
+    },
+    "referenceHash": "c127a37c"
   },
-  "rewards": { "xp": 55, "coins": 28, "badges": ["智能控制专家"] }
+  "rewards": {
+    "xp": 55,
+    "coins": 28,
+    "badges": ["智能控制专家"]
+  }
 }

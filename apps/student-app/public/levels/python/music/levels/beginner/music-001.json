@@ -8,9 +8,9 @@
   "goals": ["输出事件 note 0 C 1"],
   "starter": {
     "blockly": "<xml/>",
-    "code": "# 事件格式：note <tick> <pitch> <duration>\nprint('note 0 C 1')"
+    "code": "# TODO: 使用 print() 输出音符命令，例如 print('note <tick> <pitch> <duration>')\n# 根据节奏提示完成旋律\n"
   },
-  "solution": "print('note 0 C 1')",
+  "solution": "# 提示：打印一条 note 指令演奏音符。",
   "grader": {
     "mode": "event",
     "events": {
@@ -19,9 +19,17 @@
       "mapRule": "stdout line 'note t p d'"
     },
     "checks": [
-      { "type": "eventSeq", "expect": ["note 0 C 1"] }
-    ]
+      {
+        "type": "eventSeq",
+        "expect": ["note 0 C 1"]
+      }
+    ],
+    "referenceHash": "4bf06b2b"
   },
-  "rewards": { "xp": 12, "coins": 5, "badges": [] },
+  "rewards": {
+    "xp": 12,
+    "coins": 5,
+    "badges": []
+  },
   "hints": ["通过 print() 输出事件", "保持空格与大小写完全一致"]
 }

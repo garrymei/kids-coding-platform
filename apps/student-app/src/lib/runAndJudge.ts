@@ -113,15 +113,44 @@ export async function runAndJudge({ level, code }: RunAndJudgeOptions): Promise<
       }
     }
   } else if ((level as any).gameType === 'pixel') {
-    artifacts.pixelMatrix = generatePixelMatrix(level);
-    // 对于像素类型，暂时使用简单的判断逻辑
-    passed = true; // TODO: 实现真正的像素矩阵比较
-    judgeMessage = passed ? '🎉 像素图案正确' : '❌ 像素图案不匹配';
+    const expectedPattern = extractExpectedIoOutput(level);
+    artifacts.pixelMatrix = expectedPattern
+      ? parsePixelMatrixFromString(expectedPattern)
+      : generatePixelMatrix(level);
+
+    const matchesReference = matchesReferenceSolution(level, trimmed);
+    passed = matchesReference;
+    judgeMessage = passed ? '🎉 像素图案正确' : '❌ 图案不匹配';
+    judgeDetails = matchesReference
+      ? '你的代码与参考答案一致，像素图案符合要求。'
+      : '当前演示判题需要与参考答案核心逻辑一致，请检查循环或打印的图案。';
   } else if ((level as any).gameType === 'music') {
-    artifacts.musicSeq = generateMusicSequence(level);
-    // 对于音乐类型，暂时使用简单的判断逻辑
-    passed = true; // TODO: 实现真正的音乐序列比较
-    judgeMessage = passed ? '🎉 音乐序列正确' : '❌ 音乐序列不匹配';
+    artifacts.musicSeq = buildExpectedMusicSequence(level);
+    const matchesReference = matchesReferenceSolution(level, trimmed);
+    passed = matchesReference;
+    judgeMessage = passed ? '🎉 节奏匹配成功' : '❌ 节奏不匹配';
+    judgeDetails = matchesReference
+      ? '事件序列满足当前关卡的节奏要求。'
+      : '请确认输出的 note 事件顺序、音高与节拍均符合提示。';
+  } else if ((level as any).gameType === 'led') {
+    const expectedPattern = extractExpectedIoOutput(level);
+    artifacts.raw = {
+      ...(artifacts.raw || {}),
+      expectedLed: expectedPattern,
+    };
+    const matchesReference = matchesReferenceSolution(level, trimmed);
+    passed = matchesReference;
+    judgeMessage = passed ? '🎉 灯光序列正确' : '❌ 灯光指令不正确';
+    judgeDetails = matchesReference
+      ? '灯光指令与参考方案一致。'
+      : '请检查灯光开关顺序与等待时长是否符合目标。';
+  } else if ((level as any).gameType === 'maze') {
+    const matchesReference = matchesReferenceSolution(level, trimmed);
+    passed = matchesReference;
+    judgeMessage = passed ? '🎉 迷宫路线正确' : '❌ 路线逻辑不匹配';
+    judgeDetails = matchesReference
+      ? '你的路径与参考方案一致，可顺利到达终点。'
+      : '请核对行走顺序与转向逻辑，确保能够抵达终点。';
   } else {
     // 其他游戏类型的默认处理
     passed = false;
@@ -230,6 +259,15 @@ function simulateIoOutput(code: string, input: string): string {
   return `${input} processed`;
 }
 
+function extractExpectedIoOutput(level: Level): string | undefined {
+  const grader = (level as any).grader;
+  const output = grader?.io?.cases?.[0]?.out;
+  if (typeof output === 'string' && output.trim() !== '') {
+    return output;
+  }
+  return undefined;
+}
+
 function generatePixelMatrix(level: Level): number[][] {
   const grader = (level as any).grader;
   const expectedOutput = grader?.io?.cases?.[0]?.out;
@@ -253,14 +291,65 @@ function parsePixelMatrixFromString(pattern: string): number[][] {
     .map((row) => row.split('').map((char) => (char === '1' ? 1 : 0)));
 }
 
-function generateMusicSequence(level: Level): Array<{ pitch: string; duration: number }> {
-  const visualization = (level as any).visualization ?? {};
-  const musicInfo = visualization.music ?? {};
-  const baseTempo = musicInfo.tempo ?? 120;
-  const pitches = ['C', 'D', 'E', 'G', 'A'];
+function buildExpectedMusicSequence(level: Level): Array<{ pitch: string; duration: number }> {
+  const grader = (level as any).grader;
+  const expected = grader?.checks?.[0]?.expect as string[] | undefined;
+  if (!Array.isArray(expected) || expected.length === 0) {
+    return [];
+  }
 
-  return pitches.map((pitch, index) => ({
-    pitch: `${pitch}${4 + (index % 2)}`,
-    duration: Number((60 / baseTempo) * (index % 3 === 0 ? 1 : 0.5)),
-  }));
+  return expected
+    .map((line) => line.trim())
+    .filter((line) => /^note\s+\d+\s+\w+/i.test(line))
+    .map((line) => {
+      const [, tick, pitch, duration] = line.split(/\s+/);
+      return {
+        pitch,
+        duration: Number.parseFloat(duration ?? '1'),
+      };
+    });
+}
+
+function matchesReferenceSolution(level: Level, code: string): boolean {
+  const referenceHash = resolveReferenceHash(level);
+  if (referenceHash) {
+    return computeReferenceHash(code) === referenceHash;
+  }
+
+  const reference = (level as any).solution || (level as any).reference_solution || undefined;
+  if (!reference) {
+    return false;
+  }
+
+  return normalizeForHash(code) === normalizeForHash(reference);
+}
+
+function resolveReferenceHash(level: Level): string | undefined {
+  const fromGrader = (level as any).grader?.referenceHash;
+  if (typeof fromGrader === 'string' && fromGrader.trim().length > 0) {
+    return fromGrader.trim();
+  }
+
+  const legacy = (level as any).referenceHash || (level as any).meta?.referenceHash;
+  if (typeof legacy === 'string' && legacy.trim().length > 0) {
+    return legacy.trim();
+  }
+
+  return undefined;
+}
+
+function computeReferenceHash(code: string): string {
+  let hash = 0x811c9dc5;
+  const normalized = normalizeForHash(code);
+
+  for (let index = 0; index < normalized.length; index += 1) {
+    hash ^= normalized.charCodeAt(index);
+    hash = Math.imul(hash, 0x01000193) >>> 0;
+  }
+
+  return hash.toString(16).padStart(8, '0');
+}
+
+function normalizeForHash(value: string): string {
+  return value.replace(/#.*$/gm, '').replace(/\s+/g, ' ').trim();
 }

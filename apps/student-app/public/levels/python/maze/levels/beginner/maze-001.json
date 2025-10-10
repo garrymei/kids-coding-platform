@@ -10,8 +10,11 @@
     "blockly": "<xml/>",
     "code": "# API: move(), turn_left(), scan()\n# TODO: 前进到终点\n"
   },
-  "solution": "def solve():\n    move()\n    move()\n    move()",
-  "assets": { "maze": ["#####", "#S..E#", "#####"], "maxSteps3Star": 4 },
+  "solution": "# 提示：连续调用 move() 直到抵达终点。",
+  "assets": {
+    "maze": ["#####", "#S..E#", "#####"],
+    "maxSteps3Star": 4
+  },
   "grader": {
     "mode": "event",
     "events": {
@@ -20,9 +23,21 @@
       "expectedGoal": "reach_end"
     },
     "checks": [
-      { "type": "goal", "name": "reach_end", "must": true },
-      { "type": "maxSteps", "value": 4 }
-    ]
+      {
+        "type": "goal",
+        "name": "reach_end",
+        "must": true
+      },
+      {
+        "type": "maxSteps",
+        "value": 4
+      }
+    ],
+    "referenceHash": "fca24d18"
   },
-  "rewards": { "xp": 20, "coins": 8, "badges": [] }
+  "rewards": {
+    "xp": 20,
+    "coins": 8,
+    "badges": []
+  }
 }

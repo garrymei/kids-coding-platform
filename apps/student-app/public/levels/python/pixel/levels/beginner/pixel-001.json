@@ -8,19 +8,29 @@
   "goals": ["输出 5×5 的笑脸图案"],
   "starter": {
     "blockly": "<xml/>",
-    "code": "canvas = [[0] * 5 for _ in range(5)]\ncanvas[0][1:4] = [1, 1, 1]\ncanvas[1][0] = canvas[1][4] = 1\ncanvas[3][0] = canvas[3][4] = 1\ncanvas[4][1:4] = [1, 1, 1]\nfor row in canvas:\n    print(''.join(str(cell) for cell in row))"
+    "code": "# TODO: 使用循环和 print() 输出由 0/1 组成的像素图案\n# 提示：可以先为每一行构造字符串再打印\n"
   },
-  "solution": "canvas = [[0] * 5 for _ in range(5)]\ncanvas[0][1:4] = [1, 1, 1]\ncanvas[1][0] = canvas[1][4] = 1\ncanvas[3][0] = canvas[3][4] = 1\ncanvas[4][1:4] = [1, 1, 1]\nfor row in canvas:\n    print(''.join(str(cell) for cell in row))",
-  "assets": { "size": 5 },
+  "solution": "# 提示：先构造二维列表保存笑脸，再逐行打印 0/1 字符串。",
+  "assets": {
+    "size": 5
+  },
   "grader": {
     "mode": "io",
     "io": {
       "cases": [
-        { "in": "", "out": "01110\n10001\n00000\n10001\n01110\n" }
+        {
+          "in": "",
+          "out": "01110\n10001\n00000\n10001\n01110\n"
+        }
       ],
       "match": "exact"
-    }
+    },
+    "referenceHash": "93e19302"
   },
-  "rewards": { "xp": 35, "coins": 12, "badges": ["像素新手"] },
+  "rewards": {
+    "xp": 35,
+    "coins": 12,
+    "badges": ["像素新手"]
+  },
   "hints": ["可以用二维列表保存像素", "打印前先把每行 join 成字符串"]
 }

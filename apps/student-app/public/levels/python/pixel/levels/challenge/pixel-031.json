@@ -6,15 +6,30 @@
   "difficulty": 4,
   "story": "创建动态波浪效果图案。",
   "goals": ["生成动态波浪图案"],
-  "starter": { "blockly": "<xml/>", "code": "import math\nwidth, height = 20, 10\nfor y in range(height):\n    row = ''\n    for x in range(width):\n        wave = math.sin((x / width) * 4 * math.pi + (y / height) * 2 * math.pi)\n        if wave > 0:\n            row += '1'\n        else:\n            row += '0'\n    print(row)" },
-  "solution": "import math\nwidth, height = 20, 10\nfor y in range(height):\n    row = ''\n    for x in range(width):\n        wave = math.sin((x / width) * 4 * math.pi + (y / height) * 2 * math.pi)\n        if wave > 0:\n            row += '1'\n        else:\n            row += '0'\n    print(row)",
-  "assets": { "size": 20 },
+  "starter": {
+    "blockly": "<xml/>",
+    "code": "# TODO: 使用循环和 print() 输出由 0/1 组成的像素图案\n# 提示：可以先为每一行构造字符串再打印\n"
+  },
+  "solution": "# 提示：用 math.sin 生成波形，判断正负输出。",
+  "assets": {
+    "size": 20
+  },
   "grader": {
     "mode": "io",
     "io": {
-      "cases": [{ "in": "", "out": "01111100000111110000\n11111000001111100000\n11110000011111000001\n11100000111110000011\n11000001111100000111\n10000011111000001111\n00000111110000011111\n00001111100000111110\n00011111000001111100\n00111110000011111000\n" }],
+      "cases": [
+        {
+          "in": "",
+          "out": "01111100000111110000\n11111000001111100000\n11110000011111000001\n11100000111110000011\n11000001111100000111\n10000011111000001111\n00000111110000011111\n00001111100000111110\n00011111000001111100\n00111110000011111000\n"
+        }
+      ],
       "match": "exact"
-    }
+    },
+    "referenceHash": "968e410e"
   },
-  "rewards": { "xp": 60, "coins": 30, "badges": [] }
+  "rewards": {
+    "xp": 60,
+    "coins": 30,
+    "badges": []
+  }
 }

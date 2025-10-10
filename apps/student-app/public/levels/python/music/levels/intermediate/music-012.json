@@ -6,8 +6,11 @@
   "difficulty": 2,
   "story": "用函数生成旋律模式。",
   "goals": ["定义函数生成音阶"],
-  "starter": { "blockly": "<xml/>", "code": "# TODO: 定义函数生成C大调音阶\ndef play_scale():\n    pass" },
-  "solution": "def play_scale():\n    notes = ['C', 'D', 'E', 'F', 'G', 'A', 'B']\n    for i, note in enumerate(notes):\n        print(f'note {i} {note} 1')\n\nplay_scale()",
+  "starter": {
+    "blockly": "<xml/>",
+    "code": "# TODO: 定义函数生成C大调音阶\ndef play_scale():\n    pass"
+  },
+  "solution": "# 提示：在函数内循环遍历音阶并打印指令。",
   "grader": {
     "mode": "event",
     "events": {
@@ -15,12 +18,30 @@
       "collectFromStdout": true,
       "mapRule": "stdout line 'note t p d'"
     },
-    "checks": [{ "type": "eventSeq", "expect": ["note 0 C 1", "note 1 D 1", "note 2 E 1", "note 3 F 1", "note 4 G 1", "note 5 A 1", "note 6 B 1"] }],
+    "checks": [
+      {
+        "type": "eventSeq",
+        "expect": [
+          "note 0 C 1",
+          "note 1 D 1",
+          "note 2 E 1",
+          "note 3 F 1",
+          "note 4 G 1",
+          "note 5 A 1",
+          "note 6 B 1"
+        ]
+      }
+    ],
     "constraints": {
       "maxTimeMs": 3000,
       "maxMemMB": 64,
       "requireStructures": ["def"]
-    }
+    },
+    "referenceHash": "b54c40a1"
   },
-  "rewards": { "xp": 28, "coins": 14, "badges": ["函数音乐家"] }
+  "rewards": {
+    "xp": 28,
+    "coins": 14,
+    "badges": ["函数音乐家"]
+  }
 }

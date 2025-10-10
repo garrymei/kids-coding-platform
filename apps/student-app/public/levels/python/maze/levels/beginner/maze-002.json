@@ -10,8 +10,11 @@
     "blockly": "<xml/>",
     "code": "# API: move(), turn_left(), scan()\n# TODO: 避开障碍到达终点\n"
   },
-  "solution": "move()\nturn_left()\nmove()\nmove()",
-  "assets": { "maze": ["#####", "#S#.#", "#..E#", "#####"], "maxSteps3Star": 5 },
+  "solution": "# 提示：先前进两步，再左转继续前进。",
+  "assets": {
+    "maze": ["#####", "#S#.#", "#..E#", "#####"],
+    "maxSteps3Star": 5
+  },
   "grader": {
     "mode": "event",
     "events": {
@@ -20,9 +23,21 @@
       "expectedGoal": "reach_end"
     },
     "checks": [
-      { "type": "goal", "name": "reach_end", "must": true },
-      { "type": "maxSteps", "value": 5 }
-    ]
+      {
+        "type": "goal",
+        "name": "reach_end",
+        "must": true
+      },
+      {
+        "type": "maxSteps",
+        "value": 5
+      }
+    ],
+    "referenceHash": "9e5fd8c9"
   },
-  "rewards": { "xp": 25, "coins": 10, "badges": [] }
+  "rewards": {
+    "xp": 25,
+    "coins": 10,
+    "badges": []
+  }
 }

@@ -10,8 +10,19 @@
     "blockly": "<xml/>",
     "code": "# API: move(), turn_left(), scan()\n# TODO: 综合运用所有技巧通过复杂迷宫\n"
   },
-  "solution": "def solve():\n    while not at_goal():\n        if scan() == 'clear':\n            move()\n        else:\n            turn_left()\n            if scan() == 'clear':\n                move()\n            else:\n                turn_left()\n                turn_left()\n\nsolve()",
-  "assets": { "maze": ["#########", "#S.....#.#", "#.###.#.#", "#...#...#", "###.#.###", "#...#...E#", "#########"], "maxSteps3Star": 25 },
+  "solution": "# 提示：根据 scan() 结果选择前进或左转。",
+  "assets": {
+    "maze": [
+      "#########",
+      "#S.....#.#",
+      "#.###.#.#",
+      "#...#...#",
+      "###.#.###",
+      "#...#...E#",
+      "#########"
+    ],
+    "maxSteps3Star": 25
+  },
   "grader": {
     "mode": "event",
     "events": {
@@ -20,12 +31,24 @@
       "expectedGoal": "reach_end"
     },
     "checks": [
-      { "type": "goal", "name": "reach_end", "must": true },
-      { "type": "maxSteps", "value": 25 }
+      {
+        "type": "goal",
+        "name": "reach_end",
+        "must": true
+      },
+      {
+        "type": "maxSteps",
+        "value": 25
+      }
     ],
     "constraints": {
       "requireStructures": ["def"]
-    }
+    },
+    "referenceHash": "24e9b546"
   },
-  "rewards": { "xp": 60, "coins": 30, "badges": ["迷宫大师"] }
+  "rewards": {
+    "xp": 60,
+    "coins": 30,
+    "badges": ["迷宫大师"]
+  }
 }
