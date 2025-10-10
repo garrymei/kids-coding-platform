@@ -10,8 +10,11 @@
     "blockly": "<xml/>",
     "code": "# API: move(), turn_left(), scan()\n# TODO: 找到正确路径\n"
   },
-  "solution": "move()\nturn_left()\nmove()\nturn_left()\nmove()\nmove()",
-  "assets": { "maze": ["######", "#S...#", "#.#.#", "#..E#", "######"], "maxSteps3Star": 8 },
+  "solution": "# 提示：组合 turn_left() 与 move() 躲避障碍。",
+  "assets": {
+    "maze": ["######", "#S...#", "#.#.#", "#..E#", "######"],
+    "maxSteps3Star": 8
+  },
   "grader": {
     "mode": "event",
     "events": {
@@ -20,9 +23,21 @@
       "expectedGoal": "reach_end"
     },
     "checks": [
-      { "type": "goal", "name": "reach_end", "must": true },
-      { "type": "maxSteps", "value": 8 }
-    ]
+      {
+        "type": "goal",
+        "name": "reach_end",
+        "must": true
+      },
+      {
+        "type": "maxSteps",
+        "value": 8
+      }
+    ],
+    "referenceHash": "0629fe47"
   },
-  "rewards": { "xp": 30, "coins": 12, "badges": [] }
+  "rewards": {
+    "xp": 30,
+    "coins": 12,
+    "badges": []
+  }
 }

@@ -6,8 +6,11 @@
   "difficulty": 2,
   "story": "创建复杂的节奏模式。",
   "goals": ["创建强-弱-次强-弱的节奏模式"],
-  "starter": { "blockly": "<xml/>", "code": "# TODO: 创建强-弱-次强-弱的节奏模式\n# 使用不同的时值表示强弱" },
-  "solution": "print('note 0 C 2')  # 强拍\nprint('note 2 C 1')  # 弱拍\nprint('note 4 C 1.5')  # 次强拍\nprint('note 6 C 1')  # 弱拍",
+  "starter": {
+    "blockly": "<xml/>",
+    "code": "# TODO: 创建强-弱-次强-弱的节奏模式\n# 使用不同的时值表示强弱"
+  },
+  "solution": "# 提示：按强弱节奏安排 tick 与 duration。",
   "grader": {
     "mode": "event",
     "events": {
@@ -15,7 +18,17 @@
       "collectFromStdout": true,
       "mapRule": "stdout line 'note t p d'"
     },
-    "checks": [{ "type": "eventSeq", "expect": ["note 0 C 2", "note 2 C 1", "note 4 C 1.5", "note 6 C 1"] }]
+    "checks": [
+      {
+        "type": "eventSeq",
+        "expect": ["note 0 C 2", "note 2 C 1", "note 4 C 1.5", "note 6 C 1"]
+      }
+    ],
+    "referenceHash": "7bf409fb"
   },
-  "rewards": { "xp": 32, "coins": 16, "badges": ["节奏大师"] }
+  "rewards": {
+    "xp": 32,
+    "coins": 16,
+    "badges": ["节奏大师"]
+  }
 }

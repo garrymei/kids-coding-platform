@@ -10,7 +10,7 @@
     "blockly": "<xml/>",
     "code": "message = input().strip()\n# TODO：原样输出 message"
   },
-  "solution": "message = input().strip()\nprint(message)",
+  "solution": "# 提示：读取输入后，保持原样输出同一内容。",
   "grader": {
     "mode": "io",
     "io": {
@@ -26,11 +26,12 @@
       ],
       "match": "exact"
     },
+    "referenceHash": "6e2f59a6",
     "constraints": {
       "maxTimeMs": 3000,
       "maxMemMB": 64
     }
   },
   "rewards": { "xp": 12, "coins": 5, "badges": [] },
-  "hints": ["使用 input() 读取内容", "print(message) 输出即可"]
+  "hints": ["使用 input() 读取内容", "直接输出读取到的那一行"]
 }

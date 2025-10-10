@@ -10,8 +10,11 @@
     "blockly": "<xml/>",
     "code": "# API: move(), turn_left(), scan()\n# TODO: 封装函数简化代码\n"
   },
-  "solution": "def move_two():\n    move()\n    move()\n\nmove_two()\nturn_left()\nmove_two()\nturn_left()\nmove_two()",
-  "assets": { "maze": ["########", "#S......#", "##.####.#", "#.......E#", "########"], "maxSteps3Star": 15 },
+  "solution": "# 提示：编写辅助函数减少重复步骤。",
+  "assets": {
+    "maze": ["########", "#S......#", "##.####.#", "#.......E#", "########"],
+    "maxSteps3Star": 15
+  },
   "grader": {
     "mode": "event",
     "events": {
@@ -20,12 +23,24 @@
       "expectedGoal": "reach_end"
     },
     "checks": [
-      { "type": "goal", "name": "reach_end", "must": true },
-      { "type": "maxSteps", "value": 15 }
+      {
+        "type": "goal",
+        "name": "reach_end",
+        "must": true
+      },
+      {
+        "type": "maxSteps",
+        "value": 15
+      }
     ],
     "constraints": {
       "requireStructures": ["def"]
-    }
+    },
+    "referenceHash": "db3a6468"
   },
-  "rewards": { "xp": 50, "coins": 25, "badges": ["函数专家"] }
+  "rewards": {
+    "xp": 50,
+    "coins": 25,
+    "badges": ["函数专家"]
+  }
 }

@@ -8,10 +8,13 @@
   "goals": ["按顺序输出 on0,on1,on2,on3,on4"],
   "starter": {
     "blockly": "<xml/>",
-    "code": "for i in range(5):\n    print(f'on{i}')"
+    "code": "# TODO: 使用 print() 输出灯阵指令，例如 print('on<index>') 或 print('on<x,y>')\n# 根据目标图案控制灯光\n"
   },
-  "solution": "for i in range(5):\n    print(f'on{i}')",
-  "assets": { "gridWidth": 5, "gridHeight": 1 },
+  "solution": "# 提示：循环点亮 0-4 号灯形成跑马灯。",
+  "assets": {
+    "gridWidth": 5,
+    "gridHeight": 1
+  },
   "grader": {
     "mode": "event",
     "events": {
@@ -19,12 +22,20 @@
       "collectFromStdout": true
     },
     "checks": [
-      { "type": "eventSeq", "expect": ["on0", "on1", "on2", "on3", "on4"] }
+      {
+        "type": "eventSeq",
+        "expect": ["on0", "on1", "on2", "on3", "on4"]
+      }
     ],
     "constraints": {
       "requireStructures": ["for"]
-    }
+    },
+    "referenceHash": "ddde3681"
   },
-  "rewards": { "xp": 30, "coins": 10, "badges": ["循环达人"] },
+  "rewards": {
+    "xp": 30,
+    "coins": 10,
+    "badges": ["循环达人"]
+  },
   "hints": ["使用 for i in range(5)", "在循环中打印 on{i}"]
 }

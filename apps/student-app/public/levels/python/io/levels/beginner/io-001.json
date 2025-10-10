@@ -10,7 +10,7 @@
     "blockly": "<xml/>",
     "code": "print('')  # TODO：输出问候语"
   },
-  "solution": "print('Hello, Island!')",
+  "solution": "# 提示：使用 print() 输出指定的问候语。",
   "grader": {
     "mode": "io",
     "io": {
@@ -22,6 +22,7 @@
       ],
       "match": "exact"
     },
+    "referenceHash": "e7eac9b5",
     "constraints": {
       "maxTimeMs": 3000,
       "maxMemMB": 64,
