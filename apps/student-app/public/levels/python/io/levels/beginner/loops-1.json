@@ -10,18 +10,19 @@
     "blockly": "<xml/>",
     "code": "# TODO: 使用 for 循环打印 1 到 5\nfor i in range(1, 6):\n    pass\n"
   },
-  "solution": "for i in range(1, 6):\n    print(i)",
+  "solution": "# 提示：使用 for 循环遍历 1 到 5，并在循环体内输出当前数字。",
   "grader": {
     "mode": "io",
     "io": {
       "cases": [{ "in": "", "out": "1\n2\n3\n4\n5\n" }],
       "match": "exact"
-    }
+    },
+    "referenceHash": "d6417f88"
   },
   "rewards": {
     "xp": 25,
     "coins": 10,
     "badges": ["循环起步"]
   },
-  "hints": ["使用 range(1, 6) 可以生成 1 到 5", "记得在循环体内 print(i)"]
+  "hints": ["使用 range(1, 6) 可以生成 1 到 5", "在循环体内输出当前数字"]
 }

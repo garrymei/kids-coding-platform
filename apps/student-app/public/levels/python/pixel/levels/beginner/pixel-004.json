@@ -6,15 +6,30 @@
   "difficulty": 1,
   "story": "绘制一个空心方块边框。",
   "goals": ["绘制5×5的空心边框"],
-  "starter": { "blockly": "<xml/>", "code": "# TODO: 绘制空心边框\n# 只在边缘绘制1" },
-  "solution": "for i in range(5):\n    row = ''\n    for j in range(5):\n        if i == 0 or i == 4 or j == 0 or j == 4:  # 边缘\n            row += '1'\n        else:\n            row += '0'\n    print(row)",
-  "assets": { "size": 5 },
+  "starter": {
+    "blockly": "<xml/>",
+    "code": "# TODO: 绘制空心边框\n# 只在边缘绘制1"
+  },
+  "solution": "# 提示：如果在边缘打印 1，否则打印 0。",
+  "assets": {
+    "size": 5
+  },
   "grader": {
     "mode": "io",
     "io": {
-      "cases": [{ "in": "", "out": "11111\n10001\n10001\n10001\n11111\n" }],
+      "cases": [
+        {
+          "in": "",
+          "out": "11111\n10001\n10001\n10001\n11111\n"
+        }
+      ],
       "match": "exact"
-    }
+    },
+    "referenceHash": "b2579395"
   },
-  "rewards": { "xp": 25, "coins": 10, "badges": [] }
+  "rewards": {
+    "xp": 25,
+    "coins": 10,
+    "badges": []
+  }
 }

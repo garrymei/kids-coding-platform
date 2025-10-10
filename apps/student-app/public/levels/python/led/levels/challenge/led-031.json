@@ -6,9 +6,15 @@
   "difficulty": 3,
   "story": "能源站挑战：创建跟随音乐节拍的LED效果。",
   "goals": ["创建节拍感LED序列"],
-  "starter": { "blockly": "<xml/>", "code": "# TODO: 创建节拍感LED序列\n# 模拟音乐节拍：强-弱-次强-弱" },
-  "solution": "def beat_pattern():\n    # 强拍\n    for i in range(4):\n        print(f'on{i}')\n    print('wait200')\n    # 弱拍\n    print('on0')\n    print('wait100')\n    print('off0')\n    # 次强拍\n    for i in range(2):\n        print(f'on{i}')\n    print('wait150')\n    # 弱拍\n    print('on3')\n    print('wait100')\n\nbeat_pattern()",
-  "assets": { "gridWidth": 4, "gridHeight": 1 },
+  "starter": {
+    "blockly": "<xml/>",
+    "code": "# TODO: 创建节拍感LED序列\n# 模拟音乐节拍：强-弱-次强-弱"
+  },
+  "solution": "# 提示：按强-弱-次强-弱节奏组合指令。",
+  "assets": {
+    "gridWidth": 4,
+    "gridHeight": 1
+  },
   "grader": {
     "mode": "event",
     "events": {
@@ -16,12 +22,22 @@
       "collectFromStdout": true,
       "mapRule": "stdout line 'on{i}' => event 'on{i}'"
     },
-    "checks": [{ "type": "eventSeq", "expect": ["on0", "on1", "on2", "on3", "on0", "on0", "on1", "on3"] }],
+    "checks": [
+      {
+        "type": "eventSeq",
+        "expect": ["on0", "on1", "on2", "on3", "on0", "on0", "on1", "on3"]
+      }
+    ],
     "constraints": {
       "maxTimeMs": 3000,
       "maxMemMB": 64,
       "requireStructures": ["def"]
-    }
+    },
+    "referenceHash": "3225690a"
   },
-  "rewards": { "xp": 50, "coins": 25, "badges": ["节拍大师"] }
+  "rewards": {
+    "xp": 50,
+    "coins": 25,
+    "badges": ["节拍大师"]
+  }
 }

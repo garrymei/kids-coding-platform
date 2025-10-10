@@ -10,7 +10,7 @@
     "blockly": "<xml/>",
     "code": "# 读取到空行为止，只输出包含 [WARN] 或 [ERROR] 的行\n"
   },
-  "solution": "lines = []\nwhile True:\n    try:\n        line = input()\n    except EOFError:\n        break\n    if line == \"\":\n        break\n    if \"[WARN]\" in line or \"[ERROR]\" in line:\n        lines.append(line)\nprint(\"\\n\".join(lines))",
+  "solution": "# 提示：循环读取日志到空行结束，只保留包含告警或错误关键字的行。",
   "grader": {
     "mode": "io",
     "io": {
@@ -21,7 +21,8 @@
         }
       ],
       "match": "exact"
-    }
+    },
+    "referenceHash": "caf6dafd"
   },
   "rewards": { "xp": 28, "coins": 10, "badges": ["signal-keeper"] },
   "hints": ["使用 while 循环读取并遇空行停止", "可以通过 \"[WARN]\" in line 判断是否包含"]

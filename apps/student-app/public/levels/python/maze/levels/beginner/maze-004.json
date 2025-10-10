@@ -10,8 +10,11 @@
     "blockly": "<xml/>",
     "code": "# API: move(), turn_left(), scan()\n# TODO: 使用scan()判断前方路径\n"
   },
-  "solution": "while scan() == 'wall':\n    turn_left()\nmove()\nmove()\nmove()",
-  "assets": { "maze": ["#####", "#S..#", "##.E#", "#####"], "maxSteps3Star": 6 },
+  "solution": "# 提示：使用 while 循环配合 scan() 找到出口。",
+  "assets": {
+    "maze": ["#####", "#S..#", "##.E#", "#####"],
+    "maxSteps3Star": 6
+  },
   "grader": {
     "mode": "event",
     "events": {
@@ -20,12 +23,24 @@
       "expectedGoal": "reach_end"
     },
     "checks": [
-      { "type": "goal", "name": "reach_end", "must": true },
-      { "type": "maxSteps", "value": 6 }
+      {
+        "type": "goal",
+        "name": "reach_end",
+        "must": true
+      },
+      {
+        "type": "maxSteps",
+        "value": 6
+      }
     ],
     "constraints": {
       "requireStructures": ["def"]
-    }
+    },
+    "referenceHash": "267e357e"
   },
-  "rewards": { "xp": 35, "coins": 15, "badges": ["扫描专家"] }
+  "rewards": {
+    "xp": 35,
+    "coins": 15,
+    "badges": ["扫描专家"]
+  }
 }

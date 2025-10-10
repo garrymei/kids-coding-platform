@@ -10,7 +10,7 @@
     "blockly": "<xml/>",
     "code": "code = input().strip()\n# TODO：展开编码并用空格连接\n"
   },
-  "solution": "code = input().strip()\nparts = code.split('-')\nletters = []\nfor part in parts:\n    if not part:\n        continue\n    letter = part[0]\n    count = int(part[1:])\n    letters.extend([letter] * count)\nprint(' '.join(letters))",
+  "solution": "# 提示：拆分每段编码，按次数展开对应字母并以空格连接。",
   "grader": {
     "mode": "io",
     "io": {
@@ -20,10 +20,11 @@
       ],
       "match": "exact"
     },
+    "referenceHash": "17728b7b",
     "constraints": {
       "forbiddenImports": ["re", "os", "sys", "subprocess"]
     }
   },
   "rewards": { "xp": 35, "coins": 12, "badges": ["字符串高手"] },
-  "hints": ["用 split('-') 拆开编码块", "part[0] 是字母，part[1:] 是重复次数"]
+  "hints": ["用 split('-') 拆开编码块", "分别取出字母与重复次数后展开"]
 }

@@ -10,7 +10,7 @@
     "blockly": "<xml/>",
     "code": "a = float(input())\nb = float(input())\n# TODO：输出配方 A 的占比"
   },
-  "solution": "a = float(input())\nb = float(input())\ntotal = a + b\nratio = a / total if total else 0.0\nprint(f\"{ratio:.2f}\")",
+  "solution": "# 提示：计算 a 与 b 之和，再求 a 所占比例并格式化输出。",
   "grader": {
     "mode": "io",
     "io": {
@@ -21,6 +21,7 @@
       "match": "tolerance",
       "tolerance": 0.005
     },
+    "referenceHash": "fd3c521c",
     "constraints": {
       "maxTimeMs": 3000,
       "maxMemMB": 64

@@ -6,8 +6,11 @@
   "difficulty": 3,
   "story": "岛上数据站需要计算一组数字的平均值和最大值。",
   "goals": ["读取一行数字，输出平均值和最大值"],
-  "starter": { "blockly": "<xml/>", "code": "nums = list(map(int, input().split()))\n# TODO: 计算平均值和最大值" },
-  "solution": "nums = list(map(int, input().split()))\navg = sum(nums) / len(nums)\nmax_val = max(nums)\nprint(f'{avg:.1f} {max_val}')",
+  "starter": {
+    "blockly": "<xml/>",
+    "code": "nums = list(map(int, input().split()))\n# TODO: 计算平均值和最大值"
+  },
+  "solution": "# 提示：读取整行并拆分为整数列表，输出平均值与最大值。",
   "grader": {
     "mode": "io",
     "io": {
@@ -18,6 +21,7 @@
       "match": "tolerance",
       "tolerance": 0.1
     },
+    "referenceHash": "1e39f11a",
     "constraints": {
       "maxTimeMs": 3000,
       "maxMemMB": 64,

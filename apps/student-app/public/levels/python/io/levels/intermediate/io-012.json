@@ -6,8 +6,11 @@
   "difficulty": 2,
   "story": "岛上气象站需要将摄氏度转换为华氏度。",
   "goals": ["读取摄氏度，转换为华氏度并输出"],
-  "starter": { "blockly": "<xml/>", "code": "c = float(input())\n# TODO: 转换为华氏度 F = C * 9/5 + 32" },
-  "solution": "c = float(input())\nf = c * 9 / 5 + 32\nprint(round(f, 1))",
+  "starter": {
+    "blockly": "<xml/>",
+    "code": "c = float(input())\n# TODO: 转换为华氏度 F = C * 9/5 + 32"
+  },
+  "solution": "# 提示：按华氏度转换公式计算，并四舍五入到一位小数。",
   "grader": {
     "mode": "io",
     "io": {
@@ -19,6 +22,7 @@
       "match": "tolerance",
       "tolerance": 0.1
     },
+    "referenceHash": "478218c0",
     "constraints": {
       "maxTimeMs": 3000,
       "maxMemMB": 64

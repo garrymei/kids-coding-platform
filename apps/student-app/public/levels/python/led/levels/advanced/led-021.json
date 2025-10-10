@@ -10,17 +10,28 @@
     "blockly": "<xml/>",
     "code": "# 生成交替的字符串并打印\n"
   },
-  "solution": "pattern = ''.join('1' if i % 2 == 0 else '0' for i in range(8))\nprint(pattern)",
-  "assets": { "gridWidth": 8, "gridHeight": 1 },
+  "solution": "# 提示：构造交替 1/0 字符串描述图案。",
+  "assets": {
+    "gridWidth": 8,
+    "gridHeight": 1
+  },
   "grader": {
     "mode": "io",
     "io": {
       "cases": [
-        { "in": "", "out": "10101010\n" }
+        {
+          "in": "",
+          "out": "10101010\n"
+        }
       ],
       "match": "exact"
-    }
+    },
+    "referenceHash": "659b63bb"
   },
-  "rewards": { "xp": 26, "coins": 10, "badges": [] },
+  "rewards": {
+    "xp": 26,
+    "coins": 10,
+    "badges": []
+  },
   "hints": ["利用循环和取模判断奇偶", "最后统一打印一次结果字符串"]
 }
