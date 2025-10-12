@@ -1,0 +1,516 @@
+{
+  "timestamp": "2025-10-10T17:33:40.576Z",
+  "options": {
+    "fix": false,
+    "verbose": false
+  },
+  "summary": {
+    "totalGames": 6,
+    "totalLevels": 60,
+    "totalErrors": 0,
+    "totalWarnings": 40,
+    "totalFixes": 0,
+    "gamesWithErrors": 0,
+    "gamesWithWarnings": 4
+  },
+  "results": [
+    {
+      "language": "javascript",
+      "gameType": "maze_navigator",
+      "file": "/Users/mjj/Downloads/另外/kids-coding-platform/server/api/src/data/curriculum/javascript/maze_navigator.json",
+      "levels": [
+        {
+          "level": 1,
+          "title": "向前一步",
+          "errors": [],
+          "warnings": ["迷宫游戏缺少 maze_config 或 grid 配置"],
+          "fixes": []
+        },
+        {
+          "level": 2,
+          "title": "左右转向",
+          "errors": [],
+          "warnings": ["迷宫游戏缺少 maze_config 或 grid 配置"],
+          "fixes": []
+        },
+        {
+          "level": 3,
+          "title": "两段路径",
+          "errors": [],
+          "warnings": ["迷宫游戏缺少 maze_config 或 grid 配置"],
+          "fixes": []
+        },
+        {
+          "level": 4,
+          "title": "遇墙转弯",
+          "errors": [],
+          "warnings": ["迷宫游戏缺少 maze_config 或 grid 配置"],
+          "fixes": []
+        },
+        {
+          "level": 5,
+          "title": "小回形路径",
+          "errors": [],
+          "warnings": ["迷宫游戏缺少 maze_config 或 grid 配置"],
+          "fixes": []
+        },
+        {
+          "level": 6,
+          "title": "循环代替重复",
+          "errors": [],
+          "warnings": ["迷宫游戏缺少 maze_config 或 grid 配置"],
+          "fixes": []
+        },
+        {
+          "level": 7,
+          "title": "绕过障碍",
+          "errors": [],
+          "warnings": ["迷宫游戏缺少 maze_config 或 grid 配置"],
+          "fixes": []
+        },
+        {
+          "level": 8,
+          "title": "钥匙与门",
+          "errors": [],
+          "warnings": ["迷宫游戏缺少 maze_config 或 grid 配置"],
+          "fixes": []
+        },
+        {
+          "level": 9,
+          "title": "最短路径",
+          "errors": [],
+          "warnings": ["迷宫游戏缺少 maze_config 或 grid 配置"],
+          "fixes": []
+        },
+        {
+          "level": 10,
+          "title": "限步通关",
+          "errors": [],
+          "warnings": ["迷宫游戏缺少 maze_config 或 grid 配置"],
+          "fixes": []
+        }
+      ],
+      "summary": {
+        "total": 10,
+        "errors": 0,
+        "warnings": 10,
+        "fixes": 0
+      }
+    },
+    {
+      "language": "javascript",
+      "gameType": "robot_sorter",
+      "file": "/Users/mjj/Downloads/另外/kids-coding-platform/server/api/src/data/curriculum/javascript/robot_sorter.json",
+      "levels": [
+        {
+          "level": 1,
+          "title": "找到最小值",
+          "errors": [],
+          "warnings": [],
+          "fixes": []
+        },
+        {
+          "level": 2,
+          "title": "数组求和",
+          "errors": [],
+          "warnings": [],
+          "fixes": []
+        },
+        {
+          "level": 3,
+          "title": "数组平均值",
+          "errors": [],
+          "warnings": [],
+          "fixes": []
+        },
+        {
+          "level": 4,
+          "title": "升序排序",
+          "errors": [],
+          "warnings": [],
+          "fixes": []
+        },
+        {
+          "level": 5,
+          "title": "奇偶分组",
+          "errors": [],
+          "warnings": [],
+          "fixes": []
+        },
+        {
+          "level": 6,
+          "title": "去重",
+          "errors": [],
+          "warnings": [],
+          "fixes": []
+        },
+        {
+          "level": 7,
+          "title": "计数出现次数",
+          "errors": [],
+          "warnings": [],
+          "fixes": []
+        },
+        {
+          "level": 8,
+          "title": "筛选大于阈值",
+          "errors": [],
+          "warnings": [],
+          "fixes": []
+        },
+        {
+          "level": 9,
+          "title": "合并去重排序",
+          "errors": [],
+          "warnings": [],
+          "fixes": []
+        },
+        {
+          "level": 10,
+          "title": "挑战：前 K 大",
+          "errors": [],
+          "warnings": [],
+          "fixes": []
+        }
+      ],
+      "summary": {
+        "total": 10,
+        "errors": 0,
+        "warnings": 0,
+        "fixes": 0
+      }
+    },
+    {
+      "language": "javascript",
+      "gameType": "turtle_artist",
+      "file": "/Users/mjj/Downloads/另外/kids-coding-platform/server/api/src/data/curriculum/javascript/turtle_artist.json",
+      "levels": [
+        {
+          "level": 1,
+          "title": "画一条线",
+          "errors": [],
+          "warnings": ["画图游戏缺少 canvas_config 配置"],
+          "fixes": []
+        },
+        {
+          "level": 2,
+          "title": "正方形",
+          "errors": [],
+          "warnings": ["画图游戏缺少 canvas_config 配置"],
+          "fixes": []
+        },
+        {
+          "level": 3,
+          "title": "三角形",
+          "errors": [],
+          "warnings": ["画图游戏缺少 canvas_config 配置"],
+          "fixes": []
+        },
+        {
+          "level": 4,
+          "title": "五边形",
+          "errors": [],
+          "warnings": ["画图游戏缺少 canvas_config 配置"],
+          "fixes": []
+        },
+        {
+          "level": 5,
+          "title": "星形",
+          "errors": [],
+          "warnings": ["画图游戏缺少 canvas_config 配置"],
+          "fixes": []
+        },
+        {
+          "level": 6,
+          "title": "同心方框",
+          "errors": [],
+          "warnings": ["画图游戏缺少 canvas_config 配置"],
+          "fixes": []
+        },
+        {
+          "level": 7,
+          "title": "正多边循环",
+          "errors": [],
+          "warnings": ["画图游戏缺少 canvas_config 配置"],
+          "fixes": []
+        },
+        {
+          "level": 8,
+          "title": "函数复用",
+          "errors": [],
+          "warnings": ["画图游戏缺少 canvas_config 配置"],
+          "fixes": []
+        },
+        {
+          "level": 9,
+          "title": "参数化多边形",
+          "errors": [],
+          "warnings": ["画图游戏缺少 canvas_config 配置"],
+          "fixes": []
+        },
+        {
+          "level": 10,
+          "title": "挑战：小房子",
+          "errors": [],
+          "warnings": ["画图游戏缺少 canvas_config 配置"],
+          "fixes": []
+        }
+      ],
+      "summary": {
+        "total": 10,
+        "errors": 0,
+        "warnings": 10,
+        "fixes": 0
+      }
+    },
+    {
+      "language": "python",
+      "gameType": "maze_navigator",
+      "file": "/Users/mjj/Downloads/另外/kids-coding-platform/server/api/src/data/curriculum/python/maze_navigator.json",
+      "levels": [
+        {
+          "level": 1,
+          "title": "向前一步",
+          "errors": [],
+          "warnings": ["迷宫游戏缺少 maze_config 或 grid 配置"],
+          "fixes": []
+        },
+        {
+          "level": 2,
+          "title": "左右转向",
+          "errors": [],
+          "warnings": ["迷宫游戏缺少 maze_config 或 grid 配置"],
+          "fixes": []
+        },
+        {
+          "level": 3,
+          "title": "两段路径",
+          "errors": [],
+          "warnings": ["迷宫游戏缺少 maze_config 或 grid 配置"],
+          "fixes": []
+        },
+        {
+          "level": 4,
+          "title": "遇墙转弯",
+          "errors": [],
+          "warnings": ["迷宫游戏缺少 maze_config 或 grid 配置"],
+          "fixes": []
+        },
+        {
+          "level": 5,
+          "title": "小回形路径",
+          "errors": [],
+          "warnings": ["迷宫游戏缺少 maze_config 或 grid 配置"],
+          "fixes": []
+        },
+        {
+          "level": 6,
+          "title": "循环代替重复",
+          "errors": [],
+          "warnings": ["迷宫游戏缺少 maze_config 或 grid 配置"],
+          "fixes": []
+        },
+        {
+          "level": 7,
+          "title": "绕过障碍",
+          "errors": [],
+          "warnings": ["迷宫游戏缺少 maze_config 或 grid 配置"],
+          "fixes": []
+        },
+        {
+          "level": 8,
+          "title": "钥匙与门",
+          "errors": [],
+          "warnings": ["迷宫游戏缺少 maze_config 或 grid 配置"],
+          "fixes": []
+        },
+        {
+          "level": 9,
+          "title": "最短路径",
+          "errors": [],
+          "warnings": ["迷宫游戏缺少 maze_config 或 grid 配置"],
+          "fixes": []
+        },
+        {
+          "level": 10,
+          "title": "限步通关",
+          "errors": [],
+          "warnings": ["迷宫游戏缺少 maze_config 或 grid 配置"],
+          "fixes": []
+        }
+      ],
+      "summary": {
+        "total": 10,
+        "errors": 0,
+        "warnings": 10,
+        "fixes": 0
+      }
+    },
+    {
+      "language": "python",
+      "gameType": "robot_sorter",
+      "file": "/Users/mjj/Downloads/另外/kids-coding-platform/server/api/src/data/curriculum/python/robot_sorter.json",
+      "levels": [
+        {
+          "level": 1,
+          "title": "找到最小值",
+          "errors": [],
+          "warnings": [],
+          "fixes": []
+        },
+        {
+          "level": 2,
+          "title": "数组求和",
+          "errors": [],
+          "warnings": [],
+          "fixes": []
+        },
+        {
+          "level": 3,
+          "title": "数组平均值",
+          "errors": [],
+          "warnings": [],
+          "fixes": []
+        },
+        {
+          "level": 4,
+          "title": "升序排序",
+          "errors": [],
+          "warnings": [],
+          "fixes": []
+        },
+        {
+          "level": 5,
+          "title": "奇偶分组",
+          "errors": [],
+          "warnings": [],
+          "fixes": []
+        },
+        {
+          "level": 6,
+          "title": "去重",
+          "errors": [],
+          "warnings": [],
+          "fixes": []
+        },
+        {
+          "level": 7,
+          "title": "计数出现次数",
+          "errors": [],
+          "warnings": [],
+          "fixes": []
+        },
+        {
+          "level": 8,
+          "title": "筛选大于阈值",
+          "errors": [],
+          "warnings": [],
+          "fixes": []
+        },
+        {
+          "level": 9,
+          "title": "合并去重排序",
+          "errors": [],
+          "warnings": [],
+          "fixes": []
+        },
+        {
+          "level": 10,
+          "title": "挑战：前 K 大",
+          "errors": [],
+          "warnings": [],
+          "fixes": []
+        }
+      ],
+      "summary": {
+        "total": 10,
+        "errors": 0,
+        "warnings": 0,
+        "fixes": 0
+      }
+    },
+    {
+      "language": "python",
+      "gameType": "turtle_artist",
+      "file": "/Users/mjj/Downloads/另外/kids-coding-platform/server/api/src/data/curriculum/python/turtle_artist.json",
+      "levels": [
+        {
+          "level": 1,
+          "title": "画一条线",
+          "errors": [],
+          "warnings": ["画图游戏缺少 canvas_config 配置"],
+          "fixes": []
+        },
+        {
+          "level": 2,
+          "title": "正方形",
+          "errors": [],
+          "warnings": ["画图游戏缺少 canvas_config 配置"],
+          "fixes": []
+        },
+        {
+          "level": 3,
+          "title": "三角形",
+          "errors": [],
+          "warnings": ["画图游戏缺少 canvas_config 配置"],
+          "fixes": []
+        },
+        {
+          "level": 4,
+          "title": "五边形",
+          "errors": [],
+          "warnings": ["画图游戏缺少 canvas_config 配置"],
+          "fixes": []
+        },
+        {
+          "level": 5,
+          "title": "星形",
+          "errors": [],
+          "warnings": ["画图游戏缺少 canvas_config 配置"],
+          "fixes": []
+        },
+        {
+          "level": 6,
+          "title": "同心方框",
+          "errors": [],
+          "warnings": ["画图游戏缺少 canvas_config 配置"],
+          "fixes": []
+        },
+        {
+          "level": 7,
+          "title": "正多边循环",
+          "errors": [],
+          "warnings": ["画图游戏缺少 canvas_config 配置"],
+          "fixes": []
+        },
+        {
+          "level": 8,
+          "title": "函数复用",
+          "errors": [],
+          "warnings": ["画图游戏缺少 canvas_config 配置"],
+          "fixes": []
+        },
+        {
+          "level": 9,
+          "title": "参数化多边形",
+          "errors": [],
+          "warnings": ["画图游戏缺少 canvas_config 配置"],
+          "fixes": []
+        },
+        {
+          "level": 10,
+          "title": "挑战：小房子",
+          "errors": [],
+          "warnings": ["画图游戏缺少 canvas_config 配置"],
+          "fixes": []
+        }
+      ],
+      "summary": {
+        "total": 10,
+        "errors": 0,
+        "warnings": 10,
+        "fixes": 0
+      }
+    }
+  ]
+}
