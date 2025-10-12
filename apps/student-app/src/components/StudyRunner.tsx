@@ -1,7 +1,15 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, type MutableRefObject } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { fetchLevel, fetchReference } from '../services/curriculum';
 import { execute, judge as judgeApi } from '../services/judge';
-import { useNavigate } from 'react-router-dom';
+import { CodeEditor } from './CodeEditor';
+import { BlockEditor } from './BlockEditor';
+import { ResultPanel, type ExecutionSummary, type JudgeSummary } from './ResultPanel';
+import { progressStore } from '../store/progress';
+import { HintPanel } from './HintPanel';
+import { PassAnimation } from './PassAnimation';
+import { updateAchievements } from '../services/achievements';
+import { clearSnapshot, loadSnapshot, saveSnapshot, type EditorMode } from '../utils/localStore';
 
 type Props = {
   language: string;
@@ -9,115 +17,491 @@ type Props = {
   level: number;
 };
 
+type RunOutcome = {
+  execution: ExecutionSummary;
+  judge: JudgeSummary;
+  debug: {
+    execute: unknown;
+    judge: unknown;
+    payload: unknown;
+  };
+};
+
+type PassAnimationState = {
+  level: number;
+  xpAwarded: number;
+  badges: string[];
+  petLabel: string;
+};
+
+const XP_POP_DURATION_MS = 1800;
+
+const coinsFromScore = (score?: number): number => {
+  if (typeof score !== 'number') return 5;
+  return Math.max(1, Math.round(score / 20));
+};
+
+const ensureAudioContext = (ref: MutableRefObject<AudioContext | null>): AudioContext | null => {
+  if (typeof window === 'undefined') {
+    return null;
+  }
+
+  const Ctor = window.AudioContext || (window as any).webkitAudioContext;
+  if (!Ctor) {
+    return null;
+  }
+
+  if (!ref.current) {
+    ref.current = new Ctor();
+  }
+
+  if (ref.current.state === 'suspended') {
+    ref.current.resume().catch(() => undefined);
+  }
+
+  return ref.current;
+};
+
+const LANGUAGE_NAMES: Record<string, string> = {
+  python: 'Python',
+  javascript: 'JavaScript',
+};
+
 export default function StudyRunner({ language, game, level }: Props) {
-  const [lv, setLv] = useState<any>(null);
-  const [code, setCode] = useState('');
-  const [log, setLog] = useState<string>('');
-  const [showAnswer, setShowAnswer] = useState(false);
-  const [passed, setPassed] = useState(false);
-  const [isRunning, setIsRunning] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
 
-  // 新增：参考答案相关状态
+  const [lv, setLv] = useState<any>(null);
+  const [code, setCode] = useState('');
+  const [blockXml, setBlockXml] = useState<string | null>(null);
+  const [editorMode, setEditorMode] = useState<EditorMode>('code');
+  const [showAnswer, setShowAnswer] = useState(false);
+  const [diffSource, setDiffSource] = useState<string | null>(null);
+  const [isRunning, setIsRunning] = useState(false);
+  const [pageError, setPageError] = useState<string | null>(null);
+  const [runError, setRunError] = useState<string | null>(null);
   const [refCode, setRefCode] = useState<string>('');
   const [refLoading, setRefLoading] = useState(false);
+  const [result, setResult] = useState<RunOutcome | null>(null);
+  const [xpBurst, setXpBurst] = useState<number | null>(null);
+  const [snapshotMessage, setSnapshotMessage] = useState<string | null>(null);
+  const [passAnimation, setPassAnimation] = useState<PassAnimationState | null>(null);
+
+  const hintsRef = useRef<HTMLDivElement | null>(null);
+  const hintRevealRef = useRef<(() => void) | null>(null);
+  const audioCtxRef = useRef<AudioContext | null>(null);
+  const confettiRef = useRef<((opts?: Record<string, unknown>) => void) | null>(null);
+  const xpTimerRef = useRef<number | null>(null);
+  const latestStateRef = useRef<{ code: string; blockXml: string | null; mode: EditorMode }>({
+    code: '',
+    blockXml: null,
+    mode: 'code',
+  });
+  const pendingRunRef = useRef<{ code: string; timestamp: number } | null>(null);
 
   useEffect(() => {
-    setError(null);
+    let cancelled = false;
+    setPageError(null);
+    setRunError(null);
     setShowAnswer(false);
+    setDiffSource(null);
     setRefCode('');
+    setRefLoading(false);
+    setResult(null);
+    setSnapshotMessage(null);
+    hintRevealRef.current = null;
+    pendingRunRef.current = null;
+
+    const snapshot = loadSnapshot(language, game, level);
+
     fetchLevel(language, game, level)
       .then((data) => {
+        if (cancelled) return;
         setLv(data);
-        setCode(data.starter_code || '');
-        setPassed(false);
-        setLog('');
+
+        if (snapshot) {
+          setCode(snapshot.code);
+          setBlockXml(snapshot.blockXml ?? null);
+          setEditorMode(snapshot.mode);
+          setSnapshotMessage('已恢复上次保存的代码内容。');
+        } else {
+          setCode(data.starter_code || '');
+          setBlockXml(null);
+          setEditorMode('code');
+        }
       })
       .catch((err) => {
-        setError(`加载关卡失败: ${err.message}`);
+        if (cancelled) return;
+        setPageError(`加载关卡失败: ${err.message}`);
       });
+
+    return () => {
+      cancelled = true;
+      if (xpTimerRef.current) {
+        window.clearTimeout(xpTimerRef.current);
+        xpTimerRef.current = null;
+      }
+    };
   }, [language, game, level]);
 
-  const onRun = async () => {
-    setIsRunning(true);
-    setLog('执行中...');
-    setPassed(false);
-    setError(null);
+  useEffect(() => {
+    latestStateRef.current = { code, blockXml, mode: editorMode };
+  }, [code, blockXml, editorMode]);
 
-    try {
-      // client collects events for maze/turtle; here we demo unit_tests style:
-      const execRes = await execute({ language, code });
-      setLog(JSON.stringify(execRes, null, 2));
+  useEffect(() => {
+    if (typeof window === 'undefined') return undefined;
+    const interval = window.setInterval(() => {
+      saveSnapshot(language, game, level, {
+        code: latestStateRef.current.code,
+        blockXml: latestStateRef.current.blockXml,
+        mode: latestStateRef.current.mode,
+        timestamp: Date.now(),
+      });
+    }, 10000);
+    return () => window.clearInterval(interval);
+  }, [language, game, level]);
 
-      // Demo: for unit_tests we assume result already known on client.
-      // Here we just send equivalence payload:
-      const j = await judgeApi({
-        type: lv?.judge?.type || 'unit_tests',
-        criteria: lv?.judge?.criteria || {},
-        payload:
-          lv?.judge?.type === 'unit_tests'
-            ? { result: null, expected: lv?.expected_io?.output }
-            : { meta: { reached: true, steps: 3 }, events: [] },
-      }) as any;
-      setPassed(!!j.pass);
+  useEffect(() => {
+    return () => {
+      saveSnapshot(language, game, level, {
+        code: latestStateRef.current.code,
+        blockXml: latestStateRef.current.blockXml,
+        mode: latestStateRef.current.mode,
+        timestamp: Date.now(),
+      });
+    };
+  }, [language, game, level]);
 
-      if (j.message) {
-        setLog((prev) => prev + '\n\n判题结果: ' + j.message);
-      }
-    } catch (err: any) {
-      setError(`执行失败: ${err.message}`);
-      setLog((prev) => prev + '\n\nError: ' + err.message);
-    } finally {
-      setIsRunning(false);
+  const playTone = useCallback(
+    (frequency: number, durationMs: number, type: OscillatorType = 'sine') => {
+      const ctx = ensureAudioContext(audioCtxRef);
+      if (!ctx) return;
+
+      const oscillator = ctx.createOscillator();
+      const gain = ctx.createGain();
+
+      oscillator.type = type;
+      oscillator.frequency.setValueAtTime(frequency, ctx.currentTime);
+      oscillator.connect(gain);
+      gain.connect(ctx.destination);
+
+      const now = ctx.currentTime;
+      const durationSeconds = durationMs / 1000;
+
+      gain.gain.setValueAtTime(0.0001, now);
+      gain.gain.exponentialRampToValueAtTime(0.3, now + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + durationSeconds);
+
+      oscillator.start(now);
+      oscillator.stop(now + durationSeconds);
+    },
+    [],
+  );
+
+  const playSuccessSound = useCallback(() => {
+    playTone(880, 180, 'triangle');
+    window.setTimeout(() => playTone(1320, 220, 'sine'), 150);
+  }, [playTone]);
+
+  const playFailureSound = useCallback(() => {
+    playTone(220, 260, 'sawtooth');
+  }, [playTone]);
+
+  const launchConfetti = useCallback(async () => {
+    if (typeof window === 'undefined') return;
+    if (!confettiRef.current) {
+      const mod = await import('canvas-confetti');
+      confettiRef.current = mod.default;
     }
-  };
+    confettiRef.current?.({
+      particleCount: 140,
+      spread: 70,
+      origin: { y: 0.6 },
+      scalar: 0.9,
+    });
+  }, []);
 
-  const handleNextLevel = () => {
-    navigate(`/learn/${language}/${game}/${level + 1}`);
-  };
+  const buildJudgePayload = useCallback(
+    (judgeType: string, execRes: any) => {
+      switch (judgeType) {
+        case 'stdout_compare':
+          return {
+            stdout: execRes.stdout || '',
+            stderr: execRes.stderr || '',
+            success: execRes.success !== false,
+          };
+        case 'api_events':
+          return {
+            events: execRes.events || [],
+            meta: execRes.meta || { reached: false, steps: 0 },
+            stdout: execRes.stdout,
+            stderr: execRes.stderr,
+            success: execRes.success !== false,
+          };
+        case 'svg_path_similarity':
+          return {
+            segments: execRes.segments || [],
+            bbox: execRes.bbox || null,
+            stdout: execRes.stdout,
+            stderr: execRes.stderr,
+            success: execRes.success !== false,
+          };
+        case 'unit_tests':
+          return {
+            result: execRes.result ?? null,
+            expected: execRes.expected ?? lv?.expected_io?.output,
+            tests: execRes.tests || [],
+            stdout: execRes.stdout,
+            stderr: execRes.stderr,
+            success: execRes.success !== false,
+          };
+        default:
+          return execRes;
+      }
+    },
+    [lv],
+  );
 
-  // 新增：获取/显示参考答案
-  const onToggleReference = async () => {
-    if (!showAnswer && !refCode) {
-      // 首次点击，需要加载参考答案
-      setRefLoading(true);
+  const hasReference = useMemo(() => {
+    return (
+      (lv?.reference_solution && lv.reference_solution.trim().length > 0) ||
+      refCode.trim().length > 0
+    );
+  }, [lv, refCode]);
+
+  const executeAndJudge = useCallback(
+    async (sourceCode: string, { isRetry = false } = {}) => {
+      setIsRunning(true);
+      setRunError(null);
+      pendingRunRef.current = null;
+
       try {
-        // 优先使用已加载的 lv.reference_solution（如果存在）
-        const localRef = lv?.reference_solution;
-        if (localRef && localRef.trim().length > 0) {
-          setRefCode(localRef);
-        } else {
-          // 否则从专用接口获取
-          const res = await fetchReference(language, game, level);
-          setRefCode(res.reference_solution || '');
+        const execRes = await execute({
+          lang: language,
+          language,
+          code: sourceCode,
+        });
+
+        const execution: ExecutionSummary = {
+          stdout: execRes.stdout ?? undefined,
+          stderr: execRes.stderr ?? undefined,
+          timeMs: typeof execRes.timeMs === 'number' ? execRes.timeMs : 0,
+          timeout: execRes.timeout ?? false,
+          meta: execRes.meta ?? undefined,
+          events: execRes.events ?? undefined,
+        };
+
+        const judgeType = lv?.judge?.type || 'unit_tests';
+        const payload = buildJudgePayload(judgeType, execRes);
+        const judgeRes = await judgeApi({
+          type: judgeType,
+          criteria: lv?.judge?.criteria || {},
+          payload,
+        });
+
+        const judge: JudgeSummary = {
+          pass: !!judgeRes.pass,
+          message: judgeRes.message ?? (judgeRes.pass ? '恭喜通过！' : '未通过，请继续努力'),
+          details: judgeRes.details,
+          score: typeof judgeRes.score === 'number' ? judgeRes.score : judgeRes.pass ? 100 : 0,
+          stdout: judgeRes.stdout ?? execution.stdout,
+          stderr: judgeRes.stderr ?? execution.stderr,
+          timeMs: typeof judgeRes.timeMs === 'number' ? judgeRes.timeMs : undefined,
+          xpAwarded:
+            typeof judgeRes.xpAwarded === 'number' ? judgeRes.xpAwarded : judgeRes.pass ? 10 : 0,
+        };
+
+        setResult({
+          execution,
+          judge,
+          debug: { execute: execRes, judge: judgeRes, payload },
+        });
+
+        if (judge.pass) {
+          const levelId = (lv as any)?.id || `${language}-${game}-${level}`;
+          const wasCompleted = progressStore.isLevelCompleted(levelId);
+          const baseXp = judge.xpAwarded ?? 10;
+          const coins = coinsFromScore(judge.score);
+          progressStore.completeLevel(levelId, baseXp, coins);
+
+          let totalXpAward = baseXp;
+          let petLabel = '初生火花';
+          let badges: string[] = [];
+
+          try {
+            const achievementsResult = await updateAchievements({
+              xpDelta: baseXp,
+              reason: 'level_pass',
+              metadata: {
+                levelId,
+                language,
+                game,
+              },
+            });
+            const bonus = achievementsResult.newlyUnlocked.reduce(
+              (sum, item) => sum + item.xpReward,
+              0,
+            );
+            totalXpAward += bonus;
+            badges = achievementsResult.newlyUnlocked.map((item) => item.title);
+            petLabel = achievementsResult.pet.label;
+            setPassAnimation({
+              level: achievementsResult.level,
+              xpAwarded: totalXpAward,
+              badges,
+              petLabel,
+            });
+          } catch (error) {
+            console.warn('updateAchievements failed', error);
+          }
+
+          const xpToApply = wasCompleted ? totalXpAward : totalXpAward - baseXp;
+          if (xpToApply > 0) {
+            progressStore.addXp(xpToApply);
+          }
+
+          setXpBurst(totalXpAward);
+          playSuccessSound();
+          launchConfetti().catch(() => undefined);
+
+          if (xpTimerRef.current) {
+            window.clearTimeout(xpTimerRef.current);
+          }
+          xpTimerRef.current = window.setTimeout(() => {
+            setXpBurst(null);
+            xpTimerRef.current = null;
+          }, XP_POP_DURATION_MS);
+        } else if (!isRetry) {
+          playFailureSound();
         }
-        setShowAnswer(true);
-      } catch (err: any) {
-        setError(`加载参考答案失败: ${err.message}`);
+      } catch (error) {
+        const offline = typeof navigator !== 'undefined' && navigator.onLine === false;
+        const message = error instanceof Error ? error.message : '执行失败，请稍后再试';
+        setRunError(offline ? '网络连接中断，恢复后将自动重试。' : message);
+        if (offline) {
+          pendingRunRef.current = { code: sourceCode, timestamp: Date.now() };
+        } else {
+          playFailureSound();
+        }
       } finally {
-        setRefLoading(false);
+        setIsRunning(false);
       }
+    },
+    [
+      language,
+      game,
+      level,
+      lv,
+      buildJudgePayload,
+      playFailureSound,
+      playSuccessSound,
+      launchConfetti,
+    ],
+  );
+
+  useEffect(() => {
+    const handleOnline = () => {
+      if (!pendingRunRef.current) return;
+      const pending = pendingRunRef.current;
+      pendingRunRef.current = null;
+      void executeAndJudge(pending.code, { isRetry: true });
+    };
+
+    window.addEventListener('online', handleOnline);
+    return () => {
+      window.removeEventListener('online', handleOnline);
+    };
+  }, [executeAndJudge]);
+
+  const ensureReferenceLoaded = useCallback(async () => {
+    if (refCode.trim()) {
+      setShowAnswer(true);
+      setDiffSource(refCode);
+      return;
+    }
+    setRefLoading(true);
+    try {
+      const localRef = lv?.reference_solution;
+      if (localRef && localRef.trim().length > 0) {
+        setRefCode(localRef);
+        setDiffSource(localRef);
+      } else {
+        const res = await fetchReference(language, game, level);
+        setRefCode(res.reference_solution || '');
+        setDiffSource(res.reference_solution || '');
+      }
+      setShowAnswer(true);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      setRunError(`加载参考答案失败: ${message}`);
+    } finally {
+      setRefLoading(false);
+    }
+  }, [language, game, level, lv, refCode]);
+
+  const onPasteReferenceIntoEditor = useCallback(() => {
+    if (!refCode.trim()) return;
+    setCode(refCode);
+    setDiffSource(null);
+  }, [refCode]);
+
+  const onRun = useCallback(() => {
+    if (!code.trim()) {
+      setRunError('请先编写代码');
+      return;
+    }
+    void executeAndJudge(code);
+  }, [code, executeAndJudge]);
+
+  const handleNextLevel = useCallback(() => {
+    navigate(`/learn/${language}/${game}/${level + 1}`);
+  }, [navigate, language, game, level]);
+
+  const handleViewHints = useCallback(() => {
+    hintRevealRef.current?.();
+    window.requestAnimationFrame(() => {
+      hintsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+  }, []);
+
+  const handleReset = useCallback(() => {
+    if (lv?.starter_code) {
+      setCode(lv.starter_code);
     } else {
-      // 已加载，只是切换显示/隐藏
-      setShowAnswer((v) => !v);
+      setCode('');
     }
-  };
+    setBlockXml(null);
+    setEditorMode('code');
+    setDiffSource(null);
+    clearSnapshot(language, game, level);
+  }, [lv, language, game, level]);
 
-  // 新增：一键粘贴参考答案到编辑器
-  const onPasteReferenceIntoEditor = () => {
-    if (refCode && refCode.trim()) {
-      setCode(refCode);
-      // 可选：自动隐藏参考答案
-      setShowAnswer(false);
-    }
-  };
+  const themeClass = useMemo(() => {
+    const key = LANGUAGE_NAMES[language.toLowerCase()] ? language.toLowerCase() : 'default';
+    return `theme-${key}`;
+  }, [language]);
 
-  if (error) {
+  const languageLabel = LANGUAGE_NAMES[language.toLowerCase()] ?? language;
+  const gameLabel = useMemo(() => {
+    if (!game) return '';
+    return game
+      .split(/[-_]/)
+      .map((segment) => segment.charAt(0).toUpperCase() + segment.slice(1))
+      .join(' ');
+  }, [game]);
+  const levelLabel = lv?.title ? lv.title : `第 ${level} 关`;
+
+  const handleRetry = useCallback(() => {
+    setResult(null);
+    setRunError(null);
+    setShowAnswer(false);
+    setDiffSource(null);
+  }, []);
+
+  if (pageError) {
     return (
       <div className="card">
         <div className="alert alert-error" style={{ marginBottom: 16 }}>
-          {error}
+          {pageError}
         </div>
         <button className="btn btn-primary" onClick={() => navigate(-1)}>
           返回
@@ -135,8 +519,28 @@ export default function StudyRunner({ language, game, level }: Props) {
   }
 
   return (
-    <div className="study-runner">
-      {/* 关卡标题卡片 */}
+    <div className={`study-runner ${themeClass}`}>
+      {passAnimation && (
+        <PassAnimation
+          visible
+          level={passAnimation.level}
+          xpAwarded={passAnimation.xpAwarded}
+          newlyUnlockedBadges={passAnimation.badges}
+          petLabel={passAnimation.petLabel}
+          onClose={() => setPassAnimation(null)}
+        />
+      )}
+
+      {xpBurst != null && <div className="xp-burst">+{xpBurst} XP!</div>}
+
+      <nav className="breadcrumbs" aria-label="学习路径导航">
+        <span>{languageLabel}</span>
+        <span>/</span>
+        <span>{gameLabel}</span>
+        <span>/</span>
+        <span>{levelLabel}</span>
+      </nav>
+
       <section className="card" style={{ marginBottom: 24 }}>
         <h1 className="kc-section-title" style={{ marginBottom: 8 }}>
           {lv.title}{' '}
@@ -162,61 +566,98 @@ export default function StudyRunner({ language, game, level }: Props) {
         </div>
       </section>
 
-      {/* 代码编辑器 */}
       <section className="card" style={{ marginBottom: 24 }}>
-        <h3 className="kc-section-title" style={{ fontSize: '1.1rem', marginBottom: 12 }}>
-          代码编辑器
-        </h3>
-        <textarea
-          value={code}
-          onChange={(e) => setCode(e.target.value)}
-          className="code-editor"
+        <div
           style={{
-            width: '100%',
-            minHeight: 280,
-            fontFamily: "'Fira Code', 'Consolas', monospace",
-            fontSize: 14,
-            padding: 16,
-            border: '2px solid #e0e0e0',
-            borderRadius: 8,
-            background: '#1e1e1e',
-            color: '#d4d4d4',
-            resize: 'vertical',
+            display: 'flex',
+            justifyContent: 'space-between',
+            gap: 12,
+            flexWrap: 'wrap',
+            marginBottom: 16,
           }}
-          spellCheck={false}
-        />
+        >
+          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+            <button
+              className={`btn ${editorMode === 'code' ? 'btn-primary' : 'btn-secondary'}`}
+              onClick={() => setEditorMode('code')}
+            >
+              💻 代码模式
+            </button>
+            <button
+              className={`btn ${editorMode === 'blocks' ? 'btn-primary' : 'btn-secondary'}`}
+              onClick={() => setEditorMode('blocks')}
+            >
+              🧱 积木模式
+            </button>
+          </div>
+          {snapshotMessage && (
+            <span style={{ fontSize: 12, color: 'var(--text-secondary)' }}>{snapshotMessage}</span>
+          )}
+        </div>
 
-        {/* 操作按钮 */}
+        {editorMode === 'code' ? (
+          <CodeEditor
+            language={(language as 'python' | 'javascript') || 'python'}
+            value={code}
+            onChange={(next) => {
+              setCode(next);
+              latestStateRef.current = { ...latestStateRef.current, code: next };
+            }}
+            diffSource={diffSource}
+            height={360}
+          />
+        ) : (
+          <BlockEditor
+            language={(language as 'python' | 'javascript') || 'python'}
+            workspaceXml={blockXml}
+            onWorkspaceChange={({ xml, code: generated }) => {
+              setBlockXml(xml);
+              setCode(generated);
+              latestStateRef.current = { code: generated, blockXml: xml, mode: 'blocks' };
+            }}
+            height={360}
+          />
+        )}
+
         <div style={{ display: 'flex', gap: 12, marginTop: 16, flexWrap: 'wrap' }}>
-          <button
-            className="btn btn-primary"
-            onClick={onRun}
-            disabled={isRunning}
-            style={{ minWidth: 120 }}
-          >
-            {isRunning ? '⏳ 执行中...' : '▶️ 运行并判题'}
+          <button className="btn btn-primary" onClick={onRun} disabled={isRunning}>
+            {isRunning ? (
+              <>
+                <span style={{ marginRight: 8 }}>⏳</span>运行中...
+              </>
+            ) : (
+              <>
+                <span style={{ marginRight: 8 }}>▶️</span>运行并判题
+              </>
+            )}
           </button>
-          <button className="btn btn-secondary" onClick={onToggleReference} disabled={refLoading}>
+          <button
+            className="btn btn-secondary"
+            onClick={() => {
+              if (showAnswer) {
+                setShowAnswer(false);
+                setDiffSource(null);
+              } else {
+                void ensureReferenceLoaded();
+              }
+            }}
+            disabled={refLoading}
+          >
             {refLoading ? '⏳ 加载中...' : showAnswer ? '🙈 隐藏答案' : '💡 查看参考答案'}
           </button>
           <button
             className="btn"
             onClick={onPasteReferenceIntoEditor}
-            disabled={!refCode}
-            title={refCode ? '将参考答案粘贴到编辑器' : '请先查看参考答案'}
+            disabled={!hasReference}
+            title={hasReference ? '将参考答案粘贴到编辑器' : '需要先加载参考答案'}
           >
             📋 粘贴到编辑器
           </button>
-          <button
-            className="btn"
-            onClick={() => setCode(lv.starter_code || '')}
-            style={{ marginLeft: 'auto' }}
-          >
+          <button className="btn btn-ghost" onClick={handleReset}>
             🔄 重置代码
           </button>
         </div>
 
-        {/* 参考答案 */}
         {showAnswer && (
           <div style={{ marginTop: 16 }}>
             <div
@@ -232,12 +673,11 @@ export default function StudyRunner({ language, game, level }: Props) {
                 alignItems: 'center',
               }}
             >
-              <span>⚠️ 参考答案仅供学习，建议先独立思考再查看</span>
+              <span>⚠️ 参考答案仅供学习，建议先独立思考再查看。</span>
               <button
                 className="btn btn-sm"
                 onClick={onPasteReferenceIntoEditor}
-                disabled={!refCode}
-                style={{ fontSize: '0.85em', padding: '4px 12px' }}
+                disabled={!hasReference}
               >
                 📋 复制到编辑器
               </button>
@@ -253,73 +693,77 @@ export default function StudyRunner({ language, game, level }: Props) {
                 fontSize: 14,
               }}
             >
-              {refCode || '// 暂无参考答案'}
+              {refCode || lv.reference_solution || '// 暂无参考答案'}
             </pre>
           </div>
         )}
       </section>
 
-      {/* 执行结果 */}
       <section className="card" style={{ marginBottom: 24 }}>
         <h3 className="kc-section-title" style={{ fontSize: '1.1rem', marginBottom: 12 }}>
-          执行结果
+          判题反馈
         </h3>
-        <pre
-          style={{
-            background: '#f5f5f5',
-            padding: 16,
-            borderRadius: 8,
-            overflow: 'auto',
-            minHeight: 120,
-            fontFamily: "'Fira Code', 'Consolas', monospace",
-            fontSize: 13,
-            border: '1px solid #e0e0e0',
-          }}
-        >
-          {log || '点击"运行并判题"查看结果...'}
-        </pre>
+        <ResultPanel
+          execution={result?.execution ?? null}
+          judge={result?.judge ?? null}
+          isRunning={isRunning}
+          error={runError}
+          onViewHints={Array.isArray(lv.hints) && lv.hints.length ? handleViewHints : undefined}
+          onViewReference={!showAnswer ? ensureReferenceLoaded : undefined}
+          showHintButton={Array.isArray(lv.hints) && lv.hints.length > 0}
+          showReferenceButton
+          extraFooter={
+            result ? (
+              <details className="result-panel__debug">
+                <summary>查看原始执行数据</summary>
+                <pre className="result-panel__details-pre">
+                  {JSON.stringify(result.debug, null, 2)}
+                </pre>
+              </details>
+            ) : null
+          }
+        />
 
-        {/* 判题结果 */}
-        {passed && (
+        {result?.judge.pass && (
           <div
             className="alert alert-success"
             style={{
               marginTop: 16,
               display: 'flex',
               alignItems: 'center',
+              gap: 12,
+              flexWrap: 'wrap',
               justifyContent: 'space-between',
             }}
           >
-            <span style={{ fontSize: '1.1em' }}>
-              ✅ <strong>恭喜通关！</strong> 你成功完成了这一关！
+            <span style={{ fontSize: '1.05em' }}>
+              ✅ <strong>恭喜通关！</strong> 你可以继续挑战下一关。
             </span>
-            <button className="btn btn-primary" onClick={handleNextLevel}>
-              下一关 →
-            </button>
-          </div>
-        )}
-
-        {!passed && log && !isRunning && (
-          <div className="alert alert-warning" style={{ marginTop: 16 }}>
-            ❌ 尚未通过，继续加油！查看执行日志分析问题。
+            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+              <button className="btn btn-secondary" onClick={handleRetry}>
+                重新挑战
+              </button>
+              <button className="btn btn-primary" onClick={handleNextLevel}>
+                下一关 →
+              </button>
+            </div>
           </div>
         )}
       </section>
 
-      {/* 提示卡片 */}
-      {lv.hints && lv.hints.length > 0 && (
-        <section className="card">
-          <h3 className="kc-section-title" style={{ fontSize: '1.1rem', marginBottom: 12 }}>
-            💡 提示
-          </h3>
-          <ul style={{ paddingLeft: 24, margin: 0 }}>
-            {lv.hints.map((hint: string, idx: number) => (
-              <li key={idx} style={{ marginBottom: 8 }}>
-                {hint}
-              </li>
-            ))}
-          </ul>
-        </section>
+      {Array.isArray(lv.hints) && lv.hints.length > 0 && (
+        <div ref={hintsRef}>
+          <HintPanel
+            key={`${language}-${game}-${level}`}
+            language={language}
+            game={game}
+            level={level}
+            hints={lv.hints}
+            registerRevealHandler={(handler) => {
+              hintRevealRef.current = handler;
+            }}
+          />
+        </div>
       )}
     </div>
   );

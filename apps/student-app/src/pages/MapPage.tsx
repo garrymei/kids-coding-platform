@@ -1,341 +1,219 @@
-import { useCallback, useEffect, useState, type CSSProperties } from 'react';
-import { useNavigate } from 'react-router-dom';
-import ReactFlow, {
-  Background,
-  Controls,
-  MiniMap,
-  type Node,
-  type Edge,
-  type NodeChange,
-  Position,
-  MarkerType,
-  applyNodeChanges,
-} from 'reactflow';
-import dagre from 'dagre';
-import 'reactflow/dist/style.css';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
+import type { CourseMapResponse, CourseMapNode } from '../models/course';
+import { fetchCourseMap } from '../services/course-map';
+import { CourseMap } from '../components/CourseMap';
 
-type MapNode = {
-  id: string;
-  title: string;
-  summary: string;
-  status: 'ready' | 'locked' | 'completed';
+type SelectionOption = {
+  language: string;
+  game: string;
+  label: string;
 };
 
-type MapData = {
-  nodes: MapNode[];
-  edges: Array<{ from: string; to: string }>;
-};
+const COURSE_OPTIONS: SelectionOption[] = [
+  { language: 'python', game: 'maze_navigator', label: 'Python · 迷宫探索' },
+  { language: 'python', game: 'turtle_artist', label: 'Python · 海龟画家' },
+  { language: 'python', game: 'robot_sorter', label: 'Python · 机器人分拣' },
+  { language: 'javascript', game: 'turtle_artist', label: 'JavaScript · 海龟画家' },
+  { language: 'javascript', game: 'robot_sorter', label: 'JavaScript · 机器人分拣' },
+];
 
-// 自动对节点进行层级布局，保证图形清晰可读
-const getLayoutedElements = (nodes: Node[], edges: Edge[]) => {
-  const dagreGraph = new dagre.graphlib.Graph();
-  dagreGraph.setDefaultEdgeLabel(() => ({}));
-  dagreGraph.setGraph({ rankdir: 'TB', nodesep: 100, ranksep: 120 });
+const DEFAULT_OPTION = COURSE_OPTIONS[0];
 
-  nodes.forEach((node) => {
-    dagreGraph.setNode(node.id, { width: 220, height: 120 });
-  });
-
-  edges.forEach((edge) => {
-    dagreGraph.setEdge(edge.source, edge.target);
-  });
-
-  dagre.layout(dagreGraph);
-
-  const layoutedNodes = nodes.map((node) => {
-    const nodeWithPosition = dagreGraph.node(node.id);
-    return {
-      ...node,
-      position: {
-        x: nodeWithPosition.x - 110,
-        y: nodeWithPosition.y - 60,
-      },
-    };
-  });
-
-  return { nodes: layoutedNodes, edges };
-};
-
-function CourseNode({ data }: { data: MapNode & { onClick: () => void } }) {
-  const statusStyles: Record<MapNode['status'], { bg: string; border: string; glow: string; icon: string; label: string }> = {
-    completed: {
-      bg: 'linear-gradient(135deg, rgba(34, 197, 94, 0.25), rgba(34, 197, 94, 0.1))',
-      border: '2px solid rgba(34, 197, 94, 0.6)',
-      glow: '0 0 20px rgba(34, 197, 94, 0.4)',
-      icon: '🏆',
-      label: '已完成',
-    },
-    ready: {
-      bg: 'linear-gradient(135deg, rgba(93, 168, 255, 0.3), rgba(167, 139, 250, 0.2))',
-      border: '2px solid rgba(93, 168, 255, 0.8)',
-      glow: '0 0 24px rgba(93, 168, 255, 0.6)',
-      icon: '🚀',
-      label: '可挑战',
-    },
-    locked: {
-      bg: 'rgba(30, 41, 59, 0.6)',
-      border: '2px solid rgba(148, 163, 184, 0.3)',
-      glow: 'none',
-      icon: '🔒',
-      label: '待解锁',
-    },
-  };
-
-  const config = statusStyles[data.status];
-
-  const nodeStyle: CSSProperties = {
-    background: config.bg,
-    border: config.border,
-    borderRadius: '12px',
-    padding: '16px',
-    width: '220px',
-    minHeight: '120px',
-    cursor: data.status !== 'locked' ? 'pointer' : 'not-allowed',
-    transition: 'all 0.3s ease',
-    boxShadow: config.glow,
-    backdropFilter: 'blur(8px)',
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '8px',
-  };
-
-  return (
-    <div
-      style={nodeStyle}
-      onClick={data.status !== 'locked' ? data.onClick : undefined}
-      onMouseEnter={(event) => {
-        if (data.status !== 'locked') {
-          event.currentTarget.style.transform = 'scale(1.05)';
-          event.currentTarget.style.boxShadow = `${config.glow}, 0 4px 12px rgba(0, 0, 0, 0.3)`;
-        }
-      }}
-      onMouseLeave={(event) => {
-        event.currentTarget.style.transform = 'scale(1)';
-        event.currentTarget.style.boxShadow = config.glow;
-      }}
-    >
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-        <div
-          style={{
-            fontSize: '10px',
-            color: 'var(--text-secondary)',
-            textTransform: 'uppercase',
-            fontWeight: 600,
-          }}
-        >
-          #{data.id}
-        </div>
-        <span style={{ fontSize: '18px' }}>{config.icon}</span>
-      </div>
-
-      <h3
-        style={{
-          fontSize: '16px',
-          fontWeight: 700,
-          margin: 0,
-          color: data.status === 'locked' ? 'var(--text-secondary)' : 'var(--text-primary)',
-        }}
-      >
-        {data.title}
-      </h3>
-
-      <p
-        style={{
-          fontSize: '12px',
-          color: 'var(--text-secondary)',
-          margin: 0,
-          lineHeight: 1.4,
-          flex: 1,
-        }}
-      >
-        {data.summary}
-      </p>
-
-      <div
-        style={{
-          fontSize: '11px',
-          fontWeight: 700,
-          textTransform: 'uppercase',
-          color:
-            data.status === 'completed'
-              ? '#22c55e'
-              : data.status === 'ready'
-                ? '#5da8ff'
-                : 'var(--text-secondary)',
-        }}
-      >
-        {config.label}
-      </div>
-    </div>
-  );
-}
-
-const nodeTypes = {
-  courseNode: CourseNode,
-};
+type MapState =
+  | { status: 'loading'; data?: undefined; error?: undefined }
+  | { status: 'ready'; data: CourseMapResponse; error?: undefined }
+  | { status: 'error'; data?: undefined; error: string };
 
 export default function MapPage() {
   const navigate = useNavigate();
-  const [state, setState] = useState<{
-    status: 'loading' | 'error' | 'ready';
-    data?: MapData;
-    message?: string;
-  }>({ status: 'loading' });
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [state, setState] = useState<MapState>({ status: 'loading' });
+  const [banner, setBanner] = useState<string | null>(null);
 
-  const [nodes, setNodes] = useState<Node[]>([]);
-  const [edges, setEdges] = useState<Edge[]>([]);
+  const selection = useMemo(() => {
+    const language = searchParams.get('language') ?? DEFAULT_OPTION.language;
+    const game = searchParams.get('game') ?? DEFAULT_OPTION.game;
+    const option =
+      COURSE_OPTIONS.find((item) => item.language === language && item.game === game) ??
+      DEFAULT_OPTION;
+    return option;
+  }, [searchParams]);
+
+  const loadMap = useCallback(async () => {
+    setState({ status: 'loading' });
+    try {
+      const data = await fetchCourseMap({
+        language: selection.language,
+        game: selection.game,
+      });
+      setState({ status: 'ready', data });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : '课程地图加载失败，请稍后再试';
+      setState({ status: 'error', error: message });
+    }
+  }, [selection.language, selection.game]);
 
   useEffect(() => {
-    let active = true;
+    void loadMap();
+  }, [loadMap]);
 
-    import('@/services/level.repo').then(({ getCourseMap }) => {
-      getCourseMap()
-        .then((data) => {
-          if (!active) return;
-
-          const mapData: MapData = {
-            nodes: data.nodes.map((node) => ({
-              id: node.id,
-              title: node.title,
-              summary: node.summary,
-              status: node.status,
-            })),
-            edges: data.edges,
-          };
-
-          setState({ status: 'ready', data: mapData });
-
-          const flowNodes: Node[] = mapData.nodes.map((node) => ({
-            id: node.id,
-            type: 'courseNode',
-            data: {
-              ...node,
-              onClick: () => {
-                if (node.status !== 'locked') {
-                  navigate(`/play/${node.id.toLowerCase()}`);
-                }
-              },
-            },
-            position: { x: 0, y: 0 },
-            sourcePosition: Position.Bottom,
-            targetPosition: Position.Top,
-          }));
-
-          const flowEdges: Edge[] = mapData.edges.map((edge, index) => ({
-            id: `edge-${index}`,
-            source: edge.from,
-            target: edge.to,
-            type: 'smoothstep',
-            animated: true,
-            style: { stroke: 'rgba(93, 168, 255, 0.5)', strokeWidth: 2 },
-            markerEnd: {
-              type: MarkerType.ArrowClosed,
-              color: 'rgba(93, 168, 255, 0.5)',
-            },
-          }));
-
-          const layouted = getLayoutedElements(flowNodes, flowEdges);
-          setNodes(layouted.nodes);
-          setEdges(layouted.edges);
-        })
-        .catch((error) => {
-          if (!active) return;
-          setState({
-            status: 'error',
-            message: error instanceof Error ? error.message : String(error),
-          });
-        });
+  const handleSelectionChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
+    const value = event.target.value;
+    const option = COURSE_OPTIONS.find((item) => `${item.language}:${item.game}` === value);
+    if (!option) return;
+    setSearchParams({
+      language: option.language,
+      game: option.game,
     });
+  };
 
-    return () => {
-      active = false;
-    };
-  }, [navigate]);
+  const handleEnterLevel = (node: CourseMapNode) => {
+    navigate(`/learn/${node.language}/${node.game}/${node.level}`);
+  };
 
-  const onNodesChange = useCallback(
-    (changes: NodeChange[]) => {
-      setNodes((nds) => applyNodeChanges(changes, nds));
-    },
-    [],
-  );
-
-  if (state.status === 'loading') {
-    return (
-      <div className="kc-container" style={{ padding: '2rem 0' }}>
-        <div className="card" style={{ padding: '80px 40px', textAlign: 'center' }}>
-          <div style={{ fontSize: '48px', marginBottom: '16px' }}>🧭</div>
-          <p className="text-muted">正在加载课程地图...</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (state.status === 'error' || !state.data) {
-    return (
-      <div className="kc-container" style={{ padding: '2rem 0' }}>
-        <div className="card alert-error" style={{ padding: '40px' }}>
-          <div style={{ fontSize: '32px', marginBottom: '12px' }}>⚠️</div>
-          <h3 style={{ marginBottom: '8px' }}>课程地图加载失败</h3>
-          <p className="text-muted">{state.message ?? '未知错误，请稍后重试。'}</p>
-        </div>
-      </div>
-    );
-  }
+  const handleLockedLevel = (node: CourseMapNode) => {
+    setBanner(`关卡「${node.title}」尚未解锁，请先完成前置关卡。`);
+    window.setTimeout(() => setBanner(null), 2600);
+  };
 
   return (
     <div className="kc-container" style={{ padding: '2rem 0', height: 'calc(100vh - 120px)' }}>
       <header style={{ marginBottom: '1.5rem' }}>
-        <h1 className="kc-section-title" style={{ fontSize: '28px', marginBottom: '0.5rem' }}>
+        <h1 className="kc-section-title" style={{ fontSize: 28, marginBottom: 12 }}>
           🗺️ 课程地图
         </h1>
-        <p className="text-muted">
-          按推荐顺序完成课程节点，逐步解锁新的练习。拖动、缩放地图即可查看学习全貌。
+        <p className="text-muted" style={{ maxWidth: 640, lineHeight: 1.6 }}>
+          直观查看学习路径与关卡状态。完成当前节点后，下一关会自动解锁。放大、缩小或拖动地图，规划你的闯关路线。
         </p>
       </header>
+
+      <section
+        className="card"
+        style={{
+          marginBottom: 20,
+          padding: '16px 20px',
+          display: 'flex',
+          gap: 16,
+          flexWrap: 'wrap',
+          alignItems: 'center',
+        }}
+      >
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+          <span
+            style={{ fontSize: 12, textTransform: 'uppercase', color: 'var(--text-secondary)' }}
+          >
+            学习路线
+          </span>
+          <select
+            value={`${selection.language}:${selection.game}`}
+            onChange={handleSelectionChange}
+            style={{
+              minWidth: 220,
+              padding: '8px 12px',
+              borderRadius: 10,
+              border: '1px solid rgba(148, 163, 184, 0.35)',
+              background: 'rgba(15, 23, 42, 0.65)',
+              color: 'var(--text-primary)',
+            }}
+          >
+            {COURSE_OPTIONS.map((item) => (
+              <option key={`${item.language}:${item.game}`} value={`${item.language}:${item.game}`}>
+                {item.label}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        {state.status === 'ready' && (
+          <div
+            style={{
+              display: 'flex',
+              gap: 16,
+              padding: '8px 12px',
+              borderRadius: 10,
+              background: 'rgba(93, 168, 255, 0.08)',
+            }}
+          >
+            <span>总关卡：{state.data.stats.total}</span>
+            <span>已完成：{state.data.stats.completed}</span>
+            <span>已解锁：{state.data.stats.unlocked}</span>
+          </div>
+        )}
+
+        {banner && (
+          <div
+            style={{
+              marginLeft: 'auto',
+              padding: '10px 16px',
+              borderRadius: 12,
+              background: 'rgba(248, 113, 113, 0.18)',
+              color: '#fecaca',
+              fontSize: 13,
+            }}
+          >
+            {banner}
+          </div>
+        )}
+      </section>
 
       <div
         className="card"
         style={{
           padding: 0,
-          height: 'calc(100% - 100px)',
+          height: 'calc(100% - 200px)',
+          minHeight: 460,
           overflow: 'hidden',
-          background: 'rgba(15, 23, 42, 0.8)',
+          background: 'rgba(15, 23, 42, 0.82)',
+          position: 'relative',
         }}
       >
-        <ReactFlow
-          nodes={nodes}
-          edges={edges}
-          onNodesChange={onNodesChange}
-          nodeTypes={nodeTypes}
-          fitView
-          minZoom={0.5}
-          maxZoom={1.5}
-          defaultViewport={{ x: 0, y: 0, zoom: 1 }}
-          style={{ background: 'transparent' }}
-        >
-          <Background color="rgba(93, 168, 255, 0.15)" gap={20} size={1} style={{ opacity: 0.3 }} />
-          <Controls
+        {state.status === 'loading' && (
+          <div
             style={{
-              background: 'rgba(30, 41, 59, 0.9)',
-              border: '1px solid rgba(148, 163, 184, 0.2)',
-              borderRadius: '8px',
+              position: 'absolute',
+              inset: 0,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              color: 'var(--text-secondary)',
             }}
-          />
-          <MiniMap
+          >
+            <div style={{ textAlign: 'center' }}>
+              <div style={{ fontSize: 42, marginBottom: 12 }}>🧭</div>
+              <p style={{ margin: 0 }}>正在加载课程地图...</p>
+            </div>
+          </div>
+        )}
+
+        {state.status === 'error' && (
+          <div
             style={{
-              background: 'rgba(30, 41, 59, 0.9)',
-              border: '1px solid rgba(148, 163, 184, 0.2)',
+              position: 'absolute',
+              inset: 0,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              color: '#fecaca',
+              textAlign: 'center',
+              padding: 32,
             }}
-            nodeColor={(node) => {
-              const status = (node.data as MapNode).status;
-              return status === 'completed'
-                ? '#22c55e'
-                : status === 'ready'
-                  ? '#5da8ff'
-                  : '#64748b';
-            }}
+          >
+            <div>
+              <div style={{ fontSize: 36, marginBottom: 12 }}>⚠️</div>
+              <h3 style={{ marginBottom: 8 }}>课程地图加载失败</h3>
+              <p style={{ margin: 0, fontSize: 14 }}>{state.error}</p>
+            </div>
+          </div>
+        )}
+
+        {state.status === 'ready' && (
+          <CourseMap
+            data={state.data}
+            onEnterLevel={handleEnterLevel}
+            onLockedLevel={handleLockedLevel}
           />
-        </ReactFlow>
+        )}
       </div>
     </div>
   );

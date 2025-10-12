@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import { motion } from 'framer-motion';
 
 import { useProgressStore } from '../../stores/progress';
 import { DailyTaskCard } from './DailyTaskCard';
@@ -40,13 +41,87 @@ export default function HomePage() {
   }, [fetchHome]);
 
   if (loading || !snapshot) {
-    return <div className="card" style={{ height: 240 }} />;
+    return (
+      <div className="card" style={{ height: 240, padding: '20px', color: 'white' }}>
+        Loading home page...
+      </div>
+    );
   }
 
   const nextLesson = snapshot.nextLesson;
 
   return (
     <div className="kc-home">
+      <motion.section
+        className="card kc-hero"
+        initial={{ opacity: 0, y: 24 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, ease: 'easeOut' }}
+      >
+        <div>
+          <h2 style={{ fontSize: 28, margin: 0 }}>欢迎回来，探索者！</h2>
+          <p style={{ marginTop: 12, lineHeight: 1.6, color: 'var(--text-secondary)' }}>
+            今日已学习 <strong>{snapshot.today.studyMinutes} 分钟</strong>， 连续坚持{' '}
+            <strong>{snapshot.streakDays} 天</strong>。保持节奏，就能遇见更棒的自己！
+          </p>
+          <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', marginTop: 18 }}>
+            <a
+              className="btn btn-cta"
+              href={nextLesson ? `/map?focus=${nextLesson.levelId}` : '/courses'}
+            >
+              🚀 继续学习
+            </a>
+            <a className="btn btn-secondary" href="/achievements">
+              🏆 查看成就
+            </a>
+          </div>
+        </div>
+
+        <motion.div
+          initial={{ scale: 0.9, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={{ delay: 0.2, type: 'spring', stiffness: 180, damping: 16 }}
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            gap: 12,
+          }}
+        >
+          <div
+            style={{
+              width: 120,
+              height: 120,
+              borderRadius: '50%',
+              background:
+                'conic-gradient(from 180deg, rgba(93, 168, 255, 0.5) 0%, rgba(167, 139, 250, 0.6) 65%, rgba(148, 163, 184, 0.25) 65%)',
+              display: 'grid',
+              placeItems: 'center',
+            }}
+          >
+            <div
+              style={{
+                width: 96,
+                height: 96,
+                borderRadius: '50%',
+                background: 'rgba(11, 16, 32, 0.75)',
+                display: 'grid',
+                placeItems: 'center',
+                fontSize: 30,
+              }}
+            >
+              {snapshot.today.passes > 0 ? '🌟' : '🔥'}
+            </div>
+          </div>
+          <div style={{ textAlign: 'center' }}>
+            <div style={{ fontWeight: 700, fontSize: 16 }}>今日战绩</div>
+            <div style={{ color: 'var(--text-secondary)', fontSize: 13 }}>
+              挑战 {snapshot.today.attempts} 次 · 通过 {snapshot.today.passes} 次
+            </div>
+          </div>
+        </motion.div>
+      </motion.section>
+
       <section className="kc-home__stats">
         <article className="card kpi-card">
           <div className="text-muted">连续学习</div>
