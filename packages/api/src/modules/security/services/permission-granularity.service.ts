@@ -39,56 +39,65 @@ export class PermissionGranularityService {
         sensitive: false,
         defaultForParent: true,
         defaultForTeacher: true,
-        requiresExplicitConsent: false},
+        requiresExplicitConsent: false,
+      },
       [PermissionScope.COMPLETION]: {
         name: '完成情况',
         description: '查看任务完成数、准确率、学习成果',
         sensitive: false,
         defaultForParent: true,
         defaultForTeacher: true,
-        requiresExplicitConsent: false},
+        requiresExplicitConsent: false,
+      },
       [PermissionScope.CODE_CONTENT]: {
         name: '代码内容',
         description: '查看学生编写的具体代码实现',
         sensitive: true,
         defaultForParent: false,
         defaultForTeacher: false,
-        requiresExplicitConsent: true},
+        requiresExplicitConsent: true,
+      },
       [PermissionScope.TIME_RECORDS]: {
         name: '学习时长',
         description: '查看详细的学习时间记录',
         sensitive: true,
         defaultForParent: false,
         defaultForTeacher: true,
-        requiresExplicitConsent: true},
+        requiresExplicitConsent: true,
+      },
       [PermissionScope.ACHIEVEMENTS]: {
         name: '成就徽章',
         description: '查看获得的成就、徽章、奖励',
         sensitive: false,
         defaultForParent: true,
         defaultForTeacher: true,
-        requiresExplicitConsent: false},
+        requiresExplicitConsent: false,
+      },
       [PermissionScope.ASSIGNMENTS]: {
         name: '作业任务',
         description: '查看作业完成情况、任务分配',
         sensitive: false,
         defaultForParent: false,
         defaultForTeacher: true,
-        requiresExplicitConsent: false},
+        requiresExplicitConsent: false,
+      },
       [PermissionScope.METRICS]: {
         name: '统计数据',
         description: '查看学习统计数据、趋势分析',
         sensitive: false,
         defaultForParent: true,
         defaultForTeacher: true,
-        requiresExplicitConsent: false},
+        requiresExplicitConsent: false,
+      },
       [PermissionScope.WORKS]: {
         name: '作品展示',
         description: '查看学生创作的作品、项目展示',
         sensitive: true,
         defaultForParent: false,
         defaultForTeacher: true,
-        requiresExplicitConsent: true}};
+        requiresExplicitConsent: true,
+      },
+    };
 
   constructor(private readonly prisma: PrismaService) {}
 
@@ -142,7 +151,8 @@ export class PermissionGranularityService {
 
     return {
       valid: errors.length === 0,
-      errors};
+      errors,
+    };
   }
 
   // 创建权限授权
@@ -153,7 +163,7 @@ export class PermissionGranularityService {
   ): Promise<string> {
     // 验证权限范围
     const grantee = await this.prisma.user.findUnique({
-      where: { id: granteeId }
+      where: { id: granteeId },
     });
 
     if (!grantee) {
@@ -174,11 +184,13 @@ export class PermissionGranularityService {
       data: {
         studentId,
         granteeId,
-        scope: config.scopes,
+        scope: config.scopes.join(','),
         expiresAt: config.expiresAt,
         status: 'ACTIVE',
         grantedAt: config.grantedAt,
-        grantedBy: config.grantedBy}});
+        grantedBy: config.grantedBy,
+      },
+    });
 
     // 记录审计日志
     await this.prisma.auditLog.create({
@@ -192,7 +204,11 @@ export class PermissionGranularityService {
           granteeId,
           scopes: config.scopes,
           expiresAt: config.expiresAt?.toISOString(),
-          reason: config.reason}}});
+          reason: config.reason,
+        },
+        ts: new Date(),
+      },
+    });
 
     return grant.id;
   }
@@ -209,8 +225,11 @@ export class PermissionGranularityService {
         granteeId,
         status: 'ACTIVE',
         scope: {
-          has: requiredScope},
-        OR: [{ expiresAt: null }, { expiresAt: { gt: new Date() } }]}});
+          contains: requiredScope,
+        },
+        OR: [{ expiresAt: null }, { expiresAt: { gt: new Date() } }],
+      },
+    });
 
     return !!grant;
   }
@@ -225,14 +244,20 @@ export class PermissionGranularityService {
         studentId,
         granteeId,
         status: 'ACTIVE',
-        OR: [{ expiresAt: null }, { expiresAt: { gt: new Date() } }]},
+        OR: [{ expiresAt: null }, { expiresAt: { gt: new Date() } }],
+      },
       select: {
-        scope: true}});
+        scope: true,
+      },
+    });
 
     // 合并所有权限范围
     const allScopes = new Set<PermissionScope>();
     grants.forEach((grant) => {
-      grant.scope.forEach((scope) => allScopes.add(scope as PermissionScope));
+      const scopes = Array.isArray(grant.scope)
+        ? grant.scope
+        : String(grant.scope).split(',').filter(Boolean);
+      scopes.forEach((scope) => allScopes.add(scope as PermissionScope));
     });
 
     return Array.from(allScopes);
@@ -248,8 +273,9 @@ export class PermissionGranularityService {
     const grant = await this.prisma.accessGrant.findUnique({
       where: { id: grantId },
       include: {
-        grantee: {
-        }}});
+        grantee: {},
+      },
+    });
 
     if (!grant) {
       throw new ForbiddenException('权限授权不存在');
@@ -269,8 +295,10 @@ export class PermissionGranularityService {
     await this.prisma.accessGrant.update({
       where: { id: grantId },
       data: {
-        scope: newScopes,
-        updatedAt: new Date()}});
+        scope: newScopes.join(','),
+        updatedAt: new Date(),
+      },
+    });
 
     // 记录审计日志
     await this.prisma.auditLog.create({
@@ -283,7 +311,11 @@ export class PermissionGranularityService {
           oldScopes: grant.scope,
           newScopes,
           reason,
-          timestamp: new Date().toISOString()}}});
+          timestamp: new Date().toISOString(),
+        },
+        ts: new Date(),
+      },
+    });
   }
 
   // 撤销权限
@@ -293,7 +325,8 @@ export class PermissionGranularityService {
     reason?: string,
   ): Promise<void> {
     const grant = await this.prisma.accessGrant.findUnique({
-      where: { id: grantId }});
+      where: { id: grantId },
+    });
 
     if (!grant) {
       throw new ForbiddenException('权限授权不存在');
@@ -305,7 +338,9 @@ export class PermissionGranularityService {
       data: {
         status: 'REVOKED',
         revokedAt: new Date(),
-        revokedBy}});
+        revokedBy,
+      },
+    });
 
     // 记录审计日志
     await this.prisma.auditLog.create({
@@ -319,7 +354,11 @@ export class PermissionGranularityService {
           granteeId: grant.granteeId,
           scopes: grant.scope,
           reason,
-          timestamp: new Date().toISOString()}}});
+          timestamp: new Date().toISOString(),
+        },
+        ts: new Date(),
+      },
+    });
   }
 
   // 检查权限是否过期
@@ -328,7 +367,10 @@ export class PermissionGranularityService {
       where: {
         status: 'ACTIVE',
         expiresAt: {
-          lte: new Date()}}});
+          lte: new Date(),
+        },
+      },
+    });
 
     for (const grant of expiredGrants) {
       await this.prisma.accessGrant.update({
@@ -336,7 +378,9 @@ export class PermissionGranularityService {
         data: {
           status: 'EXPIRED',
           revokedAt: new Date(),
-          revokedBy: 'system'}});
+          revokedBy: 'system',
+        },
+      });
 
       // 记录过期日志
       await this.prisma.auditLog.create({
@@ -349,7 +393,11 @@ export class PermissionGranularityService {
             studentId: grant.studentId,
             granteeId: grant.granteeId,
             scopes: grant.scope,
-            expiredAt: grant.expiresAt?.toISOString()}}});
+            expiredAt: grant.expiresAt?.toISOString(),
+          },
+          ts: new Date(),
+        },
+      });
     }
   }
 
@@ -362,18 +410,23 @@ export class PermissionGranularityService {
     scopeDistribution: Record<string, number>;
   }> {
     const grants = await this.prisma.accessGrant.findMany({
-      where: { studentId }});
+      where: { studentId },
+    });
 
     const stats = {
       totalGrants: grants.length,
       activeGrants: grants.filter((g) => g.status === 'ACTIVE').length,
       expiredGrants: grants.filter((g) => g.status === 'EXPIRED').length,
       revokedGrants: grants.filter((g) => g.status === 'REVOKED').length,
-      scopeDistribution: {} as Record<string, number>};
+      scopeDistribution: {} as Record<string, number>,
+    };
 
     // 统计权限范围分布
     grants.forEach((grant) => {
-      grant.scope.forEach((scope) => {
+      const scopes = Array.isArray(grant.scope)
+        ? grant.scope
+        : String(grant.scope).split(',').filter(Boolean);
+      scopes.forEach((scope) => {
         stats.scopeDistribution[scope] =
           (stats.scopeDistribution[scope] || 0) + 1;
       });
@@ -397,21 +450,47 @@ export class PermissionGranularityService {
   async getPermissionHistory(
     studentId: string,
     granteeId?: string,
-  ): Promise<any[]> {
-    const where: any = { studentId };
+  ): Promise<
+    Array<{
+      id: string;
+      studentId: string;
+      granteeId: string;
+      scopes: string[];
+      status: string;
+      grantedAt: Date;
+      expiresAt: Date | null;
+      revokedAt: Date | null;
+      grantedBy: string;
+      revokedBy: string | null;
+      reason: string | null;
+    }>
+  > {
+    const where: { studentId: string; granteeId?: string } = { studentId };
     if (granteeId) {
       where.granteeId = granteeId;
     }
 
     const grants = await this.prisma.accessGrant.findMany({
       where,
+      orderBy: { grantedAt: 'desc' },
       include: {
-        grantee: {
-          select: {
-            displayName: true,
-            role: true}}},
-      orderBy: { createdAt: 'desc' }});
+        student: { select: { id: true, name: true, email: true } },
+        grantee: { select: { id: true, name: true, email: true } },
+      },
+    });
 
-    return grants;
+    return grants.map((grant) => ({
+      id: grant.id,
+      studentId: grant.studentId,
+      granteeId: grant.granteeId,
+      scopes: JSON.parse(grant.scope),
+      status: grant.status,
+      grantedAt: grant.grantedAt,
+      expiresAt: grant.expiresAt,
+      revokedAt: grant.revokedAt,
+      grantedBy: grant.grantedBy || 'system',
+      revokedBy: grant.revokedBy,
+      reason: null, // Add reason field if needed in schema
+    }));
   }
 }

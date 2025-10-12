@@ -25,6 +25,7 @@ import {
 import { StudentsService } from '../students.service';
 import { VisibilityService } from '../../auth/services/visibility.service';
 import { PrismaService } from '../../../prisma/prisma.service';
+import { UpdateSearchabilityDto } from '../dto/students.dto';
 
 @ApiTags('student-permissions')
 @Controller('students/permissions')
@@ -63,7 +64,10 @@ export class StudentPermissionsController {
   @RequirePermissions(PermissionType.MANAGE_OWN_VISIBILITY)
   @ApiOperation({ summary: '更新可见性设置' })
   @ApiResponse({ status: 200, description: '更新成功' })
-  async updateVisibilitySettings(@Request() req, @Body() settings: any) {
+  async updateVisibilitySettings(
+    @Request() req,
+    @Body() settings: UpdateSearchabilityDto,
+  ) {
     const studentId = req.user.userId;
     return this.studentsService.updateSearchability(studentId, settings);
   }
@@ -125,7 +129,9 @@ export class StudentPermissionsController {
       where: { id: consentId },
       data: {
         status: 'APPROVED',
-        scope: approvalData.scopes || consent.scope,
+        scope: Array.isArray(approvalData.scopes)
+          ? approvalData.scopes.join(',')
+          : String(consent.scope),
         expiresAt: approvalData.expiresAt
           ? new Date(approvalData.expiresAt)
           : consent.expiresAt,
@@ -148,7 +154,9 @@ export class StudentPermissionsController {
       data: {
         granteeId: consent.requesterId,
         studentId,
-        scope: approvalData.scopes || consent.scope,
+        scope: Array.isArray(approvalData.scopes)
+          ? approvalData.scopes.join(',')
+          : String(consent.scope),
         status: 'ACTIVE',
         expiresAt: approvalData.expiresAt
           ? new Date(approvalData.expiresAt)
@@ -169,6 +177,7 @@ export class StudentPermissionsController {
           scopes: approvalData.scopes || consent.scope,
           expiresAt: approvalData.expiresAt,
         },
+        ts: new Date(),
       },
     });
 
@@ -210,6 +219,7 @@ export class StudentPermissionsController {
         metadata: {
           requesterId: consent.requesterId,
         },
+        ts: new Date(),
       },
     });
 
@@ -297,6 +307,7 @@ export class StudentPermissionsController {
         metadata: {
           partyId: relationship.partyId,
         },
+        ts: new Date(),
       },
     });
 
@@ -307,11 +318,11 @@ export class StudentPermissionsController {
   @RequirePermissions(PermissionType.VIEW_OWN_AUDIT)
   @ApiOperation({ summary: '查看审计摘要' })
   @ApiResponse({ status: 200, description: '获取成功' })
-  async getAuditSummary(@Request() req, @Query() query: any) {
+  async getAuditSummary(@Request() req, @Query() query: AuditQueryParams) {
     const studentId = req.user.userId;
     const { startDate, endDate, action } = query;
 
-    const where: any = {
+    const where: AuditLogWhereClause = {
       actorId: studentId,
     };
 
@@ -343,4 +354,19 @@ export class StudentPermissionsController {
 
     return summary;
   }
+}
+
+interface AuditQueryParams {
+  startDate?: string;
+  endDate?: string;
+  action?: string;
+}
+
+interface AuditLogWhereClause {
+  actorId: string;
+  ts?: {
+    gte?: Date;
+    lte?: Date;
+  };
+  action?: string;
 }

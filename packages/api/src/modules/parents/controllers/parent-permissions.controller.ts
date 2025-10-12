@@ -1,19 +1,28 @@
-import { 
-  Controller, 
-  Get, 
+import {
+  Controller,
+  Get,
   Post,
-  Body, 
-  Param, 
+  Body,
+  Param,
   UseGuards,
   Request,
   Query,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiBearerAuth,
+} from '@nestjs/swagger';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { PermissionsGuard } from '../../auth/guards/permissions.guard';
-import { RequirePermissions, Permission } from '../../auth/decorators/permissions.decorator';
+import {
+  RequirePermissions,
+  Permission,
+} from '../../auth/decorators/permissions.decorator';
 import { VisibilityService } from '../../auth/services/visibility.service';
 import { PrismaService } from '../../../prisma/prisma.service';
+import { AuditLoggerService } from '../../audit/services/audit-logger.service';
 
 @ApiTags('parent-permissions')
 @Controller('parents/permissions')
@@ -23,6 +32,7 @@ export class ParentPermissionsController {
   constructor(
     private readonly visibilityService: VisibilityService,
     private readonly prisma: PrismaService,
+    private readonly auditLogger: AuditLoggerService,
   ) {}
 
   @Get('authorized-students')
@@ -59,7 +69,7 @@ export class ParentPermissionsController {
       },
     });
 
-    return relationships.map(rel => ({
+    return relationships.map((rel) => ({
       student: rel.student,
       accessInfo: {
         scopes: rel.accessGrants[0]?.scope || [],
@@ -78,30 +88,38 @@ export class ParentPermissionsController {
     const parentId = req.user.userId;
 
     // 检查是否有访问权限
-    const hasAccess = await this.visibilityService.hasDataAccess(parentId, studentId, 'progress:read');
+    const hasAccess = await this.visibilityService.hasDataAccess(
+      parentId,
+      studentId,
+      'progress:read',
+    );
     if (!hasAccess) {
       throw new Error('无权限访问该学生数据');
     }
 
     // 获取过滤后的学生数据
-    const studentData = await this.visibilityService.filterStudentData(studentId, parentId, 'parent');
-    
+    const studentData = await this.visibilityService.filterStudentData(
+      studentId,
+      parentId,
+      'parent',
+    );
+
     if (!studentData) {
       throw new Error('学生数据不存在或无访问权限');
     }
 
     // 记录访问日志
-    await this.prisma.auditLog.create({
-      data: {
-        actorId: parentId,
-        action: 'view_student_data',
-        targetType: 'student',
-        targetId: studentId,
-        metadata: {
-          viewerRole: 'parent',
-          dataTypes: studentData.accessInfo?.scopes || [],
-        },
+    await this.auditLogger.log({
+      actorId: parentId,
+      action: 'parent_permission_granted',
+      targetType: 'permission',
+      targetId: 'data_access',
+      metadata: {
+        permission: 'data_access',
+        timestamp: new Date().toISOString(),
       },
+      ip: req.ip,
+      userAgent: req.get('User-Agent'),
     });
 
     return studentData;
@@ -111,11 +129,18 @@ export class ParentPermissionsController {
   @RequirePermissions(Permission.VIEW_AUTHORIZED_STUDENT_DATA)
   @ApiOperation({ summary: '查看学生学习进度' })
   @ApiResponse({ status: 200, description: '获取成功' })
-  async getStudentProgress(@Request() req, @Param('studentId') studentId: string) {
+  async getStudentProgress(
+    @Request() req,
+    @Param('studentId') studentId: string,
+  ) {
     const parentId = req.user.userId;
 
     // 检查是否有进度查看权限
-    const hasAccess = await this.visibilityService.hasDataAccess(parentId, studentId, 'progress:read');
+    const hasAccess = await this.visibilityService.hasDataAccess(
+      parentId,
+      studentId,
+      'progress:read',
+    );
     if (!hasAccess) {
       throw new Error('无权限查看该学生学习进度');
     }
@@ -128,22 +153,22 @@ export class ParentPermissionsController {
     });
 
     // 记录访问日志
-    await this.prisma.auditLog.create({
-      data: {
-        actorId: parentId,
-        action: 'view_student_progress',
-        targetType: 'student',
-        targetId: studentId,
-        metadata: {
-          dataRange: '30_days',
-          recordCount: progressData.length,
-        },
+    await this.auditLogger.log({
+      actorId: parentId,
+      action: 'parent_permission_revoked',
+      targetType: 'permission',
+      targetId: 'data_access',
+      metadata: {
+        permission: 'data_access',
+        timestamp: new Date().toISOString(),
       },
+      ip: req.ip,
+      userAgent: req.get('User-Agent'),
     });
 
     return {
       studentId,
-      progressData: progressData.map(snapshot => ({
+      progressData: progressData.map((snapshot) => ({
         date: snapshot.date,
         tasksDone: snapshot.tasksDone,
         accuracy: snapshot.accuracy,
@@ -156,9 +181,11 @@ export class ParentPermissionsController {
         totalTasks: progressData.reduce((sum, s) => sum + s.tasksDone, 0),
         totalTime: progressData.reduce((sum, s) => sum + s.timeSpentMin, 0),
         totalXP: progressData.reduce((sum, s) => sum + s.xpGained, 0),
-        averageAccuracy: progressData.length > 0 
-          ? progressData.reduce((sum, s) => sum + s.accuracy, 0) / progressData.length 
-          : 0,
+        averageAccuracy:
+          progressData.length > 0
+            ? progressData.reduce((sum, s) => sum + s.accuracy, 0) /
+              progressData.length
+            : 0,
         currentStreak: progressData.length > 0 ? progressData[0].streakDays : 0,
       },
     };
@@ -172,7 +199,11 @@ export class ParentPermissionsController {
     const parentId = req.user.userId;
 
     // 检查是否有作品查看权限
-    const hasAccess = await this.visibilityService.hasDataAccess(parentId, studentId, 'works:read');
+    const hasAccess = await this.visibilityService.hasDataAccess(
+      parentId,
+      studentId,
+      'works:read',
+    );
     if (!hasAccess) {
       throw new Error('无权限查看该学生作品');
     }
@@ -182,22 +213,22 @@ export class ParentPermissionsController {
     const works = []; // 实际实现中应该从数据库查询
 
     // 记录访问日志
-    await this.prisma.auditLog.create({
-      data: {
-        actorId: parentId,
-        action: 'view_student_works',
-        targetType: 'student',
-        targetId: studentId,
-        metadata: {
-          viewerRole: 'parent',
-          note: '家长只能查看学习成果，不能查看代码内容',
-        },
+    await this.auditLogger.log({
+      actorId: parentId,
+      action: 'parent_permission_updated',
+      targetType: 'permission',
+      targetId: 'data_access',
+      metadata: {
+        permission: 'data_access',
+        timestamp: new Date().toISOString(),
       },
+      ip: req.ip,
+      userAgent: req.get('User-Agent'),
     });
 
     return {
       studentId,
-      works: works.map(work => ({
+      works: works.map((work) => ({
         id: work.id,
         title: work.title,
         description: work.description,
@@ -243,18 +274,17 @@ export class ParentPermissionsController {
     });
 
     // 记录审计日志
-    await this.prisma.auditLog.create({
-      data: {
-        actorId: parentId,
-        action: 'request_student_access',
-        targetType: 'consent',
-        targetId: consent.id,
-        metadata: {
-          studentId,
-          purpose,
-          scopes: scopes || ['progress:read', 'works:read'],
-        },
+    await this.auditLogger.log({
+      actorId: parentId,
+      action: 'parent_permission_checked',
+      targetType: 'permission',
+      targetId: 'data_access',
+      metadata: {
+        permission: 'data_access',
+        timestamp: new Date().toISOString(),
       },
+      ip: req.ip,
+      userAgent: req.get('User-Agent'),
     });
 
     return {

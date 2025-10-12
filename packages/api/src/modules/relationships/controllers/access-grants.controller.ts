@@ -154,7 +154,9 @@ export class AccessGrantsController {
     const updatedGrant = await this.prisma.accessGrant.update({
       where: { id: grantId },
       data: {
-        scope: updateData.scope || grant.scope,
+        scope: Array.isArray(updateData.scope)
+          ? updateData.scope.join(',')
+          : (updateData.scope ?? grant.scope),
         expiresAt: updateData.expiresAt
           ? new Date(updateData.expiresAt)
           : grant.expiresAt,
@@ -171,12 +173,15 @@ export class AccessGrantsController {
         metadata: {
           granteeId: grant.granteeId,
           oldScope: grant.scope,
-          newScope: updateData.scope || grant.scope,
+          newScope: Array.isArray(updateData.scope)
+            ? updateData.scope.join(',')
+            : (updateData.scope ?? grant.scope),
           oldExpiresAt: grant.expiresAt,
           newExpiresAt: updateData.expiresAt
             ? new Date(updateData.expiresAt)
             : grant.expiresAt,
         },
+        ts: new Date(),
       },
     });
 
@@ -242,7 +247,7 @@ export class AccessGrantsController {
     // 记录审计日志
     await this.prisma.auditLog.create({
       data: {
-        actorId,
+        actorId: actorId,
         action: 'revoke_access_grant',
         targetType: 'access_grant',
         targetId: grantId,
@@ -253,6 +258,7 @@ export class AccessGrantsController {
           revocationReason: revocationData.reason,
           revokedBy: grant.studentId === actorId ? 'student' : 'grantee',
         },
+        ts: new Date(),
       },
     });
 
@@ -278,7 +284,7 @@ export class AccessGrantsController {
       where: {
         granteeId,
         studentId,
-        scope: { has: checkData.scope },
+        scope: { contains: checkData.scope },
         status: 'ACTIVE',
         OR: [{ expiresAt: null }, { expiresAt: { gt: new Date() } }],
       },

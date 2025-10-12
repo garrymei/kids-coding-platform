@@ -1,4 +1,9 @@
-import { Injectable, NotFoundException, BadRequestException, Logger } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+  Logger,
+} from '@nestjs/common';
 import { CreateClassDto } from './dto/create-class.dto';
 import { PrismaService } from '../../prisma/prisma.service';
 // ClassStatus and EnrollmentStatus are now string enums in the schema
@@ -39,32 +44,38 @@ export class TeachersService {
   constructor(private readonly prisma: PrismaService) {}
 
   async createClass(createClassDto: CreateClassDto, teacherId: string) {
-    this.logger.log(`Creating class: ${createClassDto.name} by teacher: ${teacherId}`);
-    
+    this.logger.log(
+      `Creating class: ${createClassDto.name} by teacher: ${teacherId}`,
+    );
+
     try {
       const newClass = await this.prisma.class.create({
         data: {
-        name: createClassDto.name,
+          name: createClassDto.name,
           teacherId: teacherId,
           code: generateInviteCode(),
           codeTTL: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days
         },
       });
 
-      this.logger.log('Created new class:', newClass);
+      this.logger.log(`Created new class: ${newClass.id}`);
       return {
         id: newClass.id,
         code: newClass.code,
       };
     } catch (error) {
-      this.logger.error('Failed to create class:', error);
+      this.logger.error(
+        `Failed to create class: ${error instanceof Error ? error.message : String(error)}`,
+      );
       throw new BadRequestException('Failed to create class');
     }
   }
 
   async getApprovals(classId: string, teacherId: string, status: string) {
-    this.logger.log(`Fetching approvals for class ${classId} with status ${status}`);
-    
+    this.logger.log(
+      `Fetching approvals for class ${classId} with status ${status}`,
+    );
+
     try {
       // Verify teacher owns the class
       const classExists = await this.prisma.class.findFirst({
@@ -78,7 +89,7 @@ export class TeachersService {
         throw new NotFoundException('Class not found or access denied');
       }
 
-      const whereClause: any = {
+      const whereClause: { classId: string; status?: string } = {
         classId: classId,
       };
 
@@ -101,16 +112,21 @@ export class TeachersService {
         orderBy: { createdAt: 'desc' },
       });
 
-      return approvals.map(approval => ({
+      return approvals.map((approval) => ({
         memberId: approval.id,
         classId: approval.classId,
         studentId: approval.studentId,
-        studentName: approval.student.displayName || approval.student.nickname || approval.student.email,
+        studentName:
+          approval.student.displayName ||
+          approval.student.nickname ||
+          approval.student.email,
         status: approval.status.toLowerCase(),
         requestedAt: approval.createdAt.toISOString(),
       }));
     } catch (error) {
-      this.logger.error('Failed to fetch approvals:', error);
+      this.logger.error(
+        `Failed to fetch approvals: ${error instanceof Error ? error.message : String(error)}`,
+      );
       if (error instanceof NotFoundException) {
         throw error;
       }
@@ -123,7 +139,7 @@ export class TeachersService {
 
   async approveApproval(classId: string, memberId: string, teacherId: string) {
     this.logger.log(`Approving enrollment: ${memberId} in class: ${classId}`);
-    
+
     try {
       // Verify teacher owns the class
       const classExists = await this.prisma.class.findFirst({
@@ -173,6 +189,7 @@ export class TeachersService {
           targetType: 'class_enrollment',
           targetId: memberId,
           metadata: { decision: 'approved', classId },
+          ts: new Date(),
         },
       });
 
@@ -183,7 +200,9 @@ export class TeachersService {
         status: updatedEnrollment.status.toLowerCase(),
       };
     } catch (error) {
-      this.logger.error('Failed to approve enrollment:', error);
+      this.logger.error(
+        `Failed to approve enrollment: ${error instanceof Error ? error.message : String(error)}`,
+      );
       if (error instanceof NotFoundException) {
         throw error;
       }
@@ -193,7 +212,7 @@ export class TeachersService {
 
   async rejectApproval(classId: string, memberId: string, teacherId: string) {
     this.logger.log(`Rejecting enrollment: ${memberId} in class: ${classId}`);
-    
+
     try {
       // Verify teacher owns the class
       const classExists = await this.prisma.class.findFirst({
@@ -243,6 +262,7 @@ export class TeachersService {
           targetType: 'class_enrollment',
           targetId: memberId,
           metadata: { decision: 'rejected', classId },
+          ts: new Date(),
         },
       });
 
@@ -253,7 +273,9 @@ export class TeachersService {
         status: updatedEnrollment.status.toLowerCase(),
       };
     } catch (error) {
-      this.logger.error('Failed to reject enrollment:', error);
+      this.logger.error(
+        `Failed to reject enrollment: ${error instanceof Error ? error.message : String(error)}`,
+      );
       if (error instanceof NotFoundException) {
         throw error;
       }

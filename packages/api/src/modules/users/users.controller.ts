@@ -15,7 +15,7 @@ export class UsersController {
 
   @Get('me')
   @ApiOkResponse({ description: 'Current user profile' })
-  getProfile(@Request() req: any) {
+  getProfile(@Request() req: { user: { userId: string } }) {
     return this.usersService.findById(req.user.userId);
   }
 

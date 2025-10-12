@@ -159,6 +159,7 @@ export class SearchController {
           resultCount: searchResults.length,
           ip: searcherIp,
         },
+        ts: new Date(),
       },
     });
 

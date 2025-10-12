@@ -2,12 +2,10 @@ import {
   Controller,
   Get,
   Post,
-  Put,
   Body,
   Param,
   UseGuards,
   Request,
-  Query,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -162,6 +160,7 @@ export class TeacherPermissionsController {
           viewerRole: 'teacher',
           classId: studentData.classInfo?.classId,
         },
+        ts: new Date(),
       },
     });
 
@@ -212,6 +211,7 @@ export class TeacherPermissionsController {
           classId: classAccess.classId,
           dataRange: '30_days',
         },
+        ts: new Date(),
       },
     });
 
@@ -279,6 +279,7 @@ export class TeacherPermissionsController {
           classId: classAccess.classId,
           viewerRole: 'teacher',
         },
+        ts: new Date(),
       },
     });
 
@@ -332,6 +333,7 @@ export class TeacherPermissionsController {
           content: commentData.content,
           rating: commentData.rating,
         },
+        ts: new Date(),
       },
     });
 
@@ -345,7 +347,17 @@ export class TeacherPermissionsController {
   @RequirePermissions(PermissionType.ASSIGN_TASKS)
   @ApiOperation({ summary: '下发任务' })
   @ApiResponse({ status: 201, description: '任务下发成功' })
-  async assignTask(@Request() req, @Body() taskData: any) {
+  async assignTask(
+    @Request() req,
+    @Body()
+    taskData: {
+      classId: string;
+      title: string;
+      description: string;
+      dueDate: string;
+      students: string[];
+    },
+  ) {
     const teacherId = req.user.userId;
     const { classId, title, description, dueDate, students } = taskData;
 
@@ -386,6 +398,7 @@ export class TeacherPermissionsController {
           studentCount: students?.length || 'all',
           dueDate,
         },
+        ts: new Date(),
       },
     });
 
@@ -487,6 +500,7 @@ export class TeacherPermissionsController {
         metadata: {
           studentCount: analytics.studentCount,
         },
+        ts: new Date(),
       },
     });
 

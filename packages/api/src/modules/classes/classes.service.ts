@@ -1,6 +1,14 @@
-import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  ForbiddenException,
+} from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
-import { CreateClassDto, JoinClassDto, UpdateClassDto } from './dto/classes.dto';
+import {
+  CreateClassDto,
+  JoinClassDto,
+  UpdateClassDto,
+} from './dto/classes.dto';
 import { randomBytes } from 'crypto';
 
 @Injectable()
@@ -97,7 +105,11 @@ export class ClassesService {
     return classData;
   }
 
-  async updateClass(classId: string, teacherId: string, updateClassDto: UpdateClassDto) {
+  async updateClass(
+    classId: string,
+    teacherId: string,
+    updateClassDto: UpdateClassDto,
+  ) {
     // 验证班级所有权
     const classData = await this.prisma.class.findFirst({
       where: {
@@ -190,7 +202,11 @@ export class ClassesService {
     return enrollment;
   }
 
-  async approveEnrollment(classId: string, enrollmentId: string, teacherId: string) {
+  async approveEnrollment(
+    classId: string,
+    enrollmentId: string,
+    teacherId: string,
+  ) {
     // 验证班级所有权
     const classData = await this.prisma.class.findFirst({
       where: {
@@ -229,7 +245,11 @@ export class ClassesService {
     return enrollment;
   }
 
-  async rejectEnrollment(classId: string, enrollmentId: string, teacherId: string) {
+  async rejectEnrollment(
+    classId: string,
+    enrollmentId: string,
+    teacherId: string,
+  ) {
     // 验证班级所有权
     const classData = await this.prisma.class.findFirst({
       where: {
@@ -324,19 +344,19 @@ export class ClassesService {
 
     if (!classData) return;
 
-      await this.prisma.accessGrant.createMany({
-        data: [
-          {
-            studentId,
-            granteeId: classData.teacherId,
-            scope: ['progress:read'],
-            status: 'active',
-            grantedAt: new Date(),
-          },
+    await this.prisma.accessGrant.createMany({
+      data: [
         {
           studentId,
           granteeId: classData.teacherId,
-          scope: ['works:read'],
+          scope: 'progress:read',
+          status: 'active',
+          grantedAt: new Date(),
+        },
+        {
+          studentId,
+          granteeId: classData.teacherId,
+          scope: 'works:read',
           status: 'active',
           grantedAt: new Date(),
         },

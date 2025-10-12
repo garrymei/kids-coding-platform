@@ -1,4 +1,4 @@
-import { Injectable, HttpException, HttpStatus } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { RedisService } from '../../redis/redis.service';
 
@@ -205,6 +205,7 @@ export class RateLimitService {
           timestamp: new Date().toISOString(),
           severity: 'warning',
         },
+        ts: new Date(),
       },
     });
   }
@@ -251,6 +252,7 @@ export class RateLimitService {
           timestamp: new Date().toISOString(),
           severity: 'critical',
         },
+        ts: new Date(),
       },
     });
   }
@@ -272,6 +274,7 @@ export class RateLimitService {
           timestamp: new Date().toISOString(),
           severity: 'info',
         },
+        ts: new Date(),
       },
     });
   }
@@ -282,7 +285,7 @@ export class RateLimitService {
     ipAddress: string,
     searchPattern: string,
   ): Promise<boolean> {
-    const key = `brute_force:${userId}:${ipAddress}`;
+    const _key = `brute_force:${userId}:${ipAddress}`;
     const patternKey = `search_pattern:${userId}`;
 
     // 记录搜索模式

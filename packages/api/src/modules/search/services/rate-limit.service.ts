@@ -1,5 +1,6 @@
 import { Injectable, HttpException, HttpStatus } from '@nestjs/common';
 import { PrismaService } from '../../../prisma/prisma.service';
+import { AuditLoggerService } from '../../audit/services/audit-logger.service';
 
 export interface RateLimitConfig {
   maxRequests: number;
@@ -9,7 +10,10 @@ export interface RateLimitConfig {
 
 @Injectable()
 export class RateLimitService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly auditLogger: AuditLoggerService,
+  ) {}
 
   // 搜索速率限制配置
   private readonly searchRateLimit: RateLimitConfig = {
@@ -66,7 +70,7 @@ export class RateLimitService {
       where: {
         action: `${action}_rate_limit_check`,
         metadata: {
-          path: ['identifier'],
+          path: 'identifier',
           equals: identifier,
         },
         ts: {
@@ -76,44 +80,45 @@ export class RateLimitService {
     });
 
     if (recentRequests >= config.maxRequests) {
-      // 记录速率限制违规
-      await this.prisma.auditLog.create({
-        data: {
-          actorId: identifierType === 'user' ? identifier : 'system',
-          action: `${action}_rate_limit_exceeded`,
-          targetType: 'rate_limit',
-          targetId: identifier,
-          metadata: {
-            identifier,
-            identifierType,
-            action,
-            requestCount: recentRequests,
-            maxRequests: config.maxRequests,
-            windowMs: config.windowMs,
-            ip: identifierType === 'ip' ? identifier : undefined,
+      // 记录速率限制违规 - 只有当identifierType为'user'时才记录审计日志
+      if (identifierType === 'user') {
+        await this.prisma.auditLog.create({
+          data: {
+            actorId: identifier,
+            action: `${action}_rate_limit_exceeded`,
+            targetType: 'rate_limit',
+            targetId: identifier,
+            metadata: {
+              identifier,
+              identifierType,
+              action,
+              requestCount: recentRequests,
+              maxRequests: config.maxRequests,
+              windowMs: config.windowMs,
+              ip: undefined, // 当identifierType为'user'时，ip为undefined
+            },
+            ts: new Date(),
           },
-        },
-      });
+        });
+      }
 
       throw new HttpException(config.message, HttpStatus.TOO_MANY_REQUESTS);
     }
 
     // 记录当前请求
-    await this.prisma.auditLog.create({
-      data: {
-        actorId: identifierType === 'user' ? identifier : 'system',
-        action: `${action}_rate_limit_check`,
-        targetType: 'rate_limit',
-        targetId: identifier,
-        metadata: {
-          identifier,
-          identifierType,
-          action,
-          requestCount: recentRequests + 1,
-          maxRequests: config.maxRequests,
-          windowMs: config.windowMs,
-          ip: identifierType === 'ip' ? identifier : undefined,
-        },
+    await this.auditLogger.log({
+      actorId: identifierType === 'user' ? identifier : 'system',
+      action: `${action}_rate_limit_check`,
+      targetType: 'rate_limit',
+      targetId: identifier,
+      metadata: {
+        identifier,
+        identifierType,
+        action,
+        requestCount: recentRequests + 1,
+        maxRequests: config.maxRequests,
+        windowMs: config.windowMs,
+        ip: identifierType === 'ip' ? identifier : undefined,
       },
     });
   }
@@ -137,7 +142,7 @@ export class RateLimitService {
       where: {
         action: `${action}_rate_limit_check`,
         metadata: {
-          path: ['identifier'],
+          path: 'identifier',
           equals: identifier,
         },
         ts: {

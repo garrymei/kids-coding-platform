@@ -1,6 +1,15 @@
-import { Controller, Post, Body, UseGuards, Request, BadRequestException, Logger } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Body,
+  UseGuards,
+  Request,
+  BadRequestException,
+  Logger,
+} from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { AuditLoggerService } from '../audit/services/audit-logger.service';
 // EnrollmentStatus is now a string enum in the schema
 
 @Controller('classes')
@@ -8,14 +17,19 @@ import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 export class ClassesController {
   private readonly logger = new Logger(ClassesController.name);
 
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly auditLogger: AuditLoggerService,
+  ) {}
 
   @Post('join')
   async joinClass(@Body() body: { code: string }, @Request() req) {
     const studentId = req.user.id;
     const { code } = body;
 
-    this.logger.log(`Student ${studentId} attempting to join class with code: ${code}`);
+    this.logger.log(
+      `Student ${studentId} attempting to join class with code: ${code}`,
+    );
 
     try {
       // Find class by code
@@ -61,17 +75,22 @@ export class ClassesController {
       });
 
       // Create audit log
-      await this.prisma.auditLog.create({
-        data: {
-          actorId: studentId,
-          action: 'CLASS_JOIN_REQUEST',
-          targetType: 'class',
-          targetId: classToJoin.id,
-          metadata: { code, classId: classToJoin.id },
+      await this.auditLogger.log({
+        actorId: studentId,
+        action: 'join_class',
+        targetType: 'class',
+        targetId: classToJoin.id,
+        metadata: {
+          inviteCode: code,
+          timestamp: new Date().toISOString(),
         },
+        ip: req.ip,
+        userAgent: req.get('User-Agent'),
       });
 
-      this.logger.log(`Student ${studentId} successfully requested to join class ${classToJoin.id}`);
+      this.logger.log(
+        `Student ${studentId} successfully requested to join class ${classToJoin.id}`,
+      );
 
       return {
         success: true,

@@ -2,7 +2,6 @@ import {
   Controller,
   Get,
   Post,
-  Put,
   Delete,
   Body,
   Param,
@@ -252,7 +251,9 @@ export class AuthorizationCenterController {
       where: { id: consentId },
       data: {
         status: 'APPROVED',
-        scope: approvalData.scopes || consent.scope,
+        scope: Array.isArray(approvalData.scopes)
+          ? approvalData.scopes.join(',')
+          : String(consent.scope),
         expiresAt: approvalData.expiresAt
           ? new Date(approvalData.expiresAt)
           : consent.expiresAt,
@@ -275,7 +276,9 @@ export class AuthorizationCenterController {
       data: {
         granteeId: consent.requesterId,
         studentId,
-        scope: approvalData.scopes || consent.scope,
+        scope: Array.isArray(approvalData.scopes)
+          ? approvalData.scopes.join(',')
+          : String(consent.scope),
         status: 'ACTIVE',
         expiresAt: approvalData.expiresAt
           ? new Date(approvalData.expiresAt)
@@ -296,6 +299,7 @@ export class AuthorizationCenterController {
           scopes: approvalData.scopes || consent.scope,
           expiresAt: approvalData.expiresAt,
         },
+        ts: new Date(),
       },
     });
 
@@ -350,6 +354,7 @@ export class AuthorizationCenterController {
           requesterId: consent.requesterId,
           rejectionReason: rejectionData.reason,
         },
+        ts: new Date(),
       },
     });
 
@@ -407,6 +412,7 @@ export class AuthorizationCenterController {
           partyId: relationship.partyId,
           revocationReason: revocationData.reason,
         },
+        ts: new Date(),
       },
     });
 
@@ -499,6 +505,7 @@ export class AuthorizationCenterController {
           relationshipId: relationship?.id,
           leaveReason: leaveData.reason,
         },
+        ts: new Date(),
       },
     });
 
@@ -513,11 +520,11 @@ export class AuthorizationCenterController {
   @RequirePermissions(PermissionType.VIEW_OWN_AUDIT)
   @ApiOperation({ summary: '获取授权审计摘要' })
   @ApiResponse({ status: 200, description: '获取成功', type: AuditSummaryDto })
-  async getAuditSummary(@Request() req, @Query() query: any) {
+  async getAuditSummary(@Request() req, @Query() query: AuditQueryParams) {
     const studentId = req.user.userId;
     const { startDate, endDate, action } = query;
 
-    const where: any = {
+    const where: AuditLogWhereClause = {
       actorId: studentId,
     };
 
@@ -549,4 +556,19 @@ export class AuthorizationCenterController {
 
     return summary;
   }
+}
+
+interface AuditQueryParams {
+  startDate?: string;
+  endDate?: string;
+  action?: string;
+}
+
+interface AuditLogWhereClause {
+  actorId: string;
+  ts?: {
+    gte?: Date;
+    lte?: Date;
+  };
+  action?: string;
 }

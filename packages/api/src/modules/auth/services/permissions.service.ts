@@ -9,7 +9,10 @@ export class PermissionsService {
   constructor(private readonly prisma: PrismaService) {}
 
   // 检查用户是否可以访问学生数据
-  async canAccessStudentData(requesterId: string, studentId: string): Promise<boolean> {
+  async canAccessStudentData(
+    requesterId: string,
+    studentId: string,
+  ): Promise<boolean> {
     try {
       // 获取请求者信息
       const requester = await this.prisma.user.findUnique({
@@ -58,13 +61,18 @@ export class PermissionsService {
 
       return false;
     } catch (error) {
-      this.logger.error('Failed to check student data access:', error);
+      this.logger.error(
+        `Failed to check student data access: ${error instanceof Error ? error.message : String(error)}`,
+      );
       return false;
     }
   }
 
   // 检查用户是否可以访问班级数据
-  async canAccessClassData(requesterId: string, classId: string): Promise<boolean> {
+  async canAccessClassData(
+    requesterId: string,
+    classId: string,
+  ): Promise<boolean> {
     try {
       // 获取请求者信息
       const requester = await this.prisma.user.findUnique({
@@ -105,13 +113,18 @@ export class PermissionsService {
 
       return false;
     } catch (error) {
-      this.logger.error('Failed to check class data access:', error);
+      this.logger.error(
+        `Failed to check class data access: ${error instanceof Error ? error.message : String(error)}`,
+      );
       return false;
     }
   }
 
   // 检查用户是否可以记录学生事件
-  async canRecordStudentEvents(requesterId: string, studentId: string): Promise<boolean> {
+  async canRecordStudentEvents(
+    requesterId: string,
+    studentId: string,
+  ): Promise<boolean> {
     try {
       // 学生只能记录自己的事件
       if (requesterId === studentId) {
@@ -129,7 +142,9 @@ export class PermissionsService {
 
       return false;
     } catch (error) {
-      this.logger.error('Failed to check event recording permission:', error);
+      this.logger.error(
+        `Failed to check event recording permission: ${error instanceof Error ? error.message : String(error)}`,
+      );
       return false;
     }
   }
@@ -164,13 +179,18 @@ export class PermissionsService {
 
       return false;
     } catch (error) {
-      this.logger.error('Failed to check class management permission:', error);
+      this.logger.error(
+        `Failed to check class management permission: ${error instanceof Error ? error.message : String(error)}`,
+      );
       return false;
     }
   }
 
   // 检查用户是否可以管理授权请求
-  async canManageConsent(requesterId: string, consentId: string): Promise<boolean> {
+  async canManageConsent(
+    requesterId: string,
+    consentId: string,
+  ): Promise<boolean> {
     try {
       // 获取授权请求信息
       const consent = await this.prisma.consent.findUnique({
@@ -202,7 +222,9 @@ export class PermissionsService {
 
       return false;
     } catch (error) {
-      this.logger.error('Failed to check consent management permission:', error);
+      this.logger.error(
+        `Failed to check consent management permission: ${error instanceof Error ? error.message : String(error)}`,
+      );
       return false;
     }
   }
@@ -210,7 +232,9 @@ export class PermissionsService {
   // 验证角色权限
   requireRole(userRole: Role, allowedRoles: Role[]): void {
     if (!allowedRoles.includes(userRole)) {
-      throw new ForbiddenException(`Access denied. Required roles: ${allowedRoles.join(', ')}`);
+      throw new ForbiddenException(
+        `Access denied. Required roles: ${allowedRoles.join(', ')}`,
+      );
     }
   }
 
@@ -218,12 +242,16 @@ export class PermissionsService {
   async requireOwnership<T>(
     requesterId: string,
     resourceId: string,
-    ownershipCheck: (requesterId: string, resourceId: string) => Promise<boolean>,
+    ownershipCheck: (
+      requesterId: string,
+      resourceId: string,
+    ) => Promise<boolean>,
   ): Promise<void> {
     const hasAccess = await ownershipCheck(requesterId, resourceId);
     if (!hasAccess) {
-      throw new ForbiddenException('Access denied. You do not own this resource.');
+      throw new ForbiddenException(
+        'Access denied. You do not own this resource.',
+      );
     }
   }
 }
-

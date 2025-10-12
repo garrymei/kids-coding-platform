@@ -21,12 +21,18 @@ export class AuditService {
         targetType: data.targetType,
         targetId: data.targetId,
         metadata: data.metadata || {},
+        ts: new Date(),
       },
     });
   }
 
   // 记录查看学生数据
-  async logStudentDataView(actorId: string, studentId: string, dataType: string, metadata?: Record<string, any>) {
+  async logStudentDataView(
+    actorId: string,
+    studentId: string,
+    dataType: string,
+    metadata?: Record<string, any>,
+  ) {
     return this.log({
       actorId,
       action: 'view_student_data',
@@ -40,7 +46,12 @@ export class AuditService {
   }
 
   // 记录授权操作
-  async logAccessGrant(actorId: string, targetId: string, action: 'grant' | 'revoke' | 'update', metadata?: Record<string, any>) {
+  async logAccessGrant(
+    actorId: string,
+    targetId: string,
+    action: 'grant' | 'revoke' | 'update',
+    metadata?: Record<string, any>,
+  ) {
     return this.log({
       actorId,
       action: `access_${action}`,
@@ -51,7 +62,12 @@ export class AuditService {
   }
 
   // 记录关系操作
-  async logRelationshipChange(actorId: string, relationshipId: string, action: 'create' | 'update' | 'revoke', metadata?: Record<string, any>) {
+  async logRelationshipChange(
+    actorId: string,
+    relationshipId: string,
+    action: 'create' | 'update' | 'revoke',
+    metadata?: Record<string, any>,
+  ) {
     return this.log({
       actorId,
       action: `relationship_${action}`,
@@ -62,7 +78,12 @@ export class AuditService {
   }
 
   // 记录班级操作
-  async logClassOperation(actorId: string, classId: string, action: string, metadata?: Record<string, any>) {
+  async logClassOperation(
+    actorId: string,
+    classId: string,
+    action: string,
+    metadata?: Record<string, any>,
+  ) {
     return this.log({
       actorId,
       action: `class_${action}`,
@@ -73,7 +94,12 @@ export class AuditService {
   }
 
   // 记录同意书操作
-  async logConsentChange(actorId: string, consentId: string, action: 'create' | 'approve' | 'reject' | 'expire', metadata?: Record<string, any>) {
+  async logConsentChange(
+    actorId: string,
+    consentId: string,
+    action: 'create' | 'approve' | 'reject' | 'expire',
+    metadata?: Record<string, any>,
+  ) {
     return this.log({
       actorId,
       action: `consent_${action}`,
@@ -93,7 +119,7 @@ export class AuditService {
     offset: number = 0,
   ) {
     const where: any = {};
-    
+
     if (actorId) where.actorId = actorId;
     if (targetType) where.targetType = targetType;
     if (targetId) where.targetId = targetId;
@@ -120,13 +146,14 @@ export class AuditService {
   }
 
   // 获取用户相关的审计日志
-  async getUserAuditLogs(userId: string, limit: number = 50, offset: number = 0) {
+  async getUserAuditLogs(
+    userId: string,
+    limit: number = 50,
+    offset: number = 0,
+  ) {
     return this.prisma.auditLog.findMany({
       where: {
-        OR: [
-          { actorId: userId },
-          { targetId: userId },
-        ],
+        OR: [{ actorId: userId }, { targetId: userId }],
       },
       include: {
         actor: {

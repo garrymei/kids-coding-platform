@@ -20,6 +20,7 @@ import {
 } from '../../auth/decorators/permissions.decorator';
 import { ClassManagementService } from '../services/class-management.service';
 import { PrismaService } from '../../../prisma/prisma.service';
+import { AuditLoggerService } from '../../audit/services/audit-logger.service';
 
 @ApiTags('class-invite')
 @Controller('classes/invite')
@@ -29,6 +30,7 @@ export class ClassInviteController {
   constructor(
     private readonly classManagementService: ClassManagementService,
     private readonly prisma: PrismaService,
+    private readonly auditLogger: AuditLoggerService,
   ) {}
 
   @Get('code/:code')
@@ -158,18 +160,18 @@ export class ClassInviteController {
     });
 
     // 记录审计日志
-    await this.prisma.auditLog.create({
-      data: {
-        actorId: teacherId,
-        action: 'regenerate_class_invite_code',
-        targetType: 'class',
-        targetId: classId,
-        metadata: {
-          oldCode: classInfo.code,
-          newCode: newCode,
-          className: classInfo.name,
-        },
+    await this.auditLogger.log({
+      actorId: teacherId,
+      action: 'class_invite_sent',
+      targetType: 'class',
+      targetId: classId,
+      metadata: {
+        inviteCode: newCode,
+        expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+        timestamp: new Date().toISOString(),
       },
+      ip: req.ip,
+      userAgent: req.get('User-Agent'),
     });
 
     return {

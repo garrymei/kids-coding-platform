@@ -1,4 +1,9 @@
-import { Injectable, NotFoundException, BadRequestException, Logger } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+  Logger,
+} from '@nestjs/common';
 import { CreateLinkRequestDto } from './dto/link-request.dto';
 import { PrismaService } from '../../prisma/prisma.service';
 import { Role, ConsentStatus } from '@prisma/client';
@@ -14,7 +19,7 @@ export class ParentsService {
     const students = await this.prisma.user.findMany({
       where: {
         role: Role.student,
-        name: { contains: query, mode: 'insensitive' },
+        name: { contains: query },
       },
       select: {
         id: true,
@@ -26,8 +31,13 @@ export class ParentsService {
     return students;
   }
 
-  async createLinkRequest(createLinkRequestDto: CreateLinkRequestDto, parentId: string) {
-    this.logger.log(`Creating link request for student: ${createLinkRequestDto.studentId} by parent: ${parentId}`);
+  async createLinkRequest(
+    createLinkRequestDto: CreateLinkRequestDto,
+    parentId: string,
+  ) {
+    this.logger.log(
+      `Creating link request for student: ${createLinkRequestDto.studentId} by parent: ${parentId}`,
+    );
 
     const student = await this.prisma.user.findFirst({
       where: { id: createLinkRequestDto.studentId, role: Role.student },
@@ -62,8 +72,13 @@ export class ParentsService {
     return newRequest;
   }
 
-  async getLinkRequests(parentId: string, status?: 'pending' | 'approved' | 'rejected') {
-    this.logger.log(`Fetching link requests for parent: ${parentId} with status: ${status}`);
+  async getLinkRequests(
+    parentId: string,
+    status?: 'pending' | 'approved' | 'rejected',
+  ) {
+    this.logger.log(
+      `Fetching link requests for parent: ${parentId} with status: ${status}`,
+    );
 
     const whereClause: any = {
       parentId: parentId,
@@ -88,7 +103,7 @@ export class ParentsService {
     });
 
     // Map to the structure expected by the frontend
-    return requests.map(req => ({
+    return requests.map((req) => ({
       id: req.id,
       studentId: req.studentId,
       studentName: req.student.name,

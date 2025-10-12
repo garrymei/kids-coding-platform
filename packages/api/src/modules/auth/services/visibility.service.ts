@@ -6,13 +6,18 @@ export class VisibilityService {
   constructor(private readonly prisma: PrismaService) {}
 
   // 过滤学生数据，根据权限返回可见部分
-  async filterStudentData(studentId: string, viewerId: string, viewerRole: string) {
+  async filterStudentData(
+    studentId: string,
+    viewerId: string,
+    viewerRole: string,
+  ) {
     const baseData = await this.prisma.user.findUnique({
       where: { id: studentId },
       include: {
         metricsSnapshots: true,
         // 这里可以添加更多需要过滤的数据
-      }});
+      },
+    });
 
     if (!baseData) {
       return null;
@@ -53,7 +58,8 @@ export class VisibilityService {
         // 可以添加更多学习相关数据
       },
       createdAt: student.createdAt,
-      updatedAt: student.updatedAt};
+      updatedAt: student.updatedAt,
+    };
   }
 
   // 家长查看数据 - 仅授权范围内的只读数据
@@ -64,10 +70,9 @@ export class VisibilityService {
         granteeId: parentId,
         studentId: student.id,
         status: 'ACTIVE',
-        OR: [
-          { expiresAt: null },
-          { expiresAt: { gt: new Date() } },
-        ]}});
+        OR: [{ expiresAt: null }, { expiresAt: { gt: new Date() } }],
+      },
+    });
 
     if (!accessGrant) {
       return null; // 无授权，返回空
@@ -87,7 +92,9 @@ export class VisibilityService {
     }
 
     if (accessGrant.scope.includes('progress:read')) {
-      filteredData.learningProgress = this.filterProgressData(student.metricsSnapshots);
+      filteredData.learningProgress = this.filterProgressData(
+        student.metricsSnapshots,
+      );
     }
 
     if (accessGrant.scope.includes('works:read')) {
@@ -104,7 +111,8 @@ export class VisibilityService {
       grantedBy: 'student',
       grantedAt: accessGrant.createdAt,
       expiresAt: accessGrant.expiresAt,
-      scopes: accessGrant.scope};
+      scopes: accessGrant.scope,
+    };
 
     return filteredData;
   }
@@ -118,9 +126,13 @@ export class VisibilityService {
         status: 'ACTIVE',
         class: {
           teacherId: teacherId,
-          status: 'ACTIVE'}},
+          status: 'ACTIVE',
+        },
+      },
       include: {
-        class: true}});
+        class: true,
+      },
+    });
 
     if (!classAccess) {
       return null; // 无班级关系，返回空
@@ -131,7 +143,8 @@ export class VisibilityService {
       displayName: student.displayName,
       nickname: student.nickname,
       school: student.school,
-      className: student.className};
+      className: student.className,
+    };
 
     // 教师可以查看教学相关数据
     filteredData.teachingData = {
@@ -145,7 +158,8 @@ export class VisibilityService {
     filteredData.classInfo = {
       classId: classAccess.class.id,
       className: classAccess.class.name,
-      enrolledAt: classAccess.createdAt};
+      enrolledAt: classAccess.createdAt,
+    };
 
     return filteredData;
   }
@@ -168,12 +182,13 @@ export class VisibilityService {
         // 不包含具体的学习数据
       },
       createdAt: student.createdAt,
-      updatedAt: student.updatedAt};
+      updatedAt: student.updatedAt,
+    };
   }
 
   // 过滤进度数据
   private filterProgressData(metricsSnapshots: any[]) {
-    return metricsSnapshots.map(snapshot => ({
+    return metricsSnapshots.map((snapshot) => ({
       date: snapshot.date,
       tasksDone: snapshot.tasksDone,
       accuracy: snapshot.accuracy,
@@ -187,47 +202,65 @@ export class VisibilityService {
   // 过滤指标数据
   private filterMetricsData(metricsSnapshots: any[]) {
     // 计算总体指标
-    const totalTasks = metricsSnapshots.reduce((sum, s) => sum + s.tasksDone, 0);
-    const totalTime = metricsSnapshots.reduce((sum, s) => sum + s.timeSpentMin, 0);
+    const totalTasks = metricsSnapshots.reduce(
+      (sum, s) => sum + s.tasksDone,
+      0,
+    );
+    const totalTime = metricsSnapshots.reduce(
+      (sum, s) => sum + s.timeSpentMin,
+      0,
+    );
     const totalXP = metricsSnapshots.reduce((sum, s) => sum + s.xpGained, 0);
-    const avgAccuracy = metricsSnapshots.length > 0 
-      ? metricsSnapshots.reduce((sum, s) => sum + s.accuracy, 0) / metricsSnapshots.length 
-      : 0;
+    const avgAccuracy =
+      metricsSnapshots.length > 0
+        ? metricsSnapshots.reduce((sum, s) => sum + s.accuracy, 0) /
+          metricsSnapshots.length
+        : 0;
 
     return {
       totalTasks,
       totalTime,
       totalXP,
       averageAccuracy: avgAccuracy,
-      currentStreak: metricsSnapshots.length > 0 ? metricsSnapshots[0].streakDays : 0,
+      currentStreak:
+        metricsSnapshots.length > 0 ? metricsSnapshots[0].streakDays : 0,
       // 不包含具体的学习轨迹
     };
   }
 
   // 获取过滤后的作品数据
-  private async getFilteredWorks(studentId: string, viewerType: 'parent' | 'teacher') {
+  private async getFilteredWorks(
+    studentId: string,
+    viewerType: 'parent' | 'teacher',
+  ) {
     // 这里应该查询学生的作品数据
     // 根据查看者类型过滤内容
-    
+
     if (viewerType === 'parent') {
       // 家长只能看到成果，不能看到代码
       return {
         works: [], // 这里应该返回过滤后的作品列表
-        note: '家长只能查看学习成果，不能查看代码内容'};
+        note: '家长只能查看学习成果，不能查看代码内容',
+      };
     } else if (viewerType === 'teacher') {
       // 教师可以看到教学相关的内容
       return {
         works: [], // 这里应该返回教师可见的作品列表
-        note: '教师可以查看教学相关内容'};
+        note: '教师可以查看教学相关内容',
+      };
     }
 
     return { works: [] };
   }
 
   // 检查用户是否有权限查看特定数据
-  async hasDataAccess(viewerId: string, targetStudentId: string, dataType: string): Promise<boolean> {
+  async hasDataAccess(
+    viewerId: string,
+    targetStudentId: string,
+    dataType: string,
+  ): Promise<boolean> {
     const viewer = await this.prisma.user.findUnique({
-      where: { id: viewerId }
+      where: { id: viewerId },
     });
 
     if (!viewer) {
@@ -252,22 +285,29 @@ export class VisibilityService {
     }
   }
 
-  private async checkParentAccess(parentId: string, studentId: string, dataType: string): Promise<boolean> {
+  private async checkParentAccess(
+    parentId: string,
+    studentId: string,
+    dataType: string,
+  ): Promise<boolean> {
     const accessGrant = await this.prisma.accessGrant.findFirst({
       where: {
         granteeId: parentId,
         studentId,
         status: 'ACTIVE',
-        scope: { has: dataType },
-        OR: [
-          { expiresAt: null },
-          { expiresAt: { gt: new Date() } },
-        ]}});
+        scope: { contains: dataType },
+        OR: [{ expiresAt: null }, { expiresAt: { gt: new Date() } }],
+      },
+    });
 
     return !!accessGrant;
   }
 
-  private async checkTeacherAccess(teacherId: string, studentId: string, dataType: string): Promise<boolean> {
+  private async checkTeacherAccess(
+    teacherId: string,
+    studentId: string,
+    dataType: string,
+  ): Promise<boolean> {
     // 检查是否有班级关系
     const classAccess = await this.prisma.classEnrollment.findFirst({
       where: {
@@ -275,7 +315,10 @@ export class VisibilityService {
         status: 'ACTIVE',
         class: {
           teacherId: teacherId,
-          status: 'ACTIVE'}}});
+          status: 'ACTIVE',
+        },
+      },
+    });
 
     if (!classAccess) {
       return false;

@@ -112,7 +112,7 @@ export class RequestsController {
         studentId: targetStudent.id,
         requesterId,
         purpose: 'relationship_request',
-        scope: requestData.scope,
+        scope: JSON.stringify(requestData.scope),
         reason: requestData.reason,
         expiresAt: requestData.expiresAt
           ? new Date(requestData.expiresAt)
@@ -133,13 +133,18 @@ export class RequestsController {
     });
 
     // 记录审计日志
-    await this.auditLogger.logRequest(requesterId, 'create', consent.id, {
-      studentId: targetStudent.id,
-      scope: requestData.scope,
-      reason: requestData.reason,
-      expiresAt: requestData.expiresAt,
-      shareCode: requestData.shareCode,
-      ip: requesterIp,
+    await this.auditLogger.log({
+      actorId: requesterId,
+      action: 'relationship_request_sent',
+      targetType: 'relationship',
+      targetId: relationship.id,
+      metadata: {
+        targetUserId: targetStudent.id,
+        relationshipType: 'PARENT',
+        timestamp: new Date().toISOString(),
+      },
+      ip: req.ip,
+      userAgent: req.get('User-Agent'),
     });
 
     // 这里应该发送通知给学生
@@ -222,7 +227,9 @@ export class RequestsController {
       where: { id: consentId },
       data: {
         status: 'APPROVED',
-        scope: approvalData.scopes || consent.scope,
+        scope: JSON.stringify(
+          approvalData.scopes || JSON.parse(consent.scope || '[]'),
+        ),
         expiresAt: approvalData.expiresAt
           ? new Date(approvalData.expiresAt)
           : consent.expiresAt,
@@ -250,7 +257,9 @@ export class RequestsController {
       data: {
         granteeId: consent.requesterId,
         studentId,
-        scope: approvalData.scopes || consent.scope,
+        scope: JSON.stringify(
+          approvalData.scopes || JSON.parse(consent.scope || '[]'),
+        ),
         status: 'ACTIVE',
         expiresAt: approvalData.expiresAt
           ? new Date(approvalData.expiresAt)

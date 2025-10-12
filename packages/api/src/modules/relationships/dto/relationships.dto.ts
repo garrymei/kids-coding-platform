@@ -27,6 +27,16 @@ export class RequestParentAccessDto {
   reason: string;
 
   @ApiProperty({
+    example: ['progress:read', 'works:read'],
+    description: '申请权限范围',
+    required: false,
+  })
+  @IsArray()
+  @IsString({ each: true })
+  @IsOptional()
+  scopes?: string[];
+
+  @ApiProperty({
     example: '2024-12-31T23:59:59Z',
     description: '授权过期时间',
     required: false,
@@ -51,6 +61,16 @@ export class RequestTeacherAccessDto {
   @IsString()
   @IsNotEmpty()
   reason: string;
+
+  @ApiProperty({
+    example: ['progress:read', 'works:read'],
+    description: '申请权限范围',
+    required: false,
+  })
+  @IsArray()
+  @IsString({ each: true })
+  @IsOptional()
+  scopes?: string[];
 
   @ApiProperty({
     example: '2024-12-31T23:59:59Z',

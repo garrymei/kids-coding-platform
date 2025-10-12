@@ -2,7 +2,8 @@ import {
   Injectable,
   BadRequestException,
   NotFoundException,
-  ForbiddenException} from '@nestjs/common';
+  ForbiddenException,
+} from '@nestjs/common';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { randomBytes } from 'crypto';
 
@@ -25,7 +26,7 @@ export class ClassManagementService {
   ) {
     // 验证教师身份
     const teacher = await this.prisma.user.findUnique({
-      where: { id: teacherId }
+      where: { id: teacherId },
     });
 
     if (!teacher || teacher.role !== 'teacher') {
@@ -41,7 +42,8 @@ export class ClassManagementService {
     while (!isUnique && attempts < maxAttempts) {
       inviteCode = this.generateInviteCode();
       const existingClass = await this.prisma.class.findUnique({
-        where: { code: inviteCode }});
+        where: { code: inviteCode },
+      });
       isUnique = !existingClass;
       attempts++;
     }
@@ -56,13 +58,18 @@ export class ClassManagementService {
         name: classData.name,
         teacherId: teacherId,
         code: inviteCode!,
-        codeTTL: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)}, // 7 days
+        codeTTL: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+      }, // 7 days
       include: {
         ownerTeacher: {
           select: {
             id: true,
             displayName: true,
-            email: true}}}});
+            email: true,
+          },
+        },
+      },
+    });
 
     // 记录审计日志
     await this.prisma.auditLog.create({
@@ -74,7 +81,11 @@ export class ClassManagementService {
         metadata: {
           className: classData.name,
           inviteCode: inviteCode,
-          description: classData.description}}});
+          description: classData.description,
+        },
+        ts: new Date(),
+      },
+    });
 
     return {
       id: newClass.id,
@@ -92,7 +103,7 @@ export class ClassManagementService {
   async joinClass(studentId: string, inviteCode: string) {
     // 验证学生身份
     const student = await this.prisma.user.findUnique({
-      where: { id: studentId }
+      where: { id: studentId },
     });
 
     if (!student || student.role !== 'student') {
@@ -107,7 +118,11 @@ export class ClassManagementService {
           select: {
             id: true,
             displayName: true,
-            email: true}}}});
+            email: true,
+          },
+        },
+      },
+    });
 
     if (!targetClass) {
       throw new NotFoundException('邀请码无效');
@@ -122,7 +137,10 @@ export class ClassManagementService {
       where: {
         classId_studentId: {
           classId: targetClass.id,
-          studentId: studentId}}});
+          studentId: studentId,
+        },
+      },
+    });
 
     if (existingEnrollment) {
       if (existingEnrollment.status === 'ACTIVE') {
@@ -139,7 +157,9 @@ export class ClassManagementService {
       data: {
         classId: targetClass.id,
         studentId: studentId,
-        status: 'PENDING'}});
+        status: 'PENDING',
+      },
+    });
 
     // 记录审计日志
     await this.prisma.auditLog.create({
@@ -151,7 +171,12 @@ export class ClassManagementService {
         metadata: {
           className: targetClass.name,
           inviteCode: inviteCode,
-          teacherId: targetClass.teacherId}}});
+          teacherId: targetClass.teacherId,
+          timestamp: new Date().toISOString(),
+        },
+        ts: new Date(),
+      },
+    });
 
     return {
       message: '入班申请已提交，等待教师审核',
@@ -160,8 +185,10 @@ export class ClassManagementService {
         id: targetClass.id,
         name: targetClass.name,
         description: targetClass.description,
-        teacher: targetClass.ownerTeacher},
-      status: 'PENDING'};
+        teacher: targetClass.ownerTeacher,
+      },
+      status: 'PENDING',
+    };
   }
 
   // 教师审批学生入班
@@ -172,7 +199,7 @@ export class ClassManagementService {
   ) {
     // 验证教师身份
     const teacher = await this.prisma.user.findUnique({
-      where: { id: teacherId }
+      where: { id: teacherId },
     });
 
     if (!teacher || teacher.role !== 'teacher') {
@@ -186,12 +213,19 @@ export class ClassManagementService {
         class: {
           include: {
             ownerTeacher: {
-              select: { id: true }}}},
+              select: { id: true },
+            },
+          },
+        },
         student: {
           select: {
             id: true,
             displayName: true,
-            email: true}}}});
+            email: true,
+          },
+        },
+      },
+    });
 
     if (!enrollment) {
       throw new NotFoundException('入班申请不存在');
@@ -209,7 +243,8 @@ export class ClassManagementService {
     // 更新入班状态
     await this.prisma.classEnrollment.update({
       where: { id: enrollmentId },
-      data: { status: decision === 'approve' ? 'ACTIVE' : 'REVOKED' }});
+      data: { status: decision === 'approve' ? 'ACTIVE' : 'REVOKED' },
+    });
 
     if (decision === 'approve') {
       // 创建关系记录
@@ -219,16 +254,24 @@ export class ClassManagementService {
           partyId: teacherId,
           partyRole: 'TEACHER',
           source: 'CLASS_INVITE',
-          status: 'ACTIVE'}});
+          status: 'ACTIVE',
+        },
+      });
 
       // 自动创建访问授权
       const accessGrant = await this.prisma.accessGrant.create({
         data: {
           granteeId: teacherId,
           studentId: enrollment.studentId,
-          scope: ['progress:read', 'metrics:read', 'works:read'],
+          scope: JSON.stringify([
+            'progress:read',
+            'metrics:read',
+            'works:read',
+          ]),
           status: 'ACTIVE',
-          relationshipId: relationship.id}});
+          relationshipId: relationship.id,
+        },
+      });
 
       // 记录审计日志
       await this.prisma.auditLog.create({
@@ -242,7 +285,12 @@ export class ClassManagementService {
             className: enrollment.class.name,
             relationshipId: relationship.id,
             accessGrantId: accessGrant.id,
-            grantedScopes: ['progress:read', 'metrics:read', 'works:read']}}});
+            grantedScopes: ['progress:read', 'metrics:read', 'works:read'],
+            timestamp: new Date().toISOString(),
+          },
+          ts: new Date(),
+        },
+      });
 
       return {
         message: '学生入班申请已批准',
@@ -250,7 +298,8 @@ export class ClassManagementService {
         relationshipId: relationship.id,
         accessGrantId: accessGrant.id,
         student: enrollment.student,
-        grantedScopes: ['progress:read', 'metrics:read', 'works:read']};
+        grantedScopes: ['progress:read', 'metrics:read', 'works:read'],
+      };
     } else {
       // 记录拒绝日志
       await this.prisma.auditLog.create({
@@ -261,12 +310,18 @@ export class ClassManagementService {
           targetId: enrollmentId,
           metadata: {
             studentId: enrollment.studentId,
-            className: enrollment.class.name}}});
+            className: enrollment.class.name,
+            timestamp: new Date().toISOString(),
+          },
+          ts: new Date(),
+        },
+      });
 
       return {
         message: '学生入班申请已拒绝',
         enrollmentId,
-        student: enrollment.student};
+        student: enrollment.student,
+      };
     }
   }
 
@@ -274,7 +329,7 @@ export class ClassManagementService {
   async leaveClass(studentId: string, classId: string) {
     // 验证学生身份
     const student = await this.prisma.user.findUnique({
-      where: { id: studentId }
+      where: { id: studentId },
     });
 
     if (!student || student.role !== 'student') {
@@ -286,12 +341,19 @@ export class ClassManagementService {
       where: {
         classId_studentId: {
           classId: classId,
-          studentId: studentId}},
+          studentId: studentId,
+        },
+      },
       include: {
         class: {
           include: {
             ownerTeacher: {
-              select: { id: true, displayName: true }}}}}});
+              select: { id: true, displayName: true },
+            },
+          },
+        },
+      },
+    });
 
     if (!enrollment) {
       throw new NotFoundException('您不在该班级中');
@@ -304,7 +366,8 @@ export class ClassManagementService {
     // 更新入班状态
     await this.prisma.classEnrollment.update({
       where: { id: enrollment.id },
-      data: { status: 'REVOKED' }});
+      data: { status: 'REVOKED' },
+    });
 
     // 撤销相关关系
     const relationship = await this.prisma.relationship.findFirst({
@@ -313,7 +376,9 @@ export class ClassManagementService {
         partyId: enrollment.class.ownerTeacher.id,
         partyRole: 'TEACHER',
         source: 'CLASS_INVITE',
-        status: 'ACTIVE'}});
+        status: 'ACTIVE',
+      },
+    });
 
     if (relationship) {
       // 撤销关系
@@ -321,14 +386,18 @@ export class ClassManagementService {
         where: { id: relationship.id },
         data: {
           status: 'REVOKED',
-          revokedAt: new Date()}});
+          revokedAt: new Date(),
+        },
+      });
 
       // 撤销相关授权
       await this.prisma.accessGrant.updateMany({
         where: {
           relationshipId: relationship.id,
-          status: 'ACTIVE'},
-        data: { status: 'REVOKED' }});
+          status: 'ACTIVE',
+        },
+        data: { status: 'REVOKED' },
+      });
     }
 
     // 记录审计日志
@@ -341,13 +410,19 @@ export class ClassManagementService {
         metadata: {
           className: enrollment.class.name,
           teacherId: enrollment.class.ownerTeacher.id,
-          relationshipId: relationship?.id}}});
+          relationshipId: relationship?.id,
+          timestamp: new Date().toISOString(),
+        },
+        ts: new Date(),
+      },
+    });
 
     return {
       message: '已成功退出班级',
       classId,
       className: enrollment.class.name,
-      teacher: enrollment.class.ownerTeacher};
+      teacher: enrollment.class.ownerTeacher,
+    };
   }
 
   // 获取教师的班级列表
@@ -355,7 +430,8 @@ export class ClassManagementService {
     const classes = await this.prisma.class.findMany({
       where: {
         teacherId: teacherId,
-        status: 'ACTIVE'},
+        status: 'ACTIVE',
+      },
       include: {
         enrollments: {
           where: { status: 'ACTIVE' },
@@ -366,12 +442,21 @@ export class ClassManagementService {
                 displayName: true,
                 nickname: true,
                 school: true,
-                className: true}}}},
+                className: true,
+              },
+            },
+          },
+        },
         _count: {
           select: {
             enrollments: {
-              where: { status: 'PENDING' }}}}},
-      orderBy: { createdAt: 'desc' }});
+              where: { status: 'PENDING' },
+            },
+          },
+        },
+      },
+      orderBy: { createdAt: 'desc' },
+    });
 
     return classes.map((cls) => ({
       id: cls.id,
@@ -383,7 +468,8 @@ export class ClassManagementService {
       pendingCount: cls._count.enrollments,
       students: cls.enrollments.map((enrollment) => enrollment.student),
       createdAt: cls.createdAt,
-      inviteUrl: `/classes/join/${cls.code}`}));
+      inviteUrl: `/classes/join/${cls.code}`,
+    }));
   }
 
   // 获取学生的班级列表
@@ -397,8 +483,14 @@ export class ClassManagementService {
               select: {
                 id: true,
                 displayName: true,
-                email: true}}}}},
-      orderBy: { createdAt: 'desc' }});
+                email: true,
+              },
+            },
+          },
+        },
+      },
+      orderBy: { createdAt: 'desc' },
+    });
 
     return enrollments.map((enrollment) => ({
       id: enrollment.id,
@@ -407,9 +499,11 @@ export class ClassManagementService {
         name: enrollment.class.name,
         description: enrollment.class.description,
         code: enrollment.class.code,
-        teacher: enrollment.class.ownerTeacher},
+        teacher: enrollment.class.ownerTeacher,
+      },
       status: enrollment.status,
-      joinedAt: enrollment.createdAt}));
+      joinedAt: enrollment.createdAt,
+    }));
   }
 
   // 获取班级的待审批学生列表
@@ -419,7 +513,9 @@ export class ClassManagementService {
       where: {
         id: classId,
         teacherId: teacherId,
-        status: 'ACTIVE'}});
+        status: 'ACTIVE',
+      },
+    });
 
     if (!classInfo) {
       throw new ForbiddenException('您没有权限访问该班级');
@@ -428,7 +524,8 @@ export class ClassManagementService {
     const enrollments = await this.prisma.classEnrollment.findMany({
       where: {
         classId: classId,
-        status: 'PENDING'},
+        status: 'PENDING',
+      },
       include: {
         student: {
           select: {
@@ -437,13 +534,18 @@ export class ClassManagementService {
             nickname: true,
             school: true,
             className: true,
-            email: true}}},
-      orderBy: { createdAt: 'desc' }});
+            email: true,
+          },
+        },
+      },
+      orderBy: { createdAt: 'desc' },
+    });
 
     return enrollments.map((enrollment) => ({
       id: enrollment.id,
       student: enrollment.student,
-      requestedAt: enrollment.createdAt}));
+      requestedAt: enrollment.createdAt,
+    }));
   }
 
   // 更新班级信息
@@ -460,7 +562,9 @@ export class ClassManagementService {
     const classInfo = await this.prisma.class.findFirst({
       where: {
         id: classId,
-        teacherId: teacherId}});
+        teacherId: teacherId,
+      },
+    });
 
     if (!classInfo) {
       throw new ForbiddenException('您没有权限修改该班级');
@@ -468,7 +572,8 @@ export class ClassManagementService {
 
     const updatedClass = await this.prisma.class.update({
       where: { id: classId },
-      data: updateData});
+      data: updateData,
+    });
 
     // 记录审计日志
     await this.prisma.auditLog.create({
@@ -481,8 +586,14 @@ export class ClassManagementService {
           oldData: {
             name: classInfo.name,
             description: classInfo.description,
-            status: classInfo.status},
-          newData: updateData}}});
+            status: classInfo.status,
+          },
+          newData: updateData,
+          timestamp: new Date().toISOString(),
+        },
+        ts: new Date(),
+      },
+    });
 
     return updatedClass;
   }

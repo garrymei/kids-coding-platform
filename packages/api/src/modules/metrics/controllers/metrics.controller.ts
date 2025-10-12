@@ -84,17 +84,17 @@ export class MetricsController {
     @Query('granularity') granularity: 'day' | 'week' = 'day',
   ): Promise<StudentTrendData[]> {
     const requesterId = req.user.userId;
-    
+
     // 记录审计日志
     await this.auditLogger.log({
       actorId: requesterId,
-      action: 'view_student_trend',
+      action: 'VIEW_STUDENT_TREND',
       targetType: 'student',
       targetId: studentId,
       metadata: {
-        from,
-        to,
-        granularity,
+        viewedBy: requesterId,
+        window: { from, to, granularity },
+        timestamp: new Date().toISOString(),
       },
       ip: req.ip,
     });
@@ -135,17 +135,18 @@ export class MetricsController {
     @Body() comparisonRequest: ComparisonRequest,
   ): Promise<StudentComparisonData[]> {
     const requesterId = req.user.userId;
-    
+
     // 记录审计日志
     await this.auditLogger.log({
       actorId: requesterId,
-      action: 'compare_students',
+      action: 'COMPARE_STUDENTS',
       targetType: 'student',
       targetId: 'multiple',
       metadata: {
-        studentIds: comparisonRequest.studentIds,
+        comparedStudents: comparisonRequest.studentIds,
         metrics: comparisonRequest.metrics,
         window: comparisonRequest.window,
+        timestamp: new Date().toISOString(),
       },
       ip: req.ip,
     });
@@ -179,16 +180,20 @@ export class MetricsController {
     // 记录审计日志
     await this.auditLogger.log({
       actorId: requesterId,
-      action: 'view_student_summary',
+      action: 'VIEW_STUDENT_SUMMARY',
       targetType: 'student',
       targetId: studentId,
       metadata: {
-        summaryType: '30_days',
+        viewedBy: requesterId,
+        timestamp: new Date().toISOString(),
       },
       ip: req.ip,
     });
 
-    const data = await this.metricsService.getStudentSummary(requesterId, studentId);
+    const data = await this.metricsService.getStudentSummary(
+      requesterId,
+      studentId,
+    );
 
     // 获取学生信息
     const student = await this.metricsService['prisma'].user.findUnique({
@@ -212,8 +217,7 @@ export class MetricsController {
       averageAccuracy: Math.round(data.accuracy * 100) / 100,
       totalXP: data.xp,
       currentStreak: data.streak,
-      lastActiveDate:
-        data.date?.toISOString().split('T')[0] || null,
+      lastActiveDate: data.date?.toISOString().split('T')[0] || null,
     };
   }
 
@@ -253,11 +257,12 @@ export class MetricsController {
     // 记录审计日志
     await this.auditLogger.log({
       actorId: requesterId,
-      action: 'view_class_overview',
+      action: 'VIEW_CLASS_SUMMARY',
       targetType: 'class',
       targetId: classId,
       metadata: {
-        timeWindow: '14_days',
+        viewedBy: requesterId,
+        timestamp: new Date().toISOString(),
       },
       ip: req.ip,
     });
