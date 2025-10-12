@@ -8,3 +8,7 @@ build/
 .env
 *.env.local
 logs/
+__pycache__/
+*.pyc
+server/executor/test_*.json
+server/executor/test_*.py
