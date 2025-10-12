@@ -10,6 +10,7 @@ export const NAV_ITEMS = [
   { href: '/works', label: '作品' },
   { href: '/creative', label: '创作间' },
   { href: '/rank', label: '排行榜' },
+  { href: '/profile', label: '我的成长' },
 ];
 
 interface AppHeaderProps {
@@ -64,13 +65,16 @@ export function AppHeader({ onToggleSidebar }: AppHeaderProps) {
               {isProfileOpen && <UserProfile user={user} onLogout={handleLogout} />}
             </div>
           ) : (
-            <img src="/avatar.svg" width={32} height={32} className="kc-avatar" alt="当前用户头像" />
+            <img
+              src="/avatar.svg"
+              width={32}
+              height={32}
+              className="kc-avatar"
+              alt="当前用户头像"
+            />
           )}
         </div>
       </div>
     </header>
   );
 }
-
-
-

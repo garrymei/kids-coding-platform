@@ -10,7 +10,7 @@
     "blockly": "<xml/>",
     "code": "# TODO: 使用循环和 print() 输出由 0/1 组成的像素图案\n# 提示：可以先为每一行构造字符串再打印\n"
   },
-  "solution": "# 提示：计算与圆心距离，距离小于半径时输出 1。",
+  "solution": "# 15×15 圆形\nimport math\n\nsize = 15\ncenter = size // 2\nradius = 6.5\n\nfor i in range(size):\n    row = \"\"\n    for j in range(size):\n        distance = math.sqrt((i - center) ** 2 + (j - center) ** 2)\n        if distance <= radius:\n            row += \"1\"\n        else:\n            row += \"0\"\n    print(row)",
   "assets": {
     "size": 15
   },

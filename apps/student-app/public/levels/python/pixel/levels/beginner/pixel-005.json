@@ -10,7 +10,7 @@
     "blockly": "<xml/>",
     "code": "# TODO: 使用循环和 print() 输出由 0/1 组成的像素图案\n# 提示：可以先为每一行构造字符串再打印\n"
   },
-  "solution": "# 提示：结合主副对角线与横杠形成字母 A。",
+  "solution": "# 7×7 右箭头\nfor i in range(7):\n    row = \"\"\n    for j in range(7):\n        if (i == 0 and j == 0) or (i == 1 and j == 1) or (i == 2 and j == 2) or i == 3 or (i == 4 and j == 2) or (i == 5 and j == 1) or (i == 6 and j == 0):\n            row += \"1\"\n        else:\n            row += \"0\"\n    print(row)",
   "assets": {
     "size": 7
   },

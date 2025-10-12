@@ -10,7 +10,7 @@
     "blockly": "<xml/>",
     "code": "# TODO: 使用循环和 print() 输出由 0/1 组成的像素图案\n# 提示：可以先为每一行构造字符串再打印\n"
   },
-  "solution": "# 提示：依据 (i + j) % 2 切换 0 与 1 形成棋盘。",
+  "solution": "# 8×8 棋盘图案\nfor i in range(8):\n    row = \"\"\n    for j in range(8):\n        if (i + j) % 2 == 0:\n            row += \"1\"\n        else:\n            row += \"0\"\n    print(row)",
   "assets": {
     "size": 8
   },

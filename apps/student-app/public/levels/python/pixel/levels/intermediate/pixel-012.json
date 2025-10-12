@@ -10,7 +10,7 @@
     "blockly": "<xml/>",
     "code": "# TODO: 使用循环和 print() 输出由 0/1 组成的像素图案\n# 提示：可以先为每一行构造字符串再打印\n"
   },
-  "solution": "# 提示：使用 abs(i-center)+abs(j-center) 构造菱形。",
+  "solution": "# 7×7 菱形\nfor i in range(7):\n    row = \"\"\n    for j in range(7):\n        if abs(i - 3) + abs(j - 3) <= 3:\n            row += \"1\"\n        else:\n            row += \"0\"\n    print(row)",
   "assets": {
     "size": 7
   },

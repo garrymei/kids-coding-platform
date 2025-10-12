@@ -16,8 +16,14 @@ export default function App() {
     fetchProfile();
   }, [fetchProfile]);
 
+  console.log('App render:', { isLoading, isAuthenticated, isDev: import.meta.env.DEV });
+
   if (isLoading) {
-    return <div>Loading...</div>; // Or a proper spinner component
+    return (
+      <div style={{ padding: '20px', color: 'white', background: '#0b1020', minHeight: '100vh' }}>
+        Loading...
+      </div>
+    );
   }
 
   // 开发模式下跳过登录验证

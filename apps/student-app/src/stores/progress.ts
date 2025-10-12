@@ -9,7 +9,13 @@ interface HomeSnapshot {
   xp: number;
   streakDays: number;
   today: { studyMinutes: number; attempts: number; passes: number };
-  packages: Array<{ pkgId: string; title: string; completed: number; total: number; percent: number }>;
+  packages: Array<{
+    pkgId: string;
+    title: string;
+    completed: number;
+    total: number;
+    percent: number;
+  }>;
   nextLesson?: { levelId: string; pkgId: string; title: string };
   recent: Array<{ levelId: string; passed: boolean; ts: string }>;
   achievements: Array<{ id: string; title: string; gainedAt: string }>;
@@ -79,11 +85,10 @@ const mockApi = {
   },
   post: async (url: string, payload: unknown) => {
     console.log(`[Mock API] POST ${url}`, payload);
-    await new Promise(resolve => setTimeout(resolve, 500));
+    await new Promise((resolve) => setTimeout(resolve, 500));
     return { accepted: 1 };
   },
 };
-
 
 // --- Zustand Store Implementation ---
 
@@ -94,15 +99,22 @@ export const useProgressStore = create<ProgressState & ProgressActions>((set, ge
   completedLevels: new Set(),
 
   fetchHome: async (studentId: string) => {
+    console.log('fetchHome called with studentId:', studentId);
     set({ loading: true });
-    const data = await mockApi.get(`/progress/students/${studentId}/home`);
-    // Initialize completedLevels from a reliable source if available, or derive it.
-    // For this mock, we'll fetch the main package and derive from it.
-    const pkgData = await mockApi.get(`/progress/students/${studentId}/packages/python-basics`);
-    const initialCompleted = new Set<string>(
-      (pkgData as any).levels.filter((l: any) => l.status === 'done').map((l: any) => l.levelId)
-    );
-    set({ snapshot: data as HomeSnapshot, completedLevels: initialCompleted, loading: false });
+    try {
+      const data = await mockApi.get(`/progress/students/${studentId}/home`);
+      console.log('fetchHome data received:', data);
+      // Initialize completedLevels from a reliable source if available, or derive it.
+      // For this mock, we'll fetch the main package and derive from it.
+      const pkgData = await mockApi.get(`/progress/students/${studentId}/packages/python-basics`);
+      const initialCompleted = new Set<string>(
+        (pkgData as any).levels.filter((l: any) => l.status === 'done').map((l: any) => l.levelId),
+      );
+      set({ snapshot: data as HomeSnapshot, completedLevels: initialCompleted, loading: false });
+    } catch (error) {
+      console.error('fetchHome error:', error);
+      set({ loading: false });
+    }
   },
 
   fetchPackage: async (studentId: string, pkgId: string) => {
@@ -111,7 +123,7 @@ export const useProgressStore = create<ProgressState & ProgressActions>((set, ge
       return;
     }
     const data = await mockApi.get(`/progress/students/${studentId}/packages/${pkgId}`);
-    set(state => ({
+    set((state) => ({
       pkgCache: {
         ...state.pkgCache,
         [pkgId]: { ...(data as any), ts: Date.now() },
@@ -133,7 +145,10 @@ export const useProgressStore = create<ProgressState & ProgressActions>((set, ge
       newSnapshot.today.passes += 1;
       newSnapshot.xp += isFirstPass ? XPRules.passLevel : XPRules.retryPass;
     }
-    newSnapshot.recent = [{ levelId, passed, ts: new Date().toISOString() }, ...snapshot.recent].slice(0, 5);
+    newSnapshot.recent = [
+      { levelId, passed, ts: new Date().toISOString() },
+      ...snapshot.recent,
+    ].slice(0, 5);
 
     const newPkgCache = { ...pkgCache };
     const newCompletedLevels = new Set(completedLevels);
@@ -142,39 +157,49 @@ export const useProgressStore = create<ProgressState & ProgressActions>((set, ge
     }
 
     Object.entries(newPkgCache).forEach(([pkgId, pkg]) => {
-      const levelIndex = pkg.levels.findIndex(l => l.levelId === levelId);
+      const levelIndex = pkg.levels.findIndex((l) => l.levelId === levelId);
       if (levelIndex !== -1) {
         const currentStatus = pkg.levels[levelIndex].status;
-        const nextStatus: LevelState = passed ? 'done' : (currentStatus === 'locked' ? 'in_progress' : currentStatus);
-        
-        if (pkg.levels[levelIndex].status !== nextStatus) {
-            pkg.levels[levelIndex] = { ...pkg.levels[levelIndex], status: nextStatus };
-            
-            const completedCount = pkg.levels.filter(l => l.status === 'done').length;
-            pkg.completed = completedCount;
-            pkg.percent = pkg.total > 0 ? completedCount / pkg.total : 0;
+        const nextStatus: LevelState = passed
+          ? 'done'
+          : currentStatus === 'locked'
+            ? 'in_progress'
+            : currentStatus;
 
-            const pkgInSnapshot = newSnapshot.packages.find(p => p.pkgId === pkgId);
-            if(pkgInSnapshot) {
-                pkgInSnapshot.completed = completedCount;
-                pkgInSnapshot.percent = pkg.percent;
-            }
+        if (pkg.levels[levelIndex].status !== nextStatus) {
+          pkg.levels[levelIndex] = { ...pkg.levels[levelIndex], status: nextStatus };
+
+          const completedCount = pkg.levels.filter((l) => l.status === 'done').length;
+          pkg.completed = completedCount;
+          pkg.percent = pkg.total > 0 ? completedCount / pkg.total : 0;
+
+          const pkgInSnapshot = newSnapshot.packages.find((p) => p.pkgId === pkgId);
+          if (pkgInSnapshot) {
+            pkgInSnapshot.completed = completedCount;
+            pkgInSnapshot.percent = pkg.percent;
+          }
         }
       }
     });
 
     set({ snapshot: newSnapshot, pkgCache: newPkgCache, completedLevels: newCompletedLevels });
 
-    mockApi.post('/progress/events', {
-      body: [{
-        type: 'LEVEL_ATTEMPT',
-        studentId,
-        levelId,
-        passed,
-        ts: new Date().toISOString(),
-      }],
-    }).catch(() => {
-      console.error("Failed to report event. In a real app, this would be added to a retry queue.");
-    });
+    mockApi
+      .post('/progress/events', {
+        body: [
+          {
+            type: 'LEVEL_ATTEMPT',
+            studentId,
+            levelId,
+            passed,
+            ts: new Date().toISOString(),
+          },
+        ],
+      })
+      .catch(() => {
+        console.error(
+          'Failed to report event. In a real app, this would be added to a retry queue.',
+        );
+      });
   },
 }));

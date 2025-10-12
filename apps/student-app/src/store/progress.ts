@@ -26,13 +26,13 @@ class ProgressStore {
     } catch (error) {
       // console.warn('Failed to load progress from storage:', error);
     }
-    
+
     // Default state
     return {
       completedLevels: [],
       xp: 0,
       coins: 0,
-      streakDays: 0
+      streakDays: 0,
     };
   }
 
@@ -57,10 +57,10 @@ class ProgressStore {
       this.state.completedLevels.push(levelId);
       this.state.xp += xp;
       this.state.coins += coins;
-      
+
       // Update streak days
       const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
-      
+
       if (!this.state.lastActivityDate) {
         // First activity
         this.state.streakDays = 1;
@@ -69,7 +69,7 @@ class ProgressStore {
         const currentDate = new Date(today);
         const diffTime = Math.abs(currentDate.getTime() - lastDate.getTime());
         const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-        
+
         if (diffDays === 1) {
           // Consecutive day
           this.state.streakDays += 1;
@@ -79,14 +79,14 @@ class ProgressStore {
         }
         // If diffDays is 0 (same day), we don't change the streak
       }
-      
+
       this.state.lastActivityDate = today;
       this.saveToStorage();
-      
+
       // 触发自定义事件，通知其他组件进度已更新
       if (typeof window !== 'undefined') {
         window.dispatchEvent(
-          new CustomEvent('progress-updated', { detail: { levelId, xp, coins } })
+          new CustomEvent('progress-updated', { detail: { levelId, xp, coins } }),
         );
       }
     }
@@ -97,9 +97,18 @@ class ProgressStore {
       completedLevels: [],
       xp: 0,
       coins: 0,
-      streakDays: 0
+      streakDays: 0,
     };
     this.saveToStorage();
+  }
+
+  addXp(xp: number): void {
+    if (xp <= 0) return;
+    this.state.xp += xp;
+    this.saveToStorage();
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('progress-updated', { detail: { xpDelta: xp } }));
+    }
   }
 }
 

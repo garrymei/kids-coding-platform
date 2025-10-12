@@ -30,6 +30,7 @@ const PackagePage = lazy(() => import('./pages/PackagePage'));
 const MapPage = lazy(() => import('./pages/MapPage'));
 const TasksPage = lazy(() => import('./pages/Tasks/TasksPage'));
 const AchievementsPage = lazy(() => import('./pages/Achievements/AchievementsPage'));
+const ProfilePage = lazy(() => import('./pages/Profile/ProfilePage'));
 const TestPage = lazy(() => import('./pages/TestPage'));
 const LearnPage = lazy(() => import('./pages/Learn/LearnPage'));
 const GameTesterPage = lazy(() => import('./pages/GameTesterPage'));
@@ -82,6 +83,10 @@ export const router = createBrowserRouter([
       {
         path: 'achievements',
         element: withSuspense(<AchievementsPage />, 'Loading achievements...'),
+      },
+      {
+        path: 'profile',
+        element: withSuspense(<ProfilePage />, 'Loading profile...'),
       },
       {
         path: 'test',
