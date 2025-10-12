@@ -3,6 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import type { CourseMapResponse, CourseMapNode } from '../models/course';
 import { fetchCourseMap } from '../services/course-map';
 import { CourseMap } from '../components/CourseMap';
+import { useAuthStore } from '../stores/auth';
 
 type SelectionOption = {
   language: string;
@@ -46,6 +47,7 @@ export default function MapPage() {
       const data = await fetchCourseMap({
         language: selection.language,
         game: selection.game,
+        userId: useAuthStore.getState().user?.id,
       });
       setState({ status: 'ready', data });
     } catch (error) {

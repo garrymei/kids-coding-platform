@@ -9,6 +9,8 @@ import { progressStore } from '../store/progress';
 import { HintPanel } from './HintPanel';
 import { PassAnimation } from './PassAnimation';
 import { updateAchievements } from '../services/achievements';
+import { updateProgress } from '../services/progress';
+import { useAuthStore } from '../stores/auth';
 import { clearSnapshot, loadSnapshot, saveSnapshot, type EditorMode } from '../utils/localStore';
 
 type Props = {
@@ -322,6 +324,20 @@ export default function StudyRunner({ language, game, level }: Props) {
           const baseXp = judge.xpAwarded ?? 10;
           const coins = coinsFromScore(judge.score);
           progressStore.completeLevel(levelId, baseXp, coins);
+
+          // 持久化到后端进度服务（用于课程地图合并）
+          try {
+            await updateProgress({
+              userId: useAuthStore.getState().user?.id,
+              language,
+              game,
+              level,
+              durationMs: execution.timeMs ?? undefined,
+            });
+          } catch (e) {
+            // 不中断前端流程，记录错误即可
+            console.warn('updateProgress failed:', e);
+          }
 
           let totalXpAward = baseXp;
           let petLabel = '初生火花';

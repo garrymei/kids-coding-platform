@@ -66,11 +66,11 @@ export class RateLimitService {
     const windowStart = new Date(now.getTime() - config.windowMs);
 
     // 查询窗口期内的请求记录
-    const recentRequests = await this.prisma.auditLog.count({
+    const recentRequests = await (this.prisma as any).auditLog.count({
       where: {
         action: `${action}_rate_limit_check`,
         metadata: {
-          path: 'identifier',
+          path: ['identifier'],
           equals: identifier,
         },
         ts: {
@@ -82,7 +82,7 @@ export class RateLimitService {
     if (recentRequests >= config.maxRequests) {
       // 记录速率限制违规 - 只有当identifierType为'user'时才记录审计日志
       if (identifierType === 'user') {
-        await this.prisma.auditLog.create({
+        await (this.prisma as any).auditLog.create({
           data: {
             actorId: identifier,
             action: `${action}_rate_limit_exceeded`,
@@ -138,11 +138,11 @@ export class RateLimitService {
     const now = new Date();
     const windowStart = new Date(now.getTime() - config.windowMs);
 
-    const recentRequests = await this.prisma.auditLog.count({
+    const recentRequests = await (this.prisma as any).auditLog.count({
       where: {
         action: `${action}_rate_limit_check`,
         metadata: {
-          path: 'identifier',
+          path: ['identifier'],
           equals: identifier,
         },
         ts: {
@@ -165,7 +165,7 @@ export class RateLimitService {
   async cleanupExpiredRateLimitRecords(): Promise<void> {
     const cutoffTime = new Date(Date.now() - 24 * 60 * 60 * 1000); // 24小时前
 
-    await this.prisma.auditLog.deleteMany({
+    await (this.prisma as any).auditLog.deleteMany({
       where: {
         action: {
           in: [

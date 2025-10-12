@@ -14,6 +14,10 @@ export class JudgeRequestDto {
   @IsString()
   @IsOptional()
   sessionId?: string;
+
+  @IsString()
+  @IsOptional()
+  studentId?: string;
 }
 
 export class JudgeResponseDto {
@@ -56,6 +60,10 @@ export class LEDJudgeRequestDto {
   @IsString()
   @IsOptional()
   sessionId?: string;
+
+  @IsString()
+  @IsOptional()
+  studentId?: string;
 }
 
 export class LEDJudgeResponseDto {

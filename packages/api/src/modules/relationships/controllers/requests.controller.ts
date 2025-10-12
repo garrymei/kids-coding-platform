@@ -77,7 +77,7 @@ export class RequestsController {
     // 查找目标学生
     let targetStudent;
     if (requestData.studentId) {
-      targetStudent = await this.prisma.user.findUnique({
+      targetStudent = await (this.prisma as any).user.findUnique({
         where: { id: requestData.studentId },
       });
     } else if (requestData.shareCode) {
@@ -94,7 +94,9 @@ export class RequestsController {
     }
 
     // 检查是否已存在关系
-    const existingRelationship = await this.prisma.relationship.findFirst({
+    const existingRelationship = await (
+      this.prisma as any
+    ).relationship.findFirst({
       where: {
         studentId: targetStudent.id,
         partyId: requesterId,
@@ -107,7 +109,7 @@ export class RequestsController {
     }
 
     // 创建关注申请
-    const consent = await this.prisma.consent.create({
+    const consent = await (this.prisma as any).consent.create({
       data: {
         studentId: targetStudent.id,
         requesterId,
@@ -122,7 +124,7 @@ export class RequestsController {
     });
 
     // 创建关系记录（待处理状态）
-    const relationship = await this.prisma.relationship.create({
+    const relationship = await (this.prisma as any).relationship.create({
       data: {
         studentId: targetStudent.id,
         partyId: requesterId,
@@ -158,6 +160,26 @@ export class RequestsController {
     };
   }
 
+  // 文档别名：POST /relationships/send-request
+  @Post('send-request')
+  @RequirePermissions(PermissionType.REQUEST_STUDENT_ACCESS)
+  @ApiOperation({ summary: '发起关注申请（别名）' })
+  @ApiResponse({ status: 201, description: '申请创建成功' })
+  async sendRequest(
+    @Request() req,
+    @Body()
+    requestData: {
+      studentId?: string;
+      shareCode?: string;
+      scope: string[];
+      reason: string;
+      expiresAt?: string;
+    },
+  ) {
+    // 直接复用 createRequest 的实现，以保持行为一致
+    return this.createRequest(req, requestData);
+  }
+
   @Get('pending-requests')
   @RequirePermissions(PermissionType.APPROVE_RELATIONSHIPS)
   @ApiOperation({ summary: '获取待处理的关注请求' })
@@ -165,7 +187,7 @@ export class RequestsController {
   async getPendingRequests(@Request() req) {
     const studentId = req.user.userId;
 
-    const pendingRequests = await this.prisma.consent.findMany({
+    const pendingRequests = await (this.prisma as any).consent.findMany({
       where: {
         studentId,
         status: 'PENDING',
@@ -210,7 +232,7 @@ export class RequestsController {
     const studentId = req.user.userId;
 
     // 查找待处理的请求
-    const consent = await this.prisma.consent.findFirst({
+    const consent = await (this.prisma as any).consent.findFirst({
       where: {
         id: consentId,
         studentId,
@@ -223,7 +245,7 @@ export class RequestsController {
     }
 
     // 更新同意书状态
-    await this.prisma.consent.update({
+    await (this.prisma as any).consent.update({
       where: { id: consentId },
       data: {
         status: 'APPROVED',
@@ -237,7 +259,7 @@ export class RequestsController {
     });
 
     // 更新关系状态
-    const relationship = await this.prisma.relationship.findFirst({
+    const relationship = await (this.prisma as any).relationship.findFirst({
       where: {
         studentId,
         partyId: consent.requesterId,
@@ -246,14 +268,14 @@ export class RequestsController {
     });
 
     if (relationship) {
-      await this.prisma.relationship.update({
+      await (this.prisma as any).relationship.update({
         where: { id: relationship.id },
         data: { status: 'ACTIVE' },
       });
     }
 
     // 创建访问授权
-    const accessGrant = await this.prisma.accessGrant.create({
+    const accessGrant = await (this.prisma as any).accessGrant.create({
       data: {
         granteeId: consent.requesterId,
         studentId,
@@ -290,6 +312,159 @@ export class RequestsController {
     };
   }
 
+  // 文档接口：POST /relationships/respond-to-request
+  @Post('respond-to-request')
+  @RequirePermissions(PermissionType.APPROVE_RELATIONSHIPS)
+  @ApiOperation({ summary: '学生对关注请求进行统一审批' })
+  @ApiResponse({ status: 200, description: '处理成功' })
+  async respondToRequest(
+    @Request() req,
+    @Body()
+    body: {
+      consentId: string;
+      decision: 'approve' | 'reject';
+      scopes?: string[];
+      expiresAt?: string;
+      reason?: string;
+    },
+  ) {
+    const studentId = req.user.userId;
+
+    // 查找待处理的请求
+    const consent = await (this.prisma as any).consent.findFirst({
+      where: {
+        id: body.consentId,
+        studentId,
+        status: 'PENDING',
+      },
+    });
+
+    if (!consent) {
+      throw new NotFoundException('请求不存在或已处理');
+    }
+
+    if (body.decision === 'approve') {
+      // 更新同意书状态
+      await (this.prisma as any).consent.update({
+        where: { id: body.consentId },
+        data: {
+          status: 'APPROVED',
+          scope: JSON.stringify(
+            body.scopes || JSON.parse(consent.scope || '[]'),
+          ),
+          expiresAt: body.expiresAt
+            ? new Date(body.expiresAt)
+            : consent.expiresAt,
+        },
+      });
+
+      // 更新关系状态或创建关系
+      const relationship = await (this.prisma as any).relationship.findFirst({
+        where: {
+          studentId,
+          partyId: consent.requesterId,
+          status: 'PENDING',
+        },
+      });
+
+      let relationshipId = relationship?.id;
+      if (relationship) {
+        await (this.prisma as any).relationship.update({
+          where: { id: relationship.id },
+          data: { status: 'ACTIVE' },
+        });
+      } else {
+        const created = await (this.prisma as any).relationship.create({
+          data: {
+            studentId,
+            partyId: consent.requesterId,
+            partyRole: 'PARENT',
+            source: 'SEARCH',
+            status: 'ACTIVE',
+          },
+        });
+        relationshipId = created.id;
+      }
+
+      // 创建访问授权
+      const accessGrant = await (this.prisma as any).accessGrant.create({
+        data: {
+          granteeId: consent.requesterId,
+          studentId,
+          scope: JSON.stringify(
+            body.scopes || JSON.parse(consent.scope || '[]'),
+          ),
+          status: 'ACTIVE',
+          expiresAt: body.expiresAt
+            ? new Date(body.expiresAt)
+            : consent.expiresAt,
+          relationshipId: relationshipId || undefined,
+        },
+      });
+
+      // 审计日志
+      await this.auditLogger.logParentLinkDecision(
+        studentId,
+        consent.requesterId,
+        'approve',
+        req.ip,
+        {
+          consentId: body.consentId,
+          scopes: body.scopes || consent.scope,
+          expiresAt: body.expiresAt,
+          accessGrantId: accessGrant.id,
+        },
+      );
+
+      return {
+        message: '关注请求已批准',
+        consentId: body.consentId,
+        relationshipId,
+        accessGrantId: accessGrant.id,
+      };
+    }
+
+    // Reject path
+    await (this.prisma as any).consent.update({
+      where: { id: body.consentId },
+      data: {
+        status: 'REJECTED',
+        reason: body.reason || consent.reason,
+      },
+    });
+
+    const relationship = await (this.prisma as any).relationship.findFirst({
+      where: {
+        studentId,
+        partyId: consent.requesterId,
+        status: 'PENDING',
+      },
+    });
+
+    if (relationship) {
+      await (this.prisma as any).relationship.update({
+        where: { id: relationship.id },
+        data: { status: 'REJECTED' },
+      });
+    }
+
+    await this.auditLogger.logParentLinkDecision(
+      studentId,
+      consent.requesterId,
+      'reject',
+      req.ip,
+      {
+        consentId: body.consentId,
+        reason: body.reason,
+      },
+    );
+
+    return {
+      message: '关注请求已拒绝',
+      consentId: body.consentId,
+    };
+  }
+
   @Post('requests/:consentId/reject')
   @RequirePermissions(PermissionType.APPROVE_RELATIONSHIPS)
   @ApiOperation({ summary: '拒绝关注请求' })
@@ -301,7 +476,7 @@ export class RequestsController {
   ) {
     const studentId = req.user.userId;
 
-    const consent = await this.prisma.consent.findFirst({
+    const consent = await (this.prisma as any).consent.findFirst({
       where: {
         id: consentId,
         studentId,
@@ -314,7 +489,7 @@ export class RequestsController {
     }
 
     // 更新同意书状态
-    await this.prisma.consent.update({
+    await (this.prisma as any).consent.update({
       where: { id: consentId },
       data: {
         status: 'REJECTED',
@@ -325,7 +500,7 @@ export class RequestsController {
     });
 
     // 更新关系状态
-    const relationship = await this.prisma.relationship.findFirst({
+    const relationship = await (this.prisma as any).relationship.findFirst({
       where: {
         studentId,
         partyId: consent.requesterId,
@@ -334,7 +509,7 @@ export class RequestsController {
     });
 
     if (relationship) {
-      await this.prisma.relationship.update({
+      await (this.prisma as any).relationship.update({
         where: { id: relationship.id },
         data: { status: 'REVOKED' },
       });
@@ -366,7 +541,7 @@ export class RequestsController {
   async getMyRequests(@Request() req) {
     const requesterId = req.user.userId;
 
-    const requests = await this.prisma.consent.findMany({
+    const requests = await (this.prisma as any).consent.findMany({
       where: { requesterId },
       include: {
         student: {

@@ -24,6 +24,7 @@ import { CacheModule } from './modules/cache/cache.module';
 import { SecurityModule } from './modules/security/security.module';
 import { JudgeModule } from './modules/judge/judge.module';
 import { AchievementsModule } from './modules/achievements/achievements.module';
+import { LevelsModule } from './modules/levels/levels.module';
 
 @Module({
   imports: [
@@ -46,6 +47,7 @@ import { AchievementsModule } from './modules/achievements/achievements.module';
     SecurityModule,
     JudgeModule,
     AchievementsModule,
+    LevelsModule,
     LoggerModule.forRoot({
       pinoHttp: {
         level: process.env.LOG_LEVEL ?? 'info',

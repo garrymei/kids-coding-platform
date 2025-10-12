@@ -13,7 +13,10 @@ interface AchievementsCardProps {
   totalAchievements?: number;
 }
 
-export function AchievementsCard({ achievements, totalAchievements = 20 }: AchievementsCardProps) {
+export function AchievementsCard({
+  achievements,
+  totalAchievements = achievements.length,
+}: AchievementsCardProps) {
   const navigate = useNavigate();
   const unlockedCount = achievements.length;
 

@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { getHintUsage, recordHintView, type HintUsageResponse } from '../services/progress';
+import { useAuthStore } from '../stores/auth';
 
 type HintPanelProps = {
   language: string;
@@ -29,7 +30,12 @@ export function HintPanel({ language, game, level, hints, registerRevealHandler 
   const refreshUsage = useCallback(async () => {
     setUsage((prev) => ({ ...prev, loading: true }));
     try {
-      const data = await getHintUsage({ language, game, level });
+      const data = await getHintUsage({
+        userId: useAuthStore.getState().user?.id,
+        language,
+        game,
+        level,
+      });
       setUsage({ ...data, loading: false });
       setVisibleCount(Math.min(data.count, hints.length));
       setMessage(null);
@@ -60,6 +66,7 @@ export function HintPanel({ language, game, level, hints, registerRevealHandler 
     setIsSubmitting(true);
     try {
       const response = await recordHintView({
+        userId: useAuthStore.getState().user?.id,
         language,
         game,
         level,

@@ -2,29 +2,49 @@ import { Controller, Post, Body } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { JudgeService } from './judge.service';
 import { LEDJudgeRequestDto, LEDJudgeResponseDto } from './dto/judge.dto';
+import { RealMetricsService } from '../metrics/services/real-metrics.service';
 
 @ApiTags('LED Judge')
 @Controller('judge/led')
 export class LEDController {
-  constructor(private readonly judgeService: JudgeService) {}
+  constructor(
+    private readonly judgeService: JudgeService,
+    private readonly metricsService: RealMetricsService,
+  ) {}
 
   @Post()
   @ApiOperation({ summary: 'LED 判题接口' })
-  @ApiResponse({ 
-    status: 200, 
+  @ApiResponse({
+    status: 200,
     description: 'LED 判题结果',
-    type: LEDJudgeResponseDto
+    type: LEDJudgeResponseDto,
   })
-  async judgeLED(@Body() request: LEDJudgeRequestDto): Promise<LEDJudgeResponseDto> {
+  async judgeLED(
+    @Body() request: LEDJudgeRequestDto,
+  ): Promise<LEDJudgeResponseDto> {
     // 转换为通用判题请求
     const judgeRequest = {
       levelId: request.levelId,
       code: request.code,
-      sessionId: request.sessionId
+      sessionId: request.sessionId,
     };
-    
+
     const result = await this.judgeService.judge(judgeRequest);
-    
+
+    // 当提供了 studentId 且判题通过时，记录学习事件
+    if (request.studentId && result.status === 'passed') {
+      try {
+        await this.metricsService.recordLearnEvent(
+          request.studentId,
+          request.levelId,
+          true,
+          result.timeMs,
+        );
+      } catch (err) {
+        // 记录失败不影响判题返回
+      }
+    }
+
     // 转换为 LED 判题响应
     return {
       levelId: result.levelId,
@@ -33,7 +53,7 @@ export class LEDController {
       events: result.events,
       finalState: result.finalState,
       timeMs: result.timeMs,
-      status: result.status
+      status: result.status,
     };
   }
 }

@@ -7,9 +7,9 @@ import {
   BadRequestException,
   Logger,
 } from '@nestjs/common';
-import { PrismaService } from '../../prisma/prisma.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { AuditLoggerService } from '../audit/services/audit-logger.service';
+import { ClassManagementService } from './services/class-management.service';
 // EnrollmentStatus is now a string enum in the schema
 
 @Controller('classes')
@@ -18,7 +18,7 @@ export class ClassesController {
   private readonly logger = new Logger(ClassesController.name);
 
   constructor(
-    private readonly prisma: PrismaService,
+    private readonly classManagementService: ClassManagementService,
     private readonly auditLogger: AuditLoggerService,
   ) {}
 
@@ -32,54 +32,17 @@ export class ClassesController {
     );
 
     try {
-      // Find class by code
-      const classToJoin = await this.prisma.class.findUnique({
-        where: { code },
-        include: { enrollments: true },
-      });
+      const result = await this.classManagementService.joinClass(
+        studentId,
+        code,
+      );
 
-      if (!classToJoin) {
-        throw new BadRequestException('CLASS_CODE_NOT_FOUND');
-      }
-
-      if (classToJoin.status !== 'ACTIVE') {
-        throw new BadRequestException('CLASS_INACTIVE');
-      }
-
-      // Check if student is already enrolled
-      const existingEnrollment = await this.prisma.classEnrollment.findFirst({
-        where: {
-          classId: classToJoin.id,
-          studentId: studentId,
-        },
-      });
-
-      if (existingEnrollment) {
-        return {
-          success: true,
-          message: 'Already enrolled',
-          enrollment: {
-            id: existingEnrollment.id,
-            status: existingEnrollment.status.toLowerCase(),
-          },
-        };
-      }
-
-      // Create enrollment request
-      const enrollment = await this.prisma.classEnrollment.create({
-        data: {
-          classId: classToJoin.id,
-          studentId: studentId,
-          status: 'pending',
-        },
-      });
-
-      // Create audit log
+      // 记录审计日志（与现有接口风格保持一致）
       await this.auditLogger.log({
         actorId: studentId,
         action: 'join_class',
         targetType: 'class',
-        targetId: classToJoin.id,
+        targetId: (result as any)?.classId || 'unknown',
         metadata: {
           inviteCode: code,
           timestamp: new Date().toISOString(),
@@ -89,23 +52,57 @@ export class ClassesController {
       });
 
       this.logger.log(
-        `Student ${studentId} successfully requested to join class ${classToJoin.id}`,
+        `Student ${studentId} requested to join via service with code ${code}`,
       );
 
-      return {
-        success: true,
-        message: 'Join request submitted',
-        enrollment: {
-          id: enrollment.id,
-          status: enrollment.status.toLowerCase(),
-        },
-      };
+      return result;
     } catch (error) {
-      this.logger.error('Failed to join class:', error);
-      if (error instanceof BadRequestException) {
-        throw error;
-      }
-      throw new BadRequestException('Failed to join class');
+      this.logger.error('Failed to join class via service:', error);
+      throw new BadRequestException(
+        error instanceof Error ? error.message : 'Failed to join class',
+      );
+    }
+  }
+
+  // 文档别名：POST /classes/join-by-invite-code
+  @Post('join-by-invite-code')
+  async joinByInviteCode(@Body() body: { code: string }, @Request() req) {
+    const studentId = req.user.id;
+    const { code } = body;
+
+    this.logger.log(
+      `Student ${studentId} attempting to join class with code: ${code} (alias)`,
+    );
+
+    try {
+      const result = await this.classManagementService.joinClass(
+        studentId,
+        code,
+      );
+
+      await this.auditLogger.log({
+        actorId: studentId,
+        action: 'join_class',
+        targetType: 'class',
+        targetId: (result as any)?.classId || 'unknown',
+        metadata: {
+          inviteCode: code,
+          timestamp: new Date().toISOString(),
+        },
+        ip: req.ip,
+        userAgent: req.get('User-Agent'),
+      });
+
+      this.logger.log(
+        `Student ${studentId} requested to join via service (alias) with code ${code}`,
+      );
+
+      return result;
+    } catch (error) {
+      this.logger.error('Failed to join class via service (alias):', error);
+      throw new BadRequestException(
+        error instanceof Error ? error.message : 'Failed to join class',
+      );
     }
   }
 }

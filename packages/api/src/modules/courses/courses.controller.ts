@@ -1,4 +1,4 @@
-import { Controller, Get, UseGuards } from '@nestjs/common';
+import { Controller, Get, Param, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiOkResponse, ApiTags } from '@nestjs/swagger';
 import { CoursesService } from './courses.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
@@ -24,5 +24,11 @@ export class CoursesController {
   @ApiOkResponse({ description: 'Protected list of courses for instructors.' })
   getManagedList() {
     return this.coursesService.listPreview();
+  }
+
+  @Get(':slug/map')
+  @ApiOkResponse({ description: 'Course level map for given slug.' })
+  getCourseMap(@Param('slug') slug: string) {
+    return this.coursesService.getCourseMap(slug);
   }
 }

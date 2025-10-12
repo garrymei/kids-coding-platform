@@ -1,6 +1,7 @@
 import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { readFile, readdir } from 'fs/promises';
 import { join } from 'path';
+import { PrismaService } from '../../prisma/prisma.service';
 
 export interface Level {
   id: string;
@@ -31,7 +32,7 @@ export class LevelsService {
   private levelsList: Level[] = [];
   private isLoaded = false;
 
-  constructor() {
+  constructor(private readonly prisma: PrismaService) {
     this.loadLevels().catch((error) => {
       this.logger.error('Failed to load levels on startup', error);
     });
@@ -80,6 +81,39 @@ export class LevelsService {
   }
 
   private async loadLevels(): Promise<void> {
+    // 优先从数据库加载；如果数据库为空则回退到 docs
+    try {
+      const rows = await (this.prisma as any).level.findMany();
+      if (rows.length > 0) {
+        const allLevels: Level[] = [];
+        for (const row of rows) {
+          const level = this.mapRowToLevel(row as any);
+          if (this.validateLevel(level)) {
+            allLevels.push(level);
+            this.levelsCache.set(level.id, level);
+          }
+        }
+        this.levelsList = allLevels.sort(
+          (a, b) => (a.difficulty ?? 0) - (b.difficulty ?? 0),
+        );
+        this.isLoaded = true;
+        this.logger.log(
+          `Loaded ${this.levelsList.length} levels from database`,
+        );
+        return;
+      }
+      this.logger.warn('No levels found in database, falling back to docs');
+      await this.loadLevelsFromDocs();
+    } catch (error) {
+      this.logger.error(
+        'Failed to load levels from database, falling back to docs',
+        error,
+      );
+      await this.loadLevelsFromDocs();
+    }
+  }
+
+  private async loadLevelsFromDocs(): Promise<void> {
     try {
       this.logger.log('Loading levels from docs/levels directory...');
 
@@ -98,20 +132,17 @@ export class LevelsService {
       for (const file of jsonFiles) {
         try {
           const filePath = join(levelsDir, file);
-          const content = await readFile(filePath, 'utf8'); // 确保使用 UTF-8 编码
+          const content = await readFile(filePath, 'utf8');
           const levels = JSON.parse(content);
 
-          // 支持单个对象和数组两种格式
           const levelsArray = Array.isArray(levels) ? levels : [levels];
 
           for (const level of levelsArray) {
-            // 验证关卡数据
             if (!this.validateLevel(level)) {
               this.logger.warn(`Invalid level data in ${file}:`, level);
               continue;
             }
 
-            // 检查 ID 重复
             if (idSet.has(level.id)) {
               this.logger.error(`Duplicate level ID: ${level.id} in ${file}`);
               continue;
@@ -128,8 +159,9 @@ export class LevelsService {
         }
       }
 
-      // 按难度排序
-      this.levelsList = allLevels.sort((a, b) => a.difficulty - b.difficulty);
+      this.levelsList = allLevels.sort(
+        (a, b) => (a.difficulty ?? 0) - (b.difficulty ?? 0),
+      );
       this.isLoaded = true;
 
       this.logger.log(`Successfully loaded ${this.levelsList.length} levels`);
@@ -170,5 +202,18 @@ export class LevelsService {
     this.levelsList = [];
     this.isLoaded = false;
     await this.loadLevels();
+  }
+
+  private mapRowToLevel(row: any): Level {
+    return {
+      id: row.id,
+      title: row.title,
+      type: row.type ?? 'game',
+      description: row.description ?? undefined,
+      difficulty: row.difficulty ?? 0,
+      starter: (row.starter as any) ?? { code: '' },
+      judge: (row.judge as any) ?? { strategy: 'manual', expected: null },
+      metadata: (row.metadata as any) ?? undefined,
+    };
   }
 }
