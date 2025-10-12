@@ -21,7 +21,7 @@
           "segments": 1
         }
       },
-      "hints": ["先用循环复用边与角度关系。"]
+      "hints": ["先用循环复用边与角度关系。", "回顾目标：让画笔前进 50 绘制一条线。"]
     },
     {
       "level": 2,
@@ -38,10 +38,10 @@
         "type": "svg_path_similarity",
         "criteria": {
           "tolerance": 0.1,
-          "segments": 2
+          "segments": 5
         }
       },
-      "hints": ["先用循环复用边与角度关系。"]
+      "hints": ["先用循环复用边与角度关系。", "回顾目标：用循环画正方形（边长60）。"]
     },
     {
       "level": 3,
@@ -61,7 +61,7 @@
           "segments": 3
         }
       },
-      "hints": ["先用循环复用边与角度关系。"]
+      "hints": ["先用循环复用边与角度关系。", "回顾目标：画等边三角形（边长60）。"]
     },
     {
       "level": 4,
@@ -78,10 +78,10 @@
         "type": "svg_path_similarity",
         "criteria": {
           "tolerance": 0.1,
-          "segments": 4
+          "segments": 5
         }
       },
-      "hints": ["先用循环复用边与角度关系。"]
+      "hints": ["先用循环复用边与角度关系。", "回顾目标：画正五边形（边长50）。"]
     },
     {
       "level": 5,
@@ -101,7 +101,7 @@
           "segments": 5
         }
       },
-      "hints": ["先用循环复用边与角度关系。"]
+      "hints": ["先用循环复用边与角度关系。", "回顾目标：画五角星（边长40）。"]
     },
     {
       "level": 6,
@@ -118,10 +118,10 @@
         "type": "svg_path_similarity",
         "criteria": {
           "tolerance": 0.1,
-          "segments": 6
+          "segments": 12
         }
       },
-      "hints": ["先用循环复用边与角度关系。"]
+      "hints": ["先用循环复用边与角度关系。", "回顾目标：从中心画 3 个同心正方形。"]
     },
     {
       "level": 7,
@@ -138,10 +138,10 @@
         "type": "svg_path_similarity",
         "criteria": {
           "tolerance": 0.1,
-          "segments": 7
+          "segments": 6
         }
       },
-      "hints": ["先用循环复用边与角度关系。"]
+      "hints": ["先用循环复用边与角度关系。", "回顾目标：封装循环画 n 边形。"]
     },
     {
       "level": 8,
@@ -161,7 +161,7 @@
           "segments": 8
         }
       },
-      "hints": ["先用循环复用边与角度关系。"]
+      "hints": ["先用循环复用边与角度关系。", "回顾目标：将画 n 边形封装为函数复用 2 次。"]
     },
     {
       "level": 9,
@@ -178,10 +178,10 @@
         "type": "svg_path_similarity",
         "criteria": {
           "tolerance": 0.1,
-          "segments": 9
+          "segments": 7
         }
       },
-      "hints": ["先用循环复用边与角度关系。"]
+      "hints": ["先用循环复用边与角度关系。", "回顾目标：实现 `polygon(n, len)` 可画任意正多边形。"]
     },
     {
       "level": 10,
@@ -189,7 +189,7 @@
       "objective": "组合正方形+三角形画小房子。",
       "story": "画家训练第 10 课。",
       "starter_code": "import turtle as t\n\ndef solve():\n    # t.forward(len); t.right(deg)\n    pass\n",
-      "reference_solution": "import turtle as t\n\ndef square(L):\n    for _ in range(4): t.forward(L); t.right(90)\n\ndef triangle(L):\n    for _ in range(3): t.forward(L); t.right(120)\n\ndef solve():\n    square(60); t.right(90); t.penup(); t.forward(60); t.pendown(); t.left(90); triangle(60)\n",
+      "reference_solution": "import turtle as t\n\ndef solve():\n    # 画正方形 (4 segments)\n    for _ in range(4):\n        t.forward(60)\n        t.right(90)\n    # 画三角形 (3 segments)\n    for _ in range(3):\n        t.forward(60)\n        t.right(120)\n",
       "expected_io": {
         "input": null,
         "output": "SVG_DRAWN"
@@ -198,10 +198,10 @@
         "type": "svg_path_similarity",
         "criteria": {
           "tolerance": 0.1,
-          "segments": 10
+          "segments": 7
         }
       },
-      "hints": ["先用循环复用边与角度关系。"]
+      "hints": ["先用循环复用边与角度关系。", "回顾目标：组合正方形+三角形画小房子。"]
     }
   ]
 }

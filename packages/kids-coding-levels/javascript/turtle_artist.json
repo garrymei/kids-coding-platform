@@ -38,7 +38,7 @@
         "type": "svg_path_similarity",
         "criteria": {
           "tolerance": 0.1,
-          "segments": 2
+          "segments": 5
         }
       },
       "hints": ["先用循环复用边与角度关系。"]
@@ -78,7 +78,7 @@
         "type": "svg_path_similarity",
         "criteria": {
           "tolerance": 0.1,
-          "segments": 4
+          "segments": 5
         }
       },
       "hints": ["先用循环复用边与角度关系。"]
@@ -118,7 +118,7 @@
         "type": "svg_path_similarity",
         "criteria": {
           "tolerance": 0.1,
-          "segments": 6
+          "segments": 12
         }
       },
       "hints": ["先用循环复用边与角度关系。"]
@@ -138,7 +138,7 @@
         "type": "svg_path_similarity",
         "criteria": {
           "tolerance": 0.1,
-          "segments": 7
+          "segments": 6
         }
       },
       "hints": ["先用循环复用边与角度关系。"]
@@ -178,7 +178,7 @@
         "type": "svg_path_similarity",
         "criteria": {
           "tolerance": 0.1,
-          "segments": 9
+          "segments": 7
         }
       },
       "hints": ["先用循环复用边与角度关系。"]
@@ -198,7 +198,7 @@
         "type": "svg_path_similarity",
         "criteria": {
           "tolerance": 0.1,
-          "segments": 10
+          "segments": 7
         }
       },
       "hints": ["先用循环复用边与角度关系。"]
