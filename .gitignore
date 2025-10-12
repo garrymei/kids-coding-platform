@@ -10,5 +10,14 @@ build/
 logs/
 __pycache__/
 *.pyc
+# local executor debug outputs
+server/executor/local_debug/*
+server/executor/test_*.json
+# generated lint report
+packages/api/lint_report.txt
+# ad-hoc executor debug scripts
+server/executor/debug_*.py
+__pycache__/
+*.pyc
 server/executor/test_*.json
 server/executor/test_*.py
