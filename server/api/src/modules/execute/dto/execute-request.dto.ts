@@ -10,11 +10,16 @@ import {
   ValidateNested,
   ValidateIf,
 } from 'class-validator';
-import { ExecutionEvent } from '../eventParser';
+import { ExecutionEvent, ExecutionArtifacts } from '../eventParser';
 
 type JudgeStrategy = 'stdout' | 'pixel' | 'music' | 'maze';
 
-type ExecutionErrorCode = 'SYNTAX_ERROR' | 'TIMEOUT' | 'FORBIDDEN_IMPORT' | 'OUTPUT_LIMIT' | 'RUNTIME_ERROR';
+type ExecutionErrorCode =
+  | 'SYNTAX_ERROR'
+  | 'TIMEOUT'
+  | 'FORBIDDEN_IMPORT'
+  | 'OUTPUT_LIMIT'
+  | 'RUNTIME_ERROR';
 
 export class ExecuteJudgeDto {
   @IsIn(['stdout', 'pixel', 'music', 'maze'])
@@ -74,6 +79,9 @@ export type ExecuteResponse = {
   timeMs: number;
   events: ExecutionEvent[];
   error: ExecutionError | null;
+  meta?: Record<string, unknown>;
+  timeout?: boolean;
+  artifacts?: ExecutionArtifacts;
   judge?: {
     ok: boolean;
     details?: any;

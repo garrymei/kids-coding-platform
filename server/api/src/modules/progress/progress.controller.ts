@@ -47,4 +47,31 @@ export class ProgressController {
       lastPassedAt: record?.passedAt,
     };
   }
+
+  @Get('hints')
+  async hintUsage(
+    @Query('userId') userId = 'demo',
+    @Query('language') language: string,
+    @Query('game') game: string,
+    @Query('level') levelStr: string,
+  ) {
+    const level = Number.parseInt(levelStr ?? '', 10);
+    const normalizedLevel = Number.isInteger(level) && level > 0 ? level : 1;
+    return this.svc.getHintUsage(userId, language, game, normalizedLevel);
+  }
+
+  @Post('hints')
+  async recordHint(
+    @Body()
+    body: {
+      userId?: string;
+      language: string;
+      game: string;
+      level: number;
+      hintIndex: number;
+    },
+  ) {
+    const { userId = 'demo', language, game, level, hintIndex } = body;
+    return this.svc.recordHintView({ userId, language, game, level, hintIndex });
+  }
 }

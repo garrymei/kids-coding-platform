@@ -24,6 +24,11 @@ export interface JudgeRequest {
 
 export interface JudgeResponse {
   pass: boolean;
+  score?: number;
   message?: string;
   details?: any;
+  stdout?: string;
+  stderr?: string;
+  timeMs?: number;
+  xpAwarded?: number;
 }
