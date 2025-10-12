@@ -23,8 +23,7 @@ import { ProgressModule } from './modules/progress/progress.module';
 import { CacheModule } from './modules/cache/cache.module';
 import { SecurityModule } from './modules/security/security.module';
 import { JudgeModule } from './modules/judge/judge.module';
-import { UsersModule } from './users/users.module';
-import { AuthModule } from './auth/auth.module';
+import { AchievementsModule } from './modules/achievements/achievements.module';
 
 @Module({
   imports: [
@@ -46,6 +45,7 @@ import { AuthModule } from './auth/auth.module';
     CacheModule,
     SecurityModule,
     JudgeModule,
+    AchievementsModule,
     LoggerModule.forRoot({
       pinoHttp: {
         level: process.env.LOG_LEVEL ?? 'info',

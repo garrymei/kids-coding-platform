@@ -13,7 +13,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     });
   }
 
-  async validate(payload: any) {
+  async validate(payload: { sub: string; email: string; role: number }) {
     // The payload is the decoded JWT. We can trust it because the signature has been verified.
     // We could add logic here to look up the user in the DB to ensure they still exist, etc.
     return { id: payload.sub, email: payload.email, role: payload.role };

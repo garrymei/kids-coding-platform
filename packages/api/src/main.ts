@@ -5,7 +5,11 @@ import { Logger } from 'nestjs-pino';
 import { AppModule } from './app.module';
 import { BaseExceptionFilter, HttpAdapterHost } from '@nestjs/core';
 import { initSentry, Sentry } from './sentry';
-import { apiMetricsContentType, collectApiMetrics, observeRequestDuration, observeExecuteTime } from './metrics';
+import {
+  apiMetricsContentType,
+  collectApiMetrics,
+  observeRequestDuration,
+} from './metrics';
 import type { Request, Response } from 'express';
 import { LoggingMiddleware } from './middleware/logging.middleware';
 import { StructuredLoggerService } from './middleware/structured-logger.service';
@@ -15,27 +19,32 @@ const sentryEnabled = initSentry();
 
 async function bootstrap() {
   let app;
+
   try {
     app = await NestFactory.create(AppModule);
   } catch (error) {
-    console.error('Failed to create Nest application:', error.message);
-    // In development mode, continue with a minimal app if database is not available
+    // 在开发模式下，如果数据库不可用，继续运行最小化应用
     if (process.env.NODE_ENV !== 'production') {
+      console.error('Failed to create Nest application:', error.message);
       console.log('Running in database-less mode for development');
-      // We'll need to create a minimal app here
+      // 这里需要创建一个最小化应用
       return;
     }
     throw error;
   }
-  
+
   const logger = app.get(Logger);
   const structuredLogger = new StructuredLoggerService(logger);
-  
+
   app.useLogger(logger);
   app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));
 
   // Add logging middleware (must be first)
-  app.use(new LoggingMiddleware(structuredLogger).use.bind(new LoggingMiddleware(structuredLogger)));
+  app.use(
+    new LoggingMiddleware(structuredLogger).use.bind(
+      new LoggingMiddleware(structuredLogger),
+    ),
+  );
 
   // Add error handling middleware (must be after logging)
   app.useGlobalFilters(new ErrorMiddleware(structuredLogger));
@@ -50,7 +59,9 @@ async function bootstrap() {
         super.catch(exception, host);
       }
     }
-    app.useGlobalFilters(new SentryExceptionFilter(httpAdapterHost.httpAdapter));
+    app.useGlobalFilters(
+      new SentryExceptionFilter(httpAdapterHost.httpAdapter),
+    );
 
     process.on('unhandledRejection', (reason) => {
       Sentry.captureException(reason);

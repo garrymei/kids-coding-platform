@@ -10,6 +10,20 @@ async function main() {
   const password = 'password123';
   const passwordHash = await bcrypt.hash(password, saltRounds);
 
+  // Create system user first
+  const systemUser = await prisma.user.upsert({
+    where: { id: 'system' },
+    update: {},
+    create: {
+      id: 'system',
+      email: 'system@internal.local',
+      name: 'System',
+      role: Role.admin,
+      passwordHash: passwordHash,
+    },
+  });
+  console.log(`Created system user with id: ${systemUser.id}`);
+
   const users = [
     {
       email: 'student@example.com',

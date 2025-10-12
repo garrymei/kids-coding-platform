@@ -12,12 +12,12 @@ export class HealthController {
   @Get('health')
   async getHealth() {
     let database = 'down';
-    let databaseLatency = 0;
-    
+    let _databaseLatency = 0;
+
     try {
       const start = Date.now();
       await this.prisma.$queryRawUnsafe('SELECT 1');
-      databaseLatency = Date.now() - start;
+      _databaseLatency = Date.now() - start;
       database = 'up';
     } catch (error) {
       this.logger.error('Database health check failed:', error);
