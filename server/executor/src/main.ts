@@ -9,7 +9,11 @@ import { createChildLogger, logger } from './logger';
 import { initSentry, Sentry } from './sentry';
 import { collectMetrics, metricsContentType, recordExecutionFailure } from './metrics';
 import { validatePythonSource } from './pythonStaticValidator';
-import { blacklistDetectionMiddleware, rateLimitMiddleware, timeoutDetectionMiddleware } from './ratelimit';
+import {
+  blacklistDetectionMiddleware,
+  rateLimitMiddleware,
+  timeoutDetectionMiddleware,
+} from './ratelimit';
 
 type RequestWithContext = Request & {
   traceId?: string;
@@ -80,7 +84,12 @@ export async function bootstrap(): Promise<Express> {
     const userId = (Array.isArray(headerUser) ? headerUser[0] : headerUser) ?? null;
     req.traceId = traceId;
     req.userId = userId;
-    const requestLogger = createChildLogger({ traceId, userId, path: req.originalUrl, method: req.method });
+    const requestLogger = createChildLogger({
+      traceId,
+      userId,
+      path: req.originalUrl,
+      method: req.method,
+    });
     req.log = requestLogger;
     res.locals.logger = requestLogger;
     requestLogger.info({ msg: 'request_received' });
@@ -98,7 +107,7 @@ export async function bootstrap(): Promise<Express> {
 
   // Add blacklist detection middleware (before rate limiting)
   app.use('/execute', blacklistDetectionMiddleware);
-  
+
   // Add rate limiting middleware
   app.use('/execute', rateLimitMiddleware);
 
@@ -107,6 +116,7 @@ export async function bootstrap(): Promise<Express> {
 
   app.post('/execute', async (req: RequestWithContext, res: Response, next: NextFunction) => {
     try {
+      req.log?.info({ msg: 'execute_request_start', body: req.body });
       const parsed = executeSchema.parse(req.body ?? {});
 
       if (parsed.language !== 'python') {
@@ -117,17 +127,28 @@ export async function bootstrap(): Promise<Express> {
       const traceId = req.traceId ?? randomUUID();
       const userId = req.userId ?? null;
 
-      const analysis = await validatePythonSource(parsed.source, config.allowedModules).catch((error) => {
-        req.log?.error({ err: error, msg: 'static_analysis_failed' });
-        return { ok: false, issues: ['Static analysis failed to run'] };
-      });
+      req.log?.info({ msg: 'execute_static_analysis_start', traceId, userId });
+      const analysis = await validatePythonSource(parsed.source, config.allowedModules).catch(
+        (error) => {
+          req.log?.error({ err: error, msg: 'static_analysis_failed' });
+          return { ok: false, issues: ['Static analysis failed to run'] };
+        },
+      );
 
       if (!analysis.ok) {
-        req.log?.warn({ msg: 'static_analysis_rejected', issues: analysis.issues, traceId, userId });
-        res.status(400).json({ ok: false, error: 'Source failed safety checks', issues: analysis.issues });
+        req.log?.warn({
+          msg: 'static_analysis_rejected',
+          issues: analysis.issues,
+          traceId,
+          userId,
+        });
+        res
+          .status(400)
+          .json({ ok: false, error: 'Source failed safety checks', issues: analysis.issues });
         return;
       }
 
+      req.log?.info({ msg: 'execute_enqueue_start', traceId, userId });
       const job = await queue.enqueue({
         language: parsed.language,
         source: parsed.source,
@@ -137,6 +158,7 @@ export async function bootstrap(): Promise<Express> {
       });
       req.log?.info({ msg: 'execute_job_enqueued', jobId: job.jobId, tests: parsed.tests.length });
 
+      req.log?.info({ msg: 'execute_subscribe_start', jobId: job.jobId });
       const result = await queue.subscribe(job.jobId);
       req.log?.info({ msg: 'execute_job_completed', jobId: job.jobId, success: result.ok });
       res.json({ ...result, jobId: job.jobId, traceId, userId });
@@ -148,9 +170,14 @@ export async function bootstrap(): Promise<Express> {
       if (sentryEnabled) {
         Sentry.captureException(error);
       }
-      if (error instanceof Error && error.message.includes('Execution timed out waiting for worker result')) {
+      if (
+        error instanceof Error &&
+        error.message.includes('Execution timed out waiting for worker result')
+      ) {
         recordExecutionFailure('timeout');
-        res.status(504).json({ ok: false, error: 'Execution timed out while waiting for results.' });
+        res
+          .status(504)
+          .json({ ok: false, error: 'Execution timed out while waiting for results.' });
         return;
       }
       next(error);

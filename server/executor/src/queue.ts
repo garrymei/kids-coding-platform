@@ -24,7 +24,8 @@ export interface ExecutionResultPayload {
 }
 
 export class TaskQueue {
-  private redis: Redis | null;
+  private redisProducer: Redis | null;
+  private redisConsumer: Redis | null;
 
   private readonly queueKey: string;
 
@@ -36,30 +37,40 @@ export class TaskQueue {
 
   constructor({ redisUrl, queueKey }: { redisUrl: string; queueKey: string }) {
     this.queueKey = queueKey;
-    
-    // Try to create Redis connection, but don't fail if it's not available
+
+    // Try to create Redis connections, but don't fail if they're not available
     try {
-      this.redis = new Redis(redisUrl, {
+      // Separate connections for producer (lpush) and consumer (brpop) to avoid deadlock
+      this.redisProducer = new Redis(redisUrl, {
+        maxRetriesPerRequest: null,
+        lazyConnect: true,
+      });
+      this.redisConsumer = new Redis(redisUrl, {
         maxRetriesPerRequest: null,
         lazyConnect: true,
       });
     } catch (error) {
       logger.warn({ err: error }, '[queue] redis connection failed, using local queue');
-      this.redis = null;
+      this.redisProducer = null;
+      this.redisConsumer = null;
     }
   }
 
   async connect() {
-    if (this.redis) {
-      this.redis.on('error', (err) => {
-        logger.error({ err }, '[queue] redis connection error');
+    if (this.redisProducer && this.redisConsumer) {
+      this.redisProducer.on('error', (err) => {
+        logger.error({ err }, '[queue] redis producer connection error');
+      });
+      this.redisConsumer.on('error', (err) => {
+        logger.error({ err }, '[queue] redis consumer connection error');
       });
       try {
-        await this.redis.connect();
-        logger.info('[queue] redis connected');
+        await Promise.all([this.redisProducer.connect(), this.redisConsumer.connect()]);
+        logger.info('[queue] redis connections established');
       } catch (error) {
         logger.warn({ err: error }, '[queue] redis connection failed, using local queue');
-        this.redis = null;
+        this.redisProducer = null;
+        this.redisConsumer = null;
       }
     } else {
       logger.info('[queue] using local queue (no redis)');
@@ -74,11 +85,30 @@ export class TaskQueue {
       jobId: randomUUID(),
       createdAt: Date.now(),
     };
-    
-    if (this.redis) {
-      await this.redis.lpush(this.queueKey, JSON.stringify(job));
+
+    logger.info({ jobId: job.jobId, queueKey: this.queueKey }, 'enqueue_job_created');
+
+    if (this.redisProducer) {
+      logger.info({ jobId: job.jobId, queueKey: this.queueKey }, 'enqueue_redis_lpush_start');
+      try {
+        const result = await this.redisProducer.lpush(this.queueKey, JSON.stringify(job));
+        logger.info(
+          { jobId: job.jobId, queueKey: this.queueKey, result },
+          'enqueue_redis_lpush_complete',
+        );
+      } catch (error) {
+        logger.error(
+          { jobId: job.jobId, queueKey: this.queueKey, error },
+          'enqueue_redis_lpush_error',
+        );
+        throw error;
+      }
     } else {
       // Use local queue
+      logger.info(
+        { jobId: job.jobId, localQueueLength: this.localQueue.length },
+        'enqueue_local_queue',
+      );
       this.localQueue.push(job);
     }
     return job;
@@ -112,25 +142,41 @@ export class TaskQueue {
   }
 
   async take(): Promise<ExecutionJob> {
-    if (this.redis) {
-      const response = await this.redis.brpop(this.queueKey, 0);
-      if (!response) {
-        throw new Error('Failed to pop job from queue');
+    logger.info({ queueKey: this.queueKey, hasRedis: !!this.redisConsumer }, 'take_job_start');
+
+    if (this.redisConsumer) {
+      logger.info({ queueKey: this.queueKey }, 'take_redis_brpop_start');
+      const result = await this.redisConsumer.brpop(this.queueKey, 0);
+      logger.info({ queueKey: this.queueKey, hasResult: !!result }, 'take_redis_brpop_result');
+
+      if (result) {
+        const job = JSON.parse(result[1]) as ExecutionJob;
+        logger.info({ jobId: job.jobId, queueKey: this.queueKey }, 'take_job_parsed');
+        return job;
       }
-      const [, body] = response;
-      return JSON.parse(body) as ExecutionJob;
+      throw new Error('Unexpected empty result from brpop');
     } else {
       // Use local queue
-      if (this.localQueue.length === 0) {
-        throw new Error('No jobs in local queue');
+      logger.info({ localQueueLength: this.localQueue.length }, 'take_local_queue_check');
+      while (this.localQueue.length === 0) {
+        await new Promise((resolve) => setTimeout(resolve, 100));
       }
-      return this.localQueue.shift()!;
+      const job = this.localQueue.shift()!;
+      logger.info({ jobId: job.jobId, localQueueLength: this.localQueue.length }, 'take_local_job');
+      return job;
     }
   }
 
   async disconnect() {
-    if (this.redis) {
-      await this.redis.quit();
+    const promises = [];
+    if (this.redisProducer) {
+      promises.push(this.redisProducer.quit());
+    }
+    if (this.redisConsumer) {
+      promises.push(this.redisConsumer.quit());
+    }
+    if (promises.length > 0) {
+      await Promise.all(promises);
     }
   }
 }

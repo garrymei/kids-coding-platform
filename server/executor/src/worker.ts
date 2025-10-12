@@ -47,7 +47,10 @@ export class WorkerPool {
     while (!this.stopped) {
       try {
         this.active += 1;
+        logger.debug({ msg: 'worker_waiting_for_job', workerId });
         const job = await this.queue.take();
+        logger.info({ msg: 'worker_job_received', workerId, jobId: job.jobId });
+
         const startedAt = Date.now();
         const jobLogger = createChildLogger({
           traceId: job.traceId,
@@ -67,7 +70,13 @@ export class WorkerPool {
             userId: job.userId,
             jobId: job.jobId,
           });
-          this.queue.publishResult({ jobId: job.jobId, ok: true, results, traceId: job.traceId, userId: job.userId });
+          this.queue.publishResult({
+            jobId: job.jobId,
+            ok: true,
+            results,
+            traceId: job.traceId,
+            userId: job.userId,
+          });
         } catch (error) {
           jobLogger.error({ err: error }, 'worker_execution_failed');
           if (isSentryEnabled()) {
@@ -96,7 +105,7 @@ export class WorkerPool {
         recordExecutionMetrics(results);
         jobLogger.info({ msg: 'worker_job_completed', durationMs, tests: summary });
       } catch (error) {
-        logger.error({ err: error }, '[worker] loop error');
+        logger.error({ err: error, workerId }, '[worker] loop error');
         if (isSentryEnabled()) {
           Sentry.captureException(error);
         }

@@ -24,14 +24,49 @@ export interface PythonExecutionResult {
   durationMs: number;
   usage?: PythonExecutionUsage;
   raw?: unknown;
+  svg?: string;
+  segments?: Array<{ len: number; deg: number }>;
 }
 
 const DEFAULT_TIMEOUT_MS = 3_000;
 const DEFAULT_CPU_LIMIT_SECONDS = 2.0;
 const DEFAULT_MEMORY_LIMIT_BYTES = 256 * 1024 * 1024;
-const DEFAULT_ALLOWED_MODULES = ['math', 'random', 'statistics'];
+const DEFAULT_ALLOWED_MODULES = ['math', 'random', 'statistics', 'turtle'];
 
 const runnerPath = path.resolve(__dirname, '../src/runtime/python_runner.py');
+
+function parseOutput(rawOutput: string): {
+  jsonOutput: string;
+  svg?: string;
+  segments?: Array<{ len: number; deg: number }>;
+} {
+  let jsonOutput = rawOutput;
+  let svg: string | undefined;
+  let segments: Array<{ len: number; deg: number }> | undefined;
+
+  // Extract SVG output
+  const svgStartMatch = rawOutput.match(/SVG_OUTPUT_START\n([\s\S]*?)\nSVG_OUTPUT_END/);
+  if (svgStartMatch) {
+    svg = svgStartMatch[1];
+    jsonOutput = jsonOutput.replace(/SVG_OUTPUT_START\n[\s\S]*?\nSVG_OUTPUT_END\n?/, '');
+  }
+
+  // Extract segments output
+  const segmentsStartMatch = rawOutput.match(
+    /SEGMENTS_OUTPUT_START\n([\s\S]*?)\nSEGMENTS_OUTPUT_END/,
+  );
+  if (segmentsStartMatch) {
+    try {
+      const segmentsData = JSON.parse(segmentsStartMatch[1]);
+      segments = segmentsData.segments;
+    } catch (error) {
+      // Ignore parsing errors for segments
+    }
+    jsonOutput = jsonOutput.replace(/SEGMENTS_OUTPUT_START\n[\s\S]*?\nSEGMENTS_OUTPUT_END\n?/, '');
+  }
+
+  return { jsonOutput: jsonOutput.trim(), svg, segments };
+}
 
 export async function runPythonTest(input: PythonExecutionInput): Promise<PythonExecutionResult> {
   const timeoutMs = Math.max(500, input.timeoutMs ?? DEFAULT_TIMEOUT_MS);
@@ -79,9 +114,11 @@ export async function runPythonTest(input: PythonExecutionInput): Promise<Python
     });
   });
 
-  const { code, signal } = await new Promise<{ code: number | null; signal: string | null }>((resolve) => {
-    child.on('close', (c, s) => resolve({ code: c, signal: s }));
-  });
+  const { code, signal } = await new Promise<{ code: number | null; signal: string | null }>(
+    (resolve) => {
+      child.on('close', (c, s) => resolve({ code: c, signal: s }));
+    },
+  );
 
   const durationMs = Date.now() - startedAt;
 
@@ -96,8 +133,11 @@ export async function runPythonTest(input: PythonExecutionInput): Promise<Python
     };
   }
 
+  // Parse output to extract JSON, SVG, and segments
+  const { jsonOutput, svg, segments } = parseOutput(stdout);
+
   try {
-    const parsed = JSON.parse(stdout || '{}');
+    const parsed = JSON.parse(jsonOutput || '{}');
     const usage = parseUsage(parsed.usage);
     return {
       stdout: typeof parsed.stdout === 'string' ? parsed.stdout : '',
@@ -108,15 +148,19 @@ export async function runPythonTest(input: PythonExecutionInput): Promise<Python
       durationMs,
       usage,
       raw: parsed,
+      svg,
+      segments,
     };
   } catch (error) {
     return {
-      stdout,
+      stdout: jsonOutput,
       stderr: stderr || `Failed to parse runner output: ${(error as Error).message}`,
       exitCode: code,
       timedOut: false,
       signal,
       durationMs,
+      svg,
+      segments,
     };
   }
 }
@@ -136,7 +180,10 @@ export interface BatchTestResult extends PythonExecutionResult {
 export async function runPythonBatch(
   source: string,
   tests: BatchTestInput[],
-  options?: Pick<PythonExecutionInput, 'allowedModules' | 'cpuSeconds' | 'memoryLimitBytes' | 'timeoutMs'>,
+  options?: Pick<
+    PythonExecutionInput,
+    'allowedModules' | 'cpuSeconds' | 'memoryLimitBytes' | 'timeoutMs'
+  >,
 ): Promise<BatchTestResult[]> {
   const items = tests.length ? tests : [{}];
   const results: BatchTestResult[] = [];

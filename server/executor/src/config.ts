@@ -6,10 +6,14 @@ const configSchema = z.object({
   queueKey: z.string().default('executor:tasks'),
   maxConcurrency: z.number().int().min(1).max(20).default(5),
   dockerImage: z.string().default('python:3.12-alpine'),
-  memoryBytes: z.number().int().min(64 * 1024 * 1024).default(256 * 1024 * 1024),
+  memoryBytes: z
+    .number()
+    .int()
+    .min(64 * 1024 * 1024)
+    .default(256 * 1024 * 1024),
   nanoCpus: z.number().int().min(1).default(1_000_000_000),
   executionTimeoutMs: z.number().int().min(500).default(3_000),
-  allowedModules: z.array(z.string()).default(['math', 'random', 'statistics']),
+  allowedModules: z.array(z.string()).default(['math', 'random', 'statistics', 'turtle']),
   dockerSocketPath: z.string().default('/var/run/docker.sock'),
   enableLocalFallback: z.boolean().default(true),
 });
@@ -32,9 +36,7 @@ export function loadConfig(): ExecutorConfig {
     memoryBytes: process.env.EXECUTOR_MEM_LIMIT
       ? Number(process.env.EXECUTOR_MEM_LIMIT)
       : undefined,
-    nanoCpus: process.env.EXECUTOR_NANO_CPUS
-      ? Number(process.env.EXECUTOR_NANO_CPUS)
-      : undefined,
+    nanoCpus: process.env.EXECUTOR_NANO_CPUS ? Number(process.env.EXECUTOR_NANO_CPUS) : undefined,
     executionTimeoutMs: process.env.EXECUTOR_TIMEOUT
       ? Number(process.env.EXECUTOR_TIMEOUT) * 1_000
       : undefined,

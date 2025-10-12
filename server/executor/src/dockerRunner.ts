@@ -83,11 +83,15 @@ export class DockerExecutor {
 
     for (const [index, test] of taskList.entries()) {
       const start = Date.now();
-      const result = await this.runInContainer({
-        source,
-        stdin: test.stdin,
-        timeoutMs: test.timeoutMs ?? this.options.executionTimeoutMs,
-      }, execLogger, index);
+      const result = await this.runInContainer(
+        {
+          source,
+          stdin: test.stdin,
+          timeoutMs: test.timeoutMs ?? this.options.executionTimeoutMs,
+        },
+        execLogger,
+        index,
+      );
       const durationMs = Date.now() - start;
       const passed =
         typeof test.expectedStdout === 'string'
@@ -114,6 +118,8 @@ export class DockerExecutor {
         expectedStdout: test.expectedStdout,
         passed,
         containerId: result.containerId,
+        svg: result.svg,
+        segments: result.segments,
       });
     }
 
@@ -124,18 +130,22 @@ export class DockerExecutor {
     { source, stdin, timeoutMs }: DockerExecutionRequest,
     log = logger,
     testIndex = 0,
-  ): Promise<DockerExecutionResult> {
+  ): Promise<
+    DockerExecutionResult & { svg?: string; segments?: Array<{ len: number; deg: number }> }
+  > {
     const startedAt = Date.now();
     const timeout = Math.max(500, timeoutMs ?? this.options.executionTimeoutMs);
 
     const container = await this.docker.createContainer({
       Image: this.options.image,
-      Cmd: ['python', '/opt/task/main.py'],
-      WorkingDir: '/opt/task',
-      OpenStdin: true,
+      // Read JSON input from file via shell redirection to avoid stdin attach issues
+      Cmd: ['sh', '-lc', 'python python_runner.py < input.json'],
+      WorkingDir: '/opt',
+      OpenStdin: false,
+      StdinOnce: false,
       AttachStdout: true,
       AttachStderr: true,
-      AttachStdin: true,
+      AttachStdin: false,
       Tty: false,
       HostConfig: {
         AutoRemove: true,
@@ -154,12 +164,53 @@ export class DockerExecutor {
     });
 
     const pack = tar.pack();
-    pack.entry({ name: 'task/main.py', mode: 0o644 }, source);
+
+    // Add files directly to /opt
+    pack.entry({ name: 'main.py', mode: 0o644 }, source);
+
+    // Copy turtle.py module to container for turtle_artist games
+    try {
+      const fs = await import('fs/promises');
+      const path = await import('path');
+      const turtlePath = path.resolve(__dirname, './runtime/turtle.py');
+      const turtleContent = await fs.readFile(turtlePath, 'utf8');
+      pack.entry({ name: 'turtle.py', mode: 0o644 }, turtleContent);
+    } catch (error) {
+      log.warn(
+        'Failed to copy turtle.py to container: %s',
+        error instanceof Error ? error.message : String(error),
+      );
+    }
+
+    // Copy python_runner.py to container
+    try {
+      const fs = await import('fs/promises');
+      const path = await import('path');
+      const runnerPath = path.resolve(__dirname, './runtime/python_runner.py');
+      const runnerContent = await fs.readFile(runnerPath, 'utf8');
+      pack.entry({ name: 'python_runner.py', mode: 0o644 }, runnerContent);
+    } catch (error) {
+      log.warn(
+        'Failed to copy python_runner.py to container: %s',
+        error instanceof Error ? error.message : String(error),
+      );
+    }
+
+    // Prepare JSON input file to avoid stdin streaming
+    const input = JSON.stringify({ source, stdin: stdin || '' });
+    pack.entry({ name: 'input.json', mode: 0o644 }, input);
     pack.finalize();
 
+    // Put archive to /opt - files will be extracted directly to /opt
     await container.putArchive(pack, { path: '/opt' });
 
-    const stream = await container.attach({ stream: true, stdout: true, stderr: true, stdin: true });
+    // Attach only stdout/stderr; stdin is handled via input.json
+    const stream = await container.attach({
+      stream: true,
+      stdout: true,
+      stderr: true,
+      stdin: false,
+    });
 
     const stdoutChunks: Buffer[] = [];
     const stderrChunks: Buffer[] = [];
@@ -169,9 +220,24 @@ export class DockerExecutor {
 
     this.docker.modem.demuxStream(stream, stdoutStream, stderrStream);
 
-    stdoutStream.on('data', (chunk) => stdoutChunks.push(chunk as Buffer));
-    stderrStream.on('data', (chunk) => stderrChunks.push(chunk as Buffer));
+    stdoutStream.on('data', (chunk) => {
+      log.info({ msg: 'stdout_chunk_received', chunkLength: chunk.length, testIndex });
+      stdoutChunks.push(chunk as Buffer);
+    });
+    stderrStream.on('data', (chunk) => {
+      log.info({ msg: 'stderr_chunk_received', chunkLength: chunk.length, testIndex });
+      stderrChunks.push(chunk as Buffer);
+    });
 
+    // Log prepared input length for traceability
+    log.info({
+      msg: 'prepared_input_file',
+      containerId: container.id,
+      inputLength: input.length,
+      testIndex,
+    });
+
+    // Start container first
     await container.start();
 
     log.info({
@@ -181,10 +247,7 @@ export class DockerExecutor {
       testIndex,
     });
 
-    if (stdin) {
-      stream.write(stdin);
-    }
-    stream.end();
+    // No stdin writing; input is read from file by shell redirection
 
     let timedOut = false;
     const timer = setTimeout(async () => {
@@ -207,6 +270,33 @@ export class DockerExecutor {
     const stdout = Buffer.concat(stdoutChunks).toString();
     const stderr = Buffer.concat(stderrChunks).toString();
 
+    // Parse turtle output from stdout
+    let svg: string | undefined;
+    let segments: Array<{ len: number; deg: number }> | undefined;
+
+    try {
+      // Look for JSON output in stdout
+      const lines = stdout.split('\n');
+      for (const line of lines) {
+        if (line.trim().startsWith('{') && line.trim().endsWith('}')) {
+          try {
+            const parsed = JSON.parse(line.trim());
+            if (parsed.svg) {
+              svg = parsed.svg;
+            }
+            if (parsed.segments) {
+              segments = parsed.segments;
+            }
+            break;
+          } catch (e) {
+            // Continue to next line
+          }
+        }
+      }
+    } catch (error) {
+      // Ignore parsing errors
+    }
+
     return {
       stdout,
       stderr,
@@ -215,6 +305,8 @@ export class DockerExecutor {
       signal: null,
       containerId: container.id,
       durationMs: Date.now() - startedAt,
+      svg,
+      segments,
     };
   }
 }
